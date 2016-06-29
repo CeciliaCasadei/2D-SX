@@ -127,7 +127,7 @@ def processing(myArguments):
     
     
     ### FOLDERS ###
-    processingFolder = './Output/UnassembledImageProcessing'        
+    processingFolder = './Output_r%s/UnassembledImageProcessing'%runNumber        
     if not os.path.exists(processingFolder):
         os.mkdir(processingFolder)
     processingFiguresFolder = '%s/BgSubtractionAndPeakSearchPlots'%processingFolder
@@ -143,7 +143,7 @@ def processing(myArguments):
     #plotGeometry.plotGeometry(xGeometry_np, yGeometry_np)
     
     ### EXTRACT LATTICES ###    
-    latticeObjectsPath = './Output/OrientationAndCellRefinement/r%s_refinedLatticesDictionary.pkl'%runNumber
+    latticeObjectsPath = './Output_r%s/OrientationAndCellRefinement/r%s_refinedLatticesDictionary.pkl'%(runNumber, runNumber)
     fLattices = open(latticeObjectsPath, 'rb')
     latticesDictionary = pickle.load(fLattices)
     fLattices.close()

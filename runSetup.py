@@ -9,7 +9,7 @@ import os
 
 # SETUP FOR CURRENT RUN
 
-runNumber = '0201'
+runNumber = '0195'
 
 # OUTPUT FOLDER
 outFolder = './Output_r%s'%runNumber
@@ -19,7 +19,7 @@ if not os.path.exists(outFolder):
 
 
 # LOG CURRENT SETTINGS
-os.system('cp ./runSetup.py ./Output_r%s/runSetup.log'%runNumber)
+os.system('cp ./runSetup-r0195.py ./Output_r%s/runSetup.log'%runNumber)
 
 
 
@@ -38,7 +38,7 @@ if flag == 1:
 
 
 # STORE IMAGE OBJECTS
-tiltAngle = 20               # degrees 
+tiltAngle = 15               # degrees 
 imageListDirectory = '%s/ImageLists'%outFolder
 
 flag = 0
@@ -62,7 +62,7 @@ if flag == 1:
 # EXTRACT INFO FROM CHEETAH peaks.txt
 selectedImageList = '%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(outFolder, runNumber)
 peaksFile = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
-geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/2d_mx_processing/UnassembledData/r0195-all-nobgsub/geometry.h5' # same for all runs
+geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
 pixelSize = 0.000110         # m
 
 flag = 0
@@ -127,7 +127,7 @@ if flag == 1:
                
                
 # PLOT REFINED LATTICES
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python plotRefinedLattices.py --runNumber %s'%runNumber)
 
@@ -155,3 +155,68 @@ if flag == 1:
 #                                    --lowResLimit <lowResLimit> --highResLimit <highResLimit>
 #                                    --nCountsPerPhoton <nCountsPerPhoton> --integrationRadius <integrationRadius> --geometryFile <geometryFile>'
 #                                    --imageFolder <imageFolder> --imageSelection <imageSelection> --latticeSelection <latticeSelection>' 
+               
+               
+               
+# MAKE LIST OF SPOT MATRICES
+flag = 0
+if flag == 1:
+    os.system('python transform_makeSpotsMatrix.py --runNumber %s'%runNumber)
+    
+    
+    
+# DETERMINE TRANSFORMATIONS
+deltaQrodThreshold = 0.005
+deltaSelfThreshold = 0
+n_minThreshold = 6
+nSeeds = 6
+nUsedLattices = 'all'
+nTriangles = 100
+    
+flag = 0
+if flag == 1:
+    os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --dSelf %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d'
+              %(runNumber, deltaQrodThreshold, deltaSelfThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles))
+              
+              
+              
+# DETERMINE TRANSFORMATIONS - SEEDS COMPARISON
+flag = 0
+if flag == 1:
+    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f --dSelf %f'
+               %(runNumber, nSeeds, deltaQrodThreshold, deltaSelfThreshold))
+               
+
+               
+# APPLY TRANSFORMATIONS
+flag = 0
+if flag == 1:
+    os.system('python transform_applyTransformations.py --runNumber %s'%runNumber)
+    
+    
+    
+# SCALING
+flag = 0
+if flag == 1:
+    os.system('python scaling.py --runNumber %s'%runNumber)
+    
+    
+    
+# SCALING - SEEDS COMPARISON
+flag = 0
+if flag == 1:
+    os.system('python scaling_seedComparison.py --runNumber %s'%runNumber)
+    
+    
+    
+# SCALING - APPLY SCALES
+flag = 0
+if flag == 1:
+    os.system('python scaling_applyScales.py --runNumber %s'%runNumber)
+        
+    
+    
+# PLOT RODS
+flag = 1
+if flag == 1:
+    os.system('python plotRods.py --runNumber %s'%runNumber)

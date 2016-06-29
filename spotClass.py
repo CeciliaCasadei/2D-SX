@@ -116,5 +116,5 @@ class diffractionSpot:
      
         matplotlib.pyplot.tight_layout()
         matplotlib.pyplot.subplots_adjust(top=0.9)      
-        matplotlib.pyplot.savefig('./Output/UnassembledImageProcessing/BgSubtractionAndPeakSearchPlots/r%s_img%s_lattice%s_spot%d.png'%(runNumber, imageNumber, latticeNumberInImage, self.n), dpi = 4*96)
+        matplotlib.pyplot.savefig('./Output_r%s/UnassembledImageProcessing/BgSubtractionAndPeakSearchPlots/r%s_img%s_lattice%s_spot%d.png'%(runNumber, runNumber, imageNumber, latticeNumberInImage, self.n), dpi = 4*96)
         matplotlib.pyplot.close()        

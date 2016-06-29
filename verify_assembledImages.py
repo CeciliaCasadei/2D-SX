@@ -24,7 +24,7 @@ def verifyAssembledImagesFunction(myArguments):
             imageFolderName = value
             
     # DISPLAY ASSEMBLED IMAGE
-    pklFile = './Output_%s/ExtractExperimentalInfo/r%s_imagesDictionary.pkl'%(runNumber, runNumber)
+    pklFile = './Output_r%s/ExtractExperimentalInfo/r%s_imagesDictionary.pkl'%(runNumber, runNumber)
     if not os.path.exists(pklFile):
         print 'File %s not found'%pklFile
     else:
