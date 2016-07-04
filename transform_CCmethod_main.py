@@ -140,7 +140,7 @@ def main(myArguments):
                                     else:
                                         nBad = nBad + 1
                                     
-                    if nGood+nBad >= 40 and float(nGood)/(nGood+nBad) >= 0.60:
+                    if nGood+nBad >= 40 and float(nGood)/(nGood+nBad) >= 0.70:
                         fOpen.write('Lattice %s, Orientation: %s (nGood = %d, nBad = %d)\n'%(firstNeighbor, transformation_SeedTo1stN, nGood, nBad))
                         print 'Lattice %s, Orientation: %s (nGood = %d, nBad = %d)\n'%(firstNeighbor, transformation_SeedTo1stN, nGood, nBad)
                     else:
