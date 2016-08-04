@@ -38,7 +38,7 @@ def scaling_applyScalesFunction(myArguments):
                 scaledI = spot[5] * latticeScale
                 scaledSpot = [spot[0], spot[1], spot[2], spot[3], spot[4], spot[5], spot[6], spot[7], scaledI]
                 scaledSpotsMatrix.append(scaledSpot)
-        scaledSpotsMatrix = numpy.asarray(scaledSpotsMatrix) # n h k qRod I Icorrected h_transformed k_transformed
+        scaledSpotsMatrix = numpy.asarray(scaledSpotsMatrix) # n h k qRod I Icorrected h_transformed k_transformed Iscaled
         scaledSpotMatricesList.append(scaledSpotsMatrix)
         print 'Lattice: %d - Scale: %.3f - scaledSpotMatricesList: (%d, %d)'%(lattice, latticeScale, scaledSpotsMatrix.shape[0], scaledSpotsMatrix.shape[1])
     

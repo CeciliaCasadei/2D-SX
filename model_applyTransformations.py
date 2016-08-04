@@ -32,20 +32,21 @@ def transform_applyTransformationsFunction(myArguments):
     try:
         optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber="])
     except getopt.GetoptError:
-        print 'Usage: python transform_applyTransformations.py --runNumber <runNumber>'
+        print 'Usage: python model_applyTransformations.py --runNumber <runNumber>'
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python transform_applyTransformations.py --runNumber <runNumber>'
+            print 'Usage: python model_applyTransformations.py --runNumber <runNumber>'
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
 
-    outputFolder = './Output_r%s/transformAndScale'%runNumber
+    inputFolder = './Output_r%s/transformAndScale'%runNumber
+    outputFolder = './Output_runMerging/transformAndScaleToModel_r%s'%runNumber
 
 
-    spotsMatricesList = joblib.load('%s/spotsMatricesList-r%s/r%s_spotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))
-    latticeOrientations = joblib.load('%s/r%s-finalOrientations.jbl'%(outputFolder, runNumber))
+    spotsMatricesList = joblib.load('%s/spotsMatricesList-r%s/r%s_spotsMatricesList.jbl'%(inputFolder, runNumber, runNumber))
+    latticeOrientations = joblib.load('%s/r%s_orientationsVsModel.jbl'%(outputFolder, runNumber))
     nLattices = len(latticeOrientations)  # equal to len(spotsMatricesList)
     
     transformedSpotMatricesList = []

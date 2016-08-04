@@ -44,16 +44,29 @@ def plotRodsFunction(myArguments):
                 if (h_transformed == hRod and k_transformed == kRod) or (h_transformed == -hRod-kRod and k_transformed == hRod) or (h_transformed == kRod and k_transformed == -hRod-kRod):
                     Irod_vector.append(spot[8])
                     Qrod_vector.append(spot[3])
+                    
                 if (h_transformed == -hRod and k_transformed == -kRod) or (h_transformed == hRod+kRod and k_transformed == -hRod) or (h_transformed == -kRod and k_transformed == hRod+kRod):
                     Irod_vector.append(spot[8])
                     Qrod_vector.append(-spot[3])
-                    
+
         matplotlib.pyplot.scatter(Qrod_vector, Irod_vector, marker='.', color='b')
         if not os.path.exists('%s/Rods'%outputFolder):
             os.mkdir('%s/Rods'%outputFolder)
         matplotlib.pyplot.savefig('%s/Rods/r%s_rod_%d_%d.png'%(outputFolder, runNumber, hRod, kRod))
         matplotlib.pyplot.close()
-    
+        
+        matplotlib.pyplot.figure(facecolor = 'w')
+        (n, bins, patches) = matplotlib.pyplot.hist(Qrod_vector, bins=60)
+        matplotlib.pyplot.savefig('%s/Rods/r%s_rod_%d_%d_QrodDistribution.png'%(outputFolder, runNumber, hRod, kRod))
+        matplotlib.pyplot.close()
+
+# Run0198: Rod gaps are due to nan Intensities (i.e. integration circles touching detector gaps)
+#        if runNumber == '0198':
+#            if hRod == 1 and kRod == 3:
+#                for i in range(0, len(Qrod_vector)):
+#                    if 0.019 < Qrod_vector[i] < 0.026 or -0.026 < Qrod_vector[i] < -0.019:
+#                        print 'Found qRod = %f I = %f'%(Qrod_vector[i], Irod_vector[i])
+                     
 if __name__ == "__main__":
     print "\n**** CALLING plotRods ****"
     plotRodsFunction(sys.argv[1:])    

@@ -44,7 +44,7 @@ def transform_makeSpotsMatrixFunction(myArguments):
         spotsMatrix2D = joblib.load(myLatticeFile)  ### n h k qRod I Icorrected
         spotsMatrix2D = numpy.asarray(spotsMatrix2D, dtype=numpy.float32)
         print spotsMatrix2D.shape
-        spotsMatricesList.append(spotsMatrix2D)  #spotsMatricesList[lattice n in list.txt][n spot]
+        spotsMatricesList.append(spotsMatrix2D)     ### spotsMatricesList[lattice n in list.txt][n spot]
                
     nLattices = len(spotsMatricesList)
     print 'N lattices: %d'%nLattices
