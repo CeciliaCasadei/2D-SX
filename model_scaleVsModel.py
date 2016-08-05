@@ -44,7 +44,7 @@ def scalingFunction(myArguments):
    
     # SCALE LATTICES WITH RESPECT TO MODEL  
     startTime = time.time()
-    LtoModel_vector = []
+    #LtoModel_vector = []
     scaledLattices_list = []
     nScaled = 0
     
@@ -59,7 +59,7 @@ def scalingFunction(myArguments):
         if spots1stN.shape[1] == 6:
             scale = numpy.nan
             fOpen.write('Lattice %s, Bad 1st N (non oriented)\n'%firstNeighbor)
-            LtoModel_vector.append(scale)
+            #LtoModel_vector.append(scale)
             continue
         
         print 'New 1st neighbor. Lattice %d'%firstNeighbor                
@@ -103,19 +103,19 @@ def scalingFunction(myArguments):
                 scale = numpy.nan
                 fOpen.write('Lattice %s, Scaling: N\A (nGood = %d, nBad = %d)\n'%(firstNeighbor, nGood, nBad)) 
                
-        LtoModel_vector.append(scale) # lattice to model
+        #LtoModel_vector.append(scale) # lattice to model
         scaledLattices_list.append(spots1stN_scaled) # list of numpy 2D arrays: h_transformed k_transformed qRod I_scaled
     
     scaledFraction = float(nScaled)/nLattices
-    fOpen.write('/nFraction of scaled lattices: %.2f.'%scaledFraction)    
+    fOpen.write('\nFraction of scaled lattices: %.2f.'%scaledFraction)    
     runTime = time.time() - startTime
     fOpen.write('\nIt took: %.1f s'%runTime)
     fOpen.close
                 
-    joblib.dump(LtoModel_vector, '%s/r%s-scaling.jbl'%(outputFolder, runNumber))
-    if not os.path.exists('%s/r%s-scaledLatticesList'%(outputFolder, runNumber)):
-        os.mkdir('%s/r%s-scaledLatticesList'%(outputFolder, runNumber))
-    joblib.dump(scaledLattices_list, '%s/r%s-scaledLatticesList/r%s-scaledLatticesList.jbl'%(outputFolder, runNumber, runNumber))
+    #joblib.dump(LtoModel_vector, '%s/r%s-scaling.jbl'%(outputFolder, runNumber))
+    if not os.path.exists('%s/r%s_scaledLatticesList'%(outputFolder, runNumber)):
+        os.mkdir('%s/r%s_scaledLatticesList'%(outputFolder, runNumber))
+    joblib.dump(scaledLattices_list, '%s/r%s_scaledLatticesList/r%s_scaledLatticesList.jbl'%(outputFolder, runNumber, runNumber))
     
 if __name__ == "__main__":
     print "\n**** CALLING model_scaleVsModel ****"
