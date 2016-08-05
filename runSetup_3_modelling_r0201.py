@@ -15,14 +15,14 @@ nTriangles = 100
 nGoodFraction = 0.6
 
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python model_transformVsModel.py --runNumber %s --dQrod %f --nMin %d --nLattices %s --nTriangles %d --nGoodFraction %f'
     %(runNumber, deltaQrodThreshold, n_minThreshold, nUsedLattices, nTriangles, nGoodFraction))
     
     
 # APLLY INDICES TRANSFORMATIONS
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python model_applyTransformations.py --runNumber %s'%runNumber)
 

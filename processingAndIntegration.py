@@ -590,16 +590,11 @@ def processing(myArguments):
                                                                        integratedSpot[2], integratedSpot[3],
                                                                        integratedSpot[4], integratedSpot[5]))
             integrationFile.close()
-            
-#            ### SAVE LATTICE ###
-#            myLattice.spotsDictionary = spotsDictionary
-#            joblib.dump(myLattice, '%s/SingleLattice_r%s_Img%s_Lattice%s.jbl'
-#                                    %(processingFolder, myLattice.runNumber, myLattice.imageNumber, myLattice.latticeNumberInImage))    
-            
-            
+
             ### MINIMUM OUTPUT ###
+            imageNumber = myLattice.imageNumber.zfill(4)
             joblib.dump(orderedIntegratedIntensities, '%s/OrderedIntegratedIntensities_r%s_Img%s_Lattice%s.jbl'
-                                                       %(processingFolder, myLattice.runNumber, myLattice.imageNumber, myLattice.latticeNumberInImage))    
+                                                       %(processingFolder, myLattice.runNumber, imageNumber, myLattice.latticeNumberInImage))    
             
 if __name__ == "__main__":
     print "\n**** CALLING processing ****"

@@ -80,11 +80,11 @@ class diffractionSpot:
         ax4.tick_params(axis='both', which='major', labelsize=6)
         ax4.set_title('CONNECTED PEAKS', fontsize=5)
         im4 = ax4.imshow(self.peakDetectionMask, origin='lower', interpolation='nearest', vmin = 0, vmax = 1) 
-        matplotlib.pyplot.axhline(y=self.i, xmin=0, xmax=boxWidth, linewidth=0.1, color = 'r')
-        matplotlib.pyplot.axvline(x=self.j, ymin=0, ymax=boxWidth, linewidth=0.1, color = 'r')
+        matplotlib.pyplot.axhline(y=self.i, xmin=0, xmax=boxWidth, linewidth=0.3, color = 'r')
+        matplotlib.pyplot.axvline(x=self.j, ymin=0, ymax=boxWidth, linewidth=0.3, color = 'r')
         if self.iFinal >= 0 and self.jFinal >= 0:
-            matplotlib.pyplot.axhline(y=self.iFinal, xmin=0, xmax=boxWidth, linewidth=0.1, color = 'b')
-            matplotlib.pyplot.axvline(x=self.jFinal, ymin=0, ymax=boxWidth, linewidth=0.1, color = 'b')
+            matplotlib.pyplot.axhline(y=self.iFinal, xmin=0, xmax=boxWidth, linewidth=0.3, color = 'b')
+            matplotlib.pyplot.axvline(x=self.jFinal, ymin=0, ymax=boxWidth, linewidth=0.3, color = 'b')
         im4.set_cmap('Blues')
 
         ax5 = myFigure.add_subplot(325)   
@@ -92,8 +92,8 @@ class diffractionSpot:
         ax5.set_title('INTEGRATION CIRCLE', fontsize=5)
         im5 = ax5.imshow(self.bgSubtractedBoxMatrix, origin='lower', interpolation='nearest', vmin = 0, vmax = 100) 
         if self.iFinal >= 0 and self.jFinal >= 0:
-            matplotlib.pyplot.axhline(y=self.iFinal, xmin=0, xmax=boxWidth, linewidth=0.5, color = 'w')
-            matplotlib.pyplot.axvline(x=self.jFinal, ymin=0, ymax=boxWidth, linewidth=0.5, color = 'w')
+            matplotlib.pyplot.axhline(y=self.iFinal, xmin=0, xmax=boxWidth, linewidth=0.3, color = 'w')
+            matplotlib.pyplot.axvline(x=self.jFinal, ymin=0, ymax=boxWidth, linewidth=0.3, color = 'w')
             circle = matplotlib.pyplot.Circle((self.jFinal, self.iFinal), self.integrationRadius, linewidth=0.5, color='w', fill = False)
             ax5.add_artist(circle)
         divider5 = make_axes_locatable(ax5)    
@@ -107,11 +107,11 @@ class diffractionSpot:
             ax6.tick_params(axis='both', which='major', labelsize=6)
             ax6.set_title('INTEGRATION MASK (FLAG %d)'%self.integrationFlag, fontsize=5)
             im6 = ax6.imshow(self.integrationMask, origin='lower', interpolation='nearest', vmin = 0, vmax = 1) 
-            matplotlib.pyplot.axhline(y=self.i, xmin=0, xmax=boxWidth, linewidth=0.1, color = 'r')
-            matplotlib.pyplot.axvline(x=self.j, ymin=0, ymax=boxWidth, linewidth=0.1, color = 'r')
+            matplotlib.pyplot.axhline(y=self.i, xmin=0, xmax=boxWidth, linewidth=0.3, color = 'r')
+            matplotlib.pyplot.axvline(x=self.j, ymin=0, ymax=boxWidth, linewidth=0.3, color = 'r')
             if self.iFinal >= 0 and self.jFinal >= 0:
-                matplotlib.pyplot.axhline(y=self.iFinal, xmin=0, xmax=boxWidth, linewidth=0.1, color = 'b')
-                matplotlib.pyplot.axvline(x=self.jFinal, ymin=0, ymax=boxWidth, linewidth=0.1, color = 'b')                
+                matplotlib.pyplot.axhline(y=self.iFinal, xmin=0, xmax=boxWidth, linewidth=0.3, color = 'b')
+                matplotlib.pyplot.axvline(x=self.jFinal, ymin=0, ymax=boxWidth, linewidth=0.3, color = 'b')                
             im6.set_cmap('BuPu')
      
         matplotlib.pyplot.tight_layout()

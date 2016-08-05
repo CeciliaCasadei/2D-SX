@@ -8,6 +8,7 @@ import sys
 import os
 
 import scaling_calculateScaleFactor
+import scaling_calculateScaleFactor_model
 
 def scalingFunction(myArguments):
     
@@ -37,17 +38,10 @@ def scalingFunction(myArguments):
     myList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))
     nLattices = len(myList)
     
-    # BUILD MATRIX n h k qRod I I h k FROM MODEL (polynomial fit of data)        
+    # LOAD MODEL: h k qRod I        
     lattice_model = joblib.load('./Output_runMerging/startModel/lattice_model.jbl')
     lattice_model = numpy.asarray(lattice_model, dtype=numpy.float32)
-    lattice_modelForScaling = []
-    for spot in lattice_model:
-        spot_forScaling = [spot[0], spot[1], spot[2], spot[3], spot[4], spot[5], spot[1], spot[2]]
-        lattice_modelForScaling.append(spot_forScaling)
-    lattice_modelForScaling = numpy.asarray(lattice_modelForScaling, dtype=numpy.float32) ### MODEL n h k qRod I I h k 
-            
-    joblib.dump(lattice_modelForScaling, './Output_runMerging/startModel/lattice_modelForScaling.jbl')
-    
+   
     # SCALE LATTICES WITH RESPECT TO MODEL  
     startTime = time.time()
     LtoModel_vector = []
@@ -73,7 +67,7 @@ def scalingFunction(myArguments):
         nBad = 0
         
         spots1stN = numpy.asarray(spots1stN, dtype=numpy.float32) # n h k qRod I Icorrected h_transformed k_transformed
-        n_min, scale_ModelTo1stN = scaling_calculateScaleFactor.calculateScaleFactorFunction(lattice_modelForScaling, spots1stN, deltaQrodThreshold)
+        n_min, scale_modelTo1stN = scaling_calculateScaleFactor_model.calculateScaleFactorFunction(lattice_model, spots1stN, deltaQrodThreshold)
         if n_min < n_minThreshold:
             scale = numpy.nan
             fOpen.write('Lattice %s, Bad 1st N\n'%firstNeighbor)
@@ -85,9 +79,11 @@ def scalingFunction(myArguments):
                     spots2ndN = numpy.asarray(spots2ndN, dtype=numpy.float32)
                     n_min, scale_1stNto2ndN = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots1stN, spots2ndN, 3*deltaQrodThreshold)
                     if n_min >= n_minThreshold:
-                        n_min, scale_2ndNtoModel = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots2ndN, lattice_modelForScaling, deltaQrodThreshold)
+                        n_min, scale_modelTo2ndN = scaling_calculateScaleFactor_model.calculateScaleFactorFunction(lattice_model, spots2ndN, deltaQrodThreshold)
+                        scale_2ndNtoModel = float(1)/scale_modelTo2ndN
+                        #n_min, scale_2ndNtoModel = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots2ndN, lattice_modelForScaling, deltaQrodThreshold)
                         if n_min >= n_minThreshold:
-                            product = scale_ModelTo1stN*scale_1stNto2ndN*scale_2ndNtoModel
+                            product = scale_modelTo1stN*scale_1stNto2ndN*scale_2ndNtoModel
                             print product
                             if abs(product-1) <= productThreshold:
                                 nGood = nGood + 1
@@ -96,7 +92,7 @@ def scalingFunction(myArguments):
                             
             if nGood+nBad >= 10 and float(nGood)/(nGood+nBad) >= 0.70:
                 nScaled = nScaled + 1
-                scale = float(1)/scale_ModelTo1stN
+                scale = float(1)/scale_modelTo1stN
                 fOpen.write('Lattice %s, Scale: %.3f (nGood = %d, nBad = %d)\n'%(firstNeighbor, scale, nGood, nBad))
                 spots1stN_scaled = []
                 for spot in spots1stN:
@@ -122,5 +118,5 @@ def scalingFunction(myArguments):
     joblib.dump(scaledLattices_list, '%s/r%s-scaledLatticesList/r%s-scaledLatticesList.jbl'%(outputFolder, runNumber, runNumber))
     
 if __name__ == "__main__":
-    print "\n**** CALLING scaling ****"
+    print "\n**** CALLING model_scaleVsModel ****"
     scalingFunction(sys.argv[1:])    

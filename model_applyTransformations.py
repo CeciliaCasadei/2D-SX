@@ -78,5 +78,5 @@ def transform_applyTransformationsFunction(myArguments):
     joblib.dump(transformedSpotMatricesList, '%s/r%s_transformedSpotsMatricesList.jbl'%(outputPath, runNumber))
 
 if __name__ == "__main__":
-    print "\n**** CALLING transform_applyTransformations ****"
+    print "\n**** CALLING model_applyTransformations ****"
     transform_applyTransformationsFunction(sys.argv[1:])    
