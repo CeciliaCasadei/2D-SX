@@ -31,4 +31,3 @@ if flag == 1:
 flag = 1
 if flag == 1:
     os.system('python model_scaleVsModel_optimized.py --runNumber %s'%runNumber)
-
