@@ -63,7 +63,7 @@ def transform_seedComparisonFunction(myArguments):
         
 
     outputFolder = './Output_r%s/transformAndScale'%runNumber
-    orientationsList = joblib.load('%s/r%s-%dseeds-dQrod%.3f-dSelf%.3f-orientations.jbl'%(outputFolder, runNumber, nSeeds, deltaQrodThreshold, deltaSelfThreshold))
+    orientationsList = joblib.load('%s/r%s-%dseeds-dQrod%.3f-orientations.jbl'%(outputFolder, runNumber, nSeeds, deltaQrodThreshold, deltaSelfThreshold))
    
     # FOR EACH SEED, COUNT N OF ORIENTED LATTICES 
     seedScores = []  

@@ -571,24 +571,22 @@ def processing(myArguments):
                         I_data[j] = iTemp  
                         Ic_data[j] = icTemp
                         
-            orderedIntegratedIntensities = numpy.zeros((len(integratedPeaks), 6))
+            orderedIntegratedIntensities = numpy.zeros((len(integratedPeaks), 4))
             for i in range(0, len(integratedPeaks)):
-                    orderedIntegratedIntensities[i,0]=n_data[i]
-                    orderedIntegratedIntensities[i,1]=h_data[i]
-                    orderedIntegratedIntensities[i,2]=k_data[i]
-                    orderedIntegratedIntensities[i,3]=qRod_data[i]
-                    orderedIntegratedIntensities[i,4]=I_data[i]  
-                    orderedIntegratedIntensities[i,5]=Ic_data[i]
+                    orderedIntegratedIntensities[i,0]=h_data[i]
+                    orderedIntegratedIntensities[i,1]=k_data[i]
+                    orderedIntegratedIntensities[i,2]=qRod_data[i]
+                    orderedIntegratedIntensities[i,3]=Ic_data[i]
                     
             myLattice.orderedIntegratedIntensities = orderedIntegratedIntensities
             
             ### LOGGING ###
             integrationFile = open('%s/integration_r%s_img%s_lattice%s.txt'%(processingFolder, myLattice.runNumber, myLattice.imageNumber, myLattice.latticeNumberInImage), 'w')
             integrationFile.write('    n    h    k        qRod      I (ph)    I corrected\n\n')        
-            for integratedSpot in orderedIntegratedIntensities:
-                integrationFile.write('%5d%5d%5d%12.5f%12.3f%15.3f\n'%(integratedSpot[0], integratedSpot[1], 
-                                                                       integratedSpot[2], integratedSpot[3],
-                                                                       integratedSpot[4], integratedSpot[5]))
+            for index in range(0, len(n_data)):
+                integrationFile.write('%5d%5d%5d%12.5f%12.3f%15.3f\n'%(n_data[index], h_data[index], 
+                                                                       k_data[index], qRod_data[index],
+                                                                       I_data[index], Ic_data[index]))
             integrationFile.close()
 
             ### MINIMUM OUTPUT ###

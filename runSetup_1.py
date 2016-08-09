@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
 
-# INSTRUCTIONS: 
-# python runSetup_1_rXXXX.py
-# python runSetup_1_rXXXX.py > log.log
-
+from runSetup_tiltAngles import tiltAngles
 
 
 # SETUP FOR CURRENT RUN
+if len(sys.argv) != 2:
+    print("[USAGE] %s runnumber" % sys.argv[0])
+    sys.exit(-1)
 
-runNumber = '0195'
+runNumber = '%04d' % int(sys.argv[1])
 
 # OUTPUT FOLDER
 outFolder = './Output_r%s'%runNumber
@@ -18,17 +19,14 @@ if not os.path.exists(outFolder):
 
 
 
-# LOG CURRENT SETTINGS
-os.system('cp ./runSetup_1_r0195.py ./Output_r%s/runSetup.log'%runNumber)
-
-
 
 # CHECK CHEETAH PREPROCESSING RESULTS
 # python checkH5content.py --runNumber <runNumber> --label <label>
 
 
 # MAKE IMAGE LIST
-imagesDirectoryName = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_@_LCLS/r%s-images/data1'%runNumber
+#imagesDirectoryName = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_@_LCLS/r%s-images/data1'%runNumber
+imagesDirectoryName = '/mnt/das-gpfs/home/casadei_c/work/casadei/UNIX_@_LCLS/r%s-images/data1'%runNumber
 
 flag = 1
 if flag == 1:
@@ -38,7 +36,7 @@ if flag == 1:
 
 
 # STORE IMAGE OBJECTS
-tiltAngle = 15               # degrees 
+tiltAngle = float(tiltAngles['%s'%runNumber])              # degrees 
 imageListDirectory = '%s/ImageLists'%outFolder
 
 flag = 1
@@ -61,8 +59,10 @@ if flag == 1:
 
 # EXTRACT INFO FROM CHEETAH peaks.txt
 selectedImageList = '%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(outFolder, runNumber)
-peaksFile = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
-geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
+#peaksFile = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
+#geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
+peaksFile = '/mnt/das-gpfs/home/casadei_c/work/casadei/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
+geometryFile = '/mnt/das-gpfs/home/casadei_c/work/casadei/Geometry/geometry.h5' # same for all runs
 pixelSize = 0.000110         # m
 
 flag = 1
@@ -119,7 +119,7 @@ nOrientationRefSteps = 21
 widthSizeRefSteps = 0.004
 widthOrientationRefSteps = 0.2
     
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python orientationAndCellRefinement.py --referenceCellSize %f --runNumber %s --nSizeRefSteps %d --nOrientationRefSteps %d --widthSizeRefSteps %f --widthOrientationRefSteps %f --hmax %d --kmax %d --resolutionLimit %f'
                %(referenceCellSize, runNumber, nSizeRefSteps, nOrientationRefSteps, widthSizeRefSteps, widthOrientationRefSteps, hmax, kmax, resolutionLimit))
@@ -136,13 +136,13 @@ if flag == 1:
 # IMAGE PROCESSING
 bgSubtractionMethod = 'plane'
 minimizationMethod = '4Dbf'    # 4Dbf or Powell
-lowResLimit = 55.0
+lowResLimit = 50.0
 highResLimit = 7.1
 nCountsPerPhoton = 26
 integrationRadius = 5
-fractionDetectedThreshold = 0.55
+fractionDetectedThreshold = 0.5
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python processingAndIntegration.py --runNumber %s --bgSubtractionMethod %s --minimizationMethod %s --lowResLimit %f --highResLimit %f --nCountsPerPhoton %d --integrationRadius %d --geometryFile %s --imageFolder %s --fractionDetectedThreshold %f'
                %(runNumber, bgSubtractionMethod, minimizationMethod, lowResLimit, highResLimit, nCountsPerPhoton, integrationRadius, geometryFile, imagesDirectoryName, fractionDetectedThreshold))
@@ -172,12 +172,11 @@ n_minThreshold = 6
 nSeeds = 6
 nUsedLattices = 'all'
 nTriangles = 100
-nGoodFraction = 0.7
     
 flag = 0
 if flag == 1:
-    os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --dSelf %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d --nGoodFraction %f'
-              %(runNumber, deltaQrodThreshold, deltaSelfThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles, nGoodFraction))
+    os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --dSelf %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d'
+              %(runNumber, deltaQrodThreshold, deltaSelfThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles))
               
               
               

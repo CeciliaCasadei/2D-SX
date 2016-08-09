@@ -51,25 +51,37 @@ def transform_applyTransformationsFunction(myArguments):
     transformedSpotMatricesList = []
     for lattice in range(0, nLattices):
         latticeOrientation = latticeOrientations[lattice]
-        spotsMatrix = spotsMatricesList[lattice] # n h k qRod I Icorrected
-        print 'Lattice: %d - Orientation: %s - spotsMatrix: (%d, %d)'%(lattice, latticeOrientation, spotsMatrix.shape[0], spotsMatrix.shape[1])
+        spotsMatrix = spotsMatricesList[lattice] # h k qRod I 
+        print 'Lattice: %d - Orientation: %s'%(lattice, latticeOrientation)
         if numpy.isnan(latticeOrientation):
-            transformedSpotsMatrix = spotsMatrix
+            flag = 0
+            transformedSpotsMatrix = []
+            for spot in spotsMatrix:
+                h = spot[0]
+                k = spot[1]
+                q = spot[2]
+                I = spot[3]
+                transformedSpot = [h, k, q, I, flag]
+                transformedSpotsMatrix.append(transformedSpot)
         else:
+            flag = 1
             transformedSpotsMatrix = []
             latticeOrientationMatrix = indexToMatrix(latticeOrientation)
             for spot in spotsMatrix:
-                h = spot[1]
-                k = spot[2]
+                h = spot[0]
+                k = spot[1]
+                q = spot[2]
+                I = spot[3]
                 indices = numpy.matrix('%d; %d'%(h, k)) #(2x1)
                 transformedIndices = latticeOrientationMatrix*indices
                 h_t = transformedIndices[0, 0]
                 k_t = transformedIndices[1, 0]
-                transformedSpot = [spot[0], spot[1], spot[2], spot[3], spot[4], spot[5], h_t, k_t]
+                transformedSpot = [h_t, k_t, q, I, flag]
                 transformedSpotsMatrix.append(transformedSpot)
-        transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix) # n h k qRod I Icorrected h_transformed k_transformed
+                
+        transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix) # h_transformed k_transformed qRod I flag
         transformedSpotMatricesList.append(transformedSpotsMatrix)
-        print 'Lattice: %d - Orientation: %s - transformedSpotsMatrix: (%d, %d)'%(lattice, latticeOrientation, transformedSpotsMatrix.shape[0], transformedSpotsMatrix.shape[1])
+        
     
     outputPath = '%s/spotsMatricesList-Transformed-r%s'%(outputFolder, runNumber)
     if not os.path.exists(outputPath):

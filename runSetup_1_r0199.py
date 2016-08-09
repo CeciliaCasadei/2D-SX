@@ -9,7 +9,7 @@ import os
 
 # SETUP FOR CURRENT RUN
 
-runNumber = '0195'
+runNumber = '0199'
 
 # OUTPUT FOLDER
 outFolder = './Output_r%s'%runNumber
@@ -19,7 +19,7 @@ if not os.path.exists(outFolder):
 
 
 # LOG CURRENT SETTINGS
-os.system('cp ./runSetup_1_r0195.py ./Output_r%s/runSetup.log'%runNumber)
+os.system('cp ./runSetup_1_r0199.py ./Output_r%s/runSetup.log'%runNumber)
 
 
 
@@ -38,7 +38,7 @@ if flag == 1:
 
 
 # STORE IMAGE OBJECTS
-tiltAngle = 15               # degrees 
+tiltAngle = 5               # degrees 
 imageListDirectory = '%s/ImageLists'%outFolder
 
 flag = 1

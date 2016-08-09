@@ -3,8 +3,6 @@
 # RUN e.g.:    python transform_CCmethod_main.py --runNumber 0195 --dQrod 0.005 --dSelf 0 --nMin 6    (set some parameters)
 # RUN e.g.:    python transform_CCmethod_main.py                                                      (all default parameters)
 
-
-
 # -*- coding: utf-8 -*-
 import joblib
 import numpy 
@@ -43,8 +41,8 @@ def main(myArguments):
     deltaQrodThreshold = 0.005
     deltaSelfThreshold = 0
     n_minThreshold = 6
-    nSeeds = 1
-    nUsedLattices = 2
+    nSeeds = 6
+    nUsedLattices = 'all'
     nTriangles = 100
     nGoodFraction = 0.7
     
@@ -77,7 +75,7 @@ def main(myArguments):
             
     transformationFolder = './Output_r%s/transformAndScale'%runNumber
     
-    #LOAD LATTICES LIST OF MATRICES: n h k qRod I Icorrected       
+    #LOAD LATTICES LIST OF MATRICES: h k qRod Icorrected       
     myList = joblib.load('%s/spotsMatricesList-r%s/r%s_spotsMatricesList.jbl'%(transformationFolder, runNumber, runNumber))
     nLattices = len(myList)
     if nUsedLattices == 'all':
@@ -100,7 +98,7 @@ def main(myArguments):
             n = n+1
             LtoSi_vector = []
             
-            fOpen = open('%s/TEST_r%s-lattices0to%d-%dseeds-dSelf%.3f-orientations_%s.txt'%(transformationFolder, runNumber, nUsedLattices-1, nSeeds, deltaSelfThreshold, n), 'w')
+            fOpen = open('%s/r%s-lattices0to%d-%dseeds-orientations_%s.txt'%(transformationFolder, runNumber, nUsedLattices-1, nSeeds, n), 'w')
             fOpen.write('Total: %s lattices\n'%nLattices)
             fOpen.write('Delta qRod: %f\n'%deltaQrodThreshold)
             fOpen.write('Delta self: %f\n'%deltaSelfThreshold)
@@ -116,8 +114,8 @@ def main(myArguments):
                 n_min, avg_CCs = transform_calculateCCs.determineTransformation(spotsSeed, spots1stN, deltaQrodThreshold)
                 if n_min < n_minThreshold:
                     transformation_SeedTo1stN = numpy.nan
-                    fOpen.write('Lattice %s, Bad 1st N\n'%firstNeighbor)
-                    print 'Lattice %s, Bad 1st N\n'%firstNeighbor
+                    fOpen.write('Lattice %s, bad 1st N\n'%firstNeighbor)
+                    print 'Lattice %s, bad 1st N\n'%firstNeighbor
                 else:
                     transformation_SeedTo1stN = avg_CCs.index(max(avg_CCs))
                     transformationMatrix_SeedTo1stN = indexToMatrix(transformation_SeedTo1stN)
@@ -150,19 +148,19 @@ def main(myArguments):
                         print 'Lattice %s, Orientation: %s (good = %d, bad = %d)\n'%(firstNeighbor, transformation_SeedTo1stN, nGood, nBad)
                     else:
                         transformation_SeedTo1stN = numpy.nan
-                        fOpen.write('Lattice %s, Orientation: N\A (good = %d, bad = %d)\n'%(firstNeighbor, nGood, nBad)) 
-                        print 'Lattice %s, Orientation: N\A (good = %d, bad = %d)\n'%(firstNeighbor, nGood, nBad)
+                        fOpen.write('Lattice %s, Orientation: n/a (good = %d, bad = %d)\n'%(firstNeighbor, nGood, nBad)) 
+                        print 'Lattice %s, Orientation: n/a (good = %d, bad = %d)\n'%(firstNeighbor, nGood, nBad)
                 LtoSi_vector.append(transformation_SeedTo1stN)
                 
             LtoSS_vector.append(LtoSi_vector)
             runTime = time.time() - startTime
-            fOpen.write('\n It took: %.1f s'%runTime)
+            fOpen.write('\nIt took: %.1f s'%runTime)
             fOpen.close
             
         if len(LtoSS_vector) == nSeeds:
             break
         
-    joblib.dump(LtoSS_vector, '%s/TEST_r%s-%dseeds-dQrod%.3f-dSelf%.3f-orientations.jbl'%(transformationFolder, runNumber, nSeeds, deltaQrodThreshold, deltaSelfThreshold))
+    joblib.dump(LtoSS_vector, '%s/r%s-%dseeds-dQrod%.3f-orientations.jbl'%(transformationFolder, runNumber, nSeeds, deltaQrodThreshold, deltaSelfThreshold))
     
 if __name__ == "__main__":
     print "\n**** CALLING transform_CCmethod_main ****"

@@ -112,6 +112,7 @@ cdef sample_and_correlate(int n, int nmin, I1, I2, int size=100):
 
 
 def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float deltaQrodThreshold):
+    # spotsL1, spotsL2: h k qRod I
 
     cdef int n_I
     cdef int n_i
@@ -138,63 +139,61 @@ def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float 
     I2_ip = []
     
     for i in range(0, nSpotsL1):
-        h = spotsL1[i, 1]
-        k = spotsL1[i, 2]
+        h = spotsL1[i, 0]
+        k = spotsL1[i, 1]
         
-        if numpy.isnan(spotsL1[i, 5]):
+        if numpy.isnan(spotsL1[i, 3]):
             continue
-
-
         
         for j in range(0, nSpotsL2):
-            if numpy.isnan(spotsL2[j, 5]):
+            if numpy.isnan(spotsL2[j, 3]):
                 continue
             
             # IDENTITY
-            if (spotsL2[j, 1] == h and spotsL2[j, 2] == k) or (spotsL2[j, 1] == -h-k and spotsL2[j, 2] == h) or (spotsL2[j, 1] == k and spotsL2[j, 2] == -h-k):
-                if abs(spotsL1[i, 3] - spotsL2[j, 3]) < deltaQrodThreshold:                
+            if (spotsL2[j, 0] == h and spotsL2[j, 1] == k) or (spotsL2[j, 0] == -h-k and spotsL2[j, 1] == h) or (spotsL2[j, 0] == k and spotsL2[j, 1] == -h-k):
+                if abs(spotsL1[i, 2] - spotsL2[j, 2]) < deltaQrodThreshold:                
                     n_I = n_I+1
-                    I1_I.append(spotsL1[i, 5])
-                    I2_I.append(spotsL2[j, 5])
-            if (spotsL2[j, 1] == -h and spotsL2[j, 2] == -k) or (spotsL2[j, 1] == h+k and spotsL2[j, 2] == -h) or (spotsL2[j, 1] == -k and spotsL2[j, 2] == h+k):
-                if abs(spotsL1[i, 3] + spotsL2[j, 3]) < deltaQrodThreshold:                
+                    I1_I.append(spotsL1[i, 3])
+                    I2_I.append(spotsL2[j, 3])
+            if (spotsL2[j, 0] == -h and spotsL2[j, 1] == -k) or (spotsL2[j, 0] == h+k and spotsL2[j, 1] == -h) or (spotsL2[j, 0] == -k and spotsL2[j, 1] == h+k):
+                if abs(spotsL1[i, 2] + spotsL2[j, 2]) < deltaQrodThreshold:                
                     n_I = n_I+1
-                    I1_I.append(spotsL1[i, 5])
-                    I2_I.append(spotsL2[j, 5])    
+                    I1_I.append(spotsL1[i, 3])
+                    I2_I.append(spotsL2[j, 3])    
             # INVERSION
-            if (spotsL2[j, 1] == -h and spotsL2[j, 2] == -k) or (spotsL2[j, 1] == h+k and spotsL2[j, 2] == -h) or (spotsL2[j, 1] == -k and spotsL2[j, 2] == h+k):
-                if abs(spotsL1[i, 3] - spotsL2[j, 3]) < deltaQrodThreshold:
+            if (spotsL2[j, 0] == -h and spotsL2[j, 1] == -k) or (spotsL2[j, 0] == h+k and spotsL2[j, 1] == -h) or (spotsL2[j, 0] == -k and spotsL2[j, 1] == h+k):
+                if abs(spotsL1[i, 2] - spotsL2[j, 2]) < deltaQrodThreshold:
                     n_i = n_i+1
-                    I1_i.append(spotsL1[i, 5])
-                    I2_i.append(spotsL2[j, 5])
-            if (spotsL2[j, 1] == h and spotsL2[j, 2] == k) or (spotsL2[j, 1] == -h-k and spotsL2[j, 2] == h) or (spotsL2[j, 1] == k and spotsL2[j, 2] == -h-k):
-                if abs(spotsL1[i, 3] + spotsL2[j, 3]) < deltaQrodThreshold:
+                    I1_i.append(spotsL1[i, 3])
+                    I2_i.append(spotsL2[j, 3])
+            if (spotsL2[j, 0] == h and spotsL2[j, 1] == k) or (spotsL2[j, 0] == -h-k and spotsL2[j, 1] == h) or (spotsL2[j, 0] == k and spotsL2[j, 1] == -h-k):
+                if abs(spotsL1[i, 2] + spotsL2[j, 2]) < deltaQrodThreshold:
                     n_i = n_i+1
-                    I1_i.append(spotsL1[i, 5])
-                    I2_i.append(spotsL2[j, 5])
+                    I1_i.append(spotsL1[i, 3])
+                    I2_i.append(spotsL2[j, 3])
             # PERMUTATION
             if h != k:            
-                if (spotsL2[j, 1] == k and spotsL2[j, 2] == h) or (spotsL2[j, 1] == -k-h and spotsL2[j, 2] == k) or (spotsL2[j, 1] == h and spotsL2[j, 2] == -k-h):
-                    if abs(spotsL1[i, 3] - spotsL2[j, 3]) < deltaQrodThreshold:
+                if (spotsL2[j, 0] == k and spotsL2[j, 1] == h) or (spotsL2[j, 0] == -k-h and spotsL2[j, 1] == k) or (spotsL2[j, 0] == h and spotsL2[j, 1] == -k-h):
+                    if abs(spotsL1[i, 2] - spotsL2[j, 2]) < deltaQrodThreshold:
                         n_p = n_p+1
-                        I1_p.append(spotsL1[i, 5])
-                        I2_p.append(spotsL2[j, 5])
-                if (spotsL2[j, 1] == -k and spotsL2[j, 2] == -h) or (spotsL2[j, 1] == k+h and spotsL2[j, 2] == -k) or (spotsL2[j, 1] == -h and spotsL2[j, 2] == k+h):
-                    if abs(spotsL1[i, 3] + spotsL2[j, 3]) < deltaQrodThreshold:
+                        I1_p.append(spotsL1[i, 3])
+                        I2_p.append(spotsL2[j, 3])
+                if (spotsL2[j, 0] == -k and spotsL2[j, 1] == -h) or (spotsL2[j, 0] == k+h and spotsL2[j, 1] == -k) or (spotsL2[j, 0] == -h and spotsL2[j, 1] == k+h):
+                    if abs(spotsL1[i, 2] + spotsL2[j, 2]) < deltaQrodThreshold:
                         n_p = n_p+1
-                        I1_p.append(spotsL1[i, 5])
-                        I2_p.append(spotsL2[j, 5])
+                        I1_p.append(spotsL1[i, 3])
+                        I2_p.append(spotsL2[j, 3])
                 # INVERSION AND PERMUTATION            
-                if (spotsL2[j, 1] == -k and spotsL2[j, 2] == -h) or (spotsL2[j, 1] == k+h and spotsL2[j, 2] == -k) or (spotsL2[j, 1] == -h and spotsL2[j, 2] == k+h):
-                    if abs(spotsL1[i, 3] - spotsL2[j, 3]) < deltaQrodThreshold:
+                if (spotsL2[j, 0] == -k and spotsL2[j, 1] == -h) or (spotsL2[j, 0] == k+h and spotsL2[j, 1] == -k) or (spotsL2[j, 0] == -h and spotsL2[j, 1] == k+h):
+                    if abs(spotsL1[i, 2] - spotsL2[j, 2]) < deltaQrodThreshold:
                         n_ip = n_ip+1
-                        I1_ip.append(spotsL1[i, 5])
-                        I2_ip.append(spotsL2[j, 5])
-                if (spotsL2[j, 1] == k and spotsL2[j, 2] == h) or (spotsL2[j, 1] == -k-h and spotsL2[j, 2] == k) or (spotsL2[j, 1] == h and spotsL2[j, 2] == -k-h):
-                    if abs(spotsL1[i, 3] + spotsL2[j, 3]) < deltaQrodThreshold:
+                        I1_ip.append(spotsL1[i, 3])
+                        I2_ip.append(spotsL2[j, 3])
+                if (spotsL2[j, 0] == k and spotsL2[j, 1] == h) or (spotsL2[j, 0] == -k-h and spotsL2[j, 1] == k) or (spotsL2[j, 0] == h and spotsL2[j, 1] == -k-h):
+                    if abs(spotsL1[i, 2] + spotsL2[j, 2]) < deltaQrodThreshold:
                         n_ip = n_ip+1
-                        I1_ip.append(spotsL1[i, 5])
-                        I2_ip.append(spotsL2[j, 5])
+                        I1_ip.append(spotsL1[i, 3])
+                        I2_ip.append(spotsL2[j, 3])
                                          
     n_min = min([n_I, n_i, n_p, n_ip])
     if n_min > 3:
