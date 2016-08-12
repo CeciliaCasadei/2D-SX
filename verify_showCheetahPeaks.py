@@ -5,6 +5,8 @@ import os
 import pickle
 import numpy
 import h5py
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 import warnings
 

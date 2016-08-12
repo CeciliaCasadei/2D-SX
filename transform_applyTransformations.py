@@ -79,7 +79,7 @@ def transform_applyTransformationsFunction(myArguments):
                 transformedSpot = [h_t, k_t, q, I, flag]
                 transformedSpotsMatrix.append(transformedSpot)
                 
-        transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix) # h_transformed k_transformed qRod I flag
+        transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix, dtype=numpy.float32) # h_transformed k_transformed qRod I flag
         transformedSpotMatricesList.append(transformedSpotsMatrix)
         
     

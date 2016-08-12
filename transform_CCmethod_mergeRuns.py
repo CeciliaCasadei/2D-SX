@@ -9,7 +9,7 @@ import getopt
 import os
 
 ### CYTHON MODULES ###
-import transform_calculateCCs_mergeRuns
+import transform_calculateCCs
 
 
 
@@ -56,14 +56,14 @@ def main(myArguments):
     for i in range(0, nRuns):
         run_1 = runNumbers[i]
         transformationFolder_1 = './Output_r%s/transformAndScale'%run_1
-        myList_1 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(transformationFolder_1, run_1, run_1)) # n h k qRod I Icorrected h_transformed k_transformed Iscaled
-        nLattices_1 = len(myList_1)
+        myList_1 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(transformationFolder_1, run_1, run_1))       # h_transformed k_transformed qRod Iscaled flag
+        nLattices_1 = len(myList_1) 
         for j in range(0, nRuns):
             run_2 = runNumbers[j]
             print '\nRun %s Run %s'%(run_1, run_2)
                 
             transformationFolder_2 = './Output_r%s/transformAndScale'%run_2            
-            myList_2 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(transformationFolder_2, run_2, run_2)) # n h k qRod I Icorrected h_transformed k_transformed Iscaled
+            myList_2 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(transformationFolder_2, run_2, run_2))   # h_transformed k_transformed qRod Iscaled flag
             nLattices_2 = len(myList_2)
             print '%d %d'%(nLattices_1, nLattices_2)
     
@@ -74,10 +74,10 @@ def main(myArguments):
                 L2_index = random.sample(range(nLattices_2), 1)
                 L1 = myList_1[L1_index[0]]
                 L2 = myList_2[L2_index[0]]
-                if L1.shape[1] == 9 and L2.shape[1] == 9:
-                    L1 = numpy.asarray(L1, dtype=numpy.float32)
-                    L2 = numpy.asarray(L2, dtype=numpy.float32)
-                    n_min, avg_CCs = transform_calculateCCs_mergeRuns.determineTransformation(L1, L2, deltaQrodThreshold)        
+                L1 = numpy.asarray(L1, dtype=numpy.float32)
+                L2 = numpy.asarray(L2, dtype=numpy.float32)
+                if L1[0, 4] == 1 and L2[0, 4] == 1:                        # Check lattice flag                    
+                    n_min, avg_CCs = transform_calculateCCs.determineTransformation(L1, L2, deltaQrodThreshold)        
                     if n_min >= n_minThreshold:
                         transformation = avg_CCs.index(max(avg_CCs))
                         R2toR1_vector.append(transformation)
@@ -108,6 +108,7 @@ def main(myArguments):
     
     if numpy.array_equal(transformations_RR, transformations_RR.T):
         print 'SYMMETRIC'
+    else:
         print 'NON SYMMETRIC'
         
     # CHECK RUN TRANSFORMATIONS CONSISTENCY (Run_i-Run_j-Run_k TRIANGLES)
@@ -145,22 +146,29 @@ def main(myArguments):
             spotMatricesList = joblib.load('./Output_r%s/transformAndScale/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(runNumber, runNumber, runNumber)) 
             transformedSpotMatricesList = []
             
-            for spotMatrix in spotMatricesList: # LATTICE:   n h k qRod I Icorrected h_transformed k_transformed Iscaled
-                print 'spotsMatrix: (%d, %d)'%(spotMatrix.shape[0], spotMatrix.shape[1])
-                if spotMatrix.shape[1] == 9:
+            for spotMatrix in spotMatricesList: # LATTICE:    h_transformed k_transformed qRod Iscaled flag
+                spotMatrix = numpy.asarray(spotMatrix)
+                if spotMatrix[0, 4] == 1:
                     transformedSpotsMatrix = []                    
                     for spot in spotMatrix:
-                        h = spot[6]
-                        k = spot[7]
+                        h = spot[0]
+                        k = spot[1]
                         indices = numpy.matrix('%d; %d'%(h, k)) #(2x1)
                         transformedIndices = runOrientationMatrix*indices
                         h_t = transformedIndices[0, 0]
                         k_t = transformedIndices[1, 0]
-                        transformedSpot = [spot[0], h_t, k_t, spot[3], spot[8]]
+                        transformedSpot = [h_t, k_t, spot[2], spot[3], spot[4]]
                         transformedSpotsMatrix.append(transformedSpot)
-                    transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix) # n h k qRod Iscaled
-                    transformedSpotMatricesList.append(transformedSpotsMatrix)
-                    print 'transformedSpotsMatrix: (%d, %d)'%(transformedSpotsMatrix.shape[0], transformedSpotsMatrix.shape[1])
+                else:
+                    transformedSpotsMatrix = []                    
+                    for spot in spotMatrix:
+                        h = spot[0]
+                        k = spot[1]
+                        transformedSpot = [h, k, spot[2], spot[3], spot[4]]
+                        transformedSpotsMatrix.append(transformedSpot)
+                transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix) # h k qRod I flag
+                transformedSpotMatricesList.append(transformedSpotsMatrix)
+                    
         
         outputPath = '%s/spotsMatricesList-Transformed-r%s'%(outputFolder, runNumber)
         if not os.path.exists(outputPath):

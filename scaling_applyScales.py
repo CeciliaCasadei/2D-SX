@@ -21,26 +21,31 @@ def scaling_applyScalesFunction(myArguments):
             runNumber = value.zfill(4)
 
     outputFolder = './Output_r%s/transformAndScale'%runNumber
-    spotsMatricesList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))
-    latticeScales = joblib.load('%s/r%s-finalScales.jbl'%(outputFolder, runNumber))
+    spotsMatricesList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber)) # h_transformed k_transformed qRod I flag
+    latticeScales = joblib.load('%s/r%s-finalScales/r%s-finalScales.jbl'%(outputFolder, runNumber, runNumber))
     nLattices = len(latticeScales)  # equal to len(spotsMatricesList)
     
     scaledSpotMatricesList = []
     for lattice in range(0, nLattices):
         latticeScale = latticeScales[lattice]
-        spotsMatrix = spotsMatricesList[lattice] # n h k qRod I Icorrected h_tranformed k_transformed
-        print 'Lattice: %d - Scale: %.3f - spotsMatrix: (%d, %d)'%(lattice, latticeScale, spotsMatrix.shape[0], spotsMatrix.shape[1])
+        spotsMatrix = spotsMatricesList[lattice]                                    # h_transformed k_transformed qRod I flag
+        print 'Lattice: %d - Scale: %.3f'%(lattice, latticeScale)
         if numpy.isnan(latticeScale):
-            scaledSpotsMatrix = spotsMatrix
-        else:
+            flag = 0
             scaledSpotsMatrix = []
             for spot in spotsMatrix:
-                scaledI = spot[5] * latticeScale
-                scaledSpot = [spot[0], spot[1], spot[2], spot[3], spot[4], spot[5], spot[6], spot[7], scaledI]
+                scaledSpot = [spot[0], spot[1], spot[2], spot[3], flag]
                 scaledSpotsMatrix.append(scaledSpot)
-        scaledSpotsMatrix = numpy.asarray(scaledSpotsMatrix) # n h k qRod I Icorrected h_transformed k_transformed Iscaled
+        else:
+            flag = 1
+            scaledSpotsMatrix = []
+            for spot in spotsMatrix:
+                scaledI = spot[3] * latticeScale
+                scaledSpot = [spot[0], spot[1], spot[2], scaledI, flag]
+                scaledSpotsMatrix.append(scaledSpot)
+        scaledSpotsMatrix = numpy.asarray(scaledSpotsMatrix)                         # h_transformed k_transformed qRod Iscaled flag
         scaledSpotMatricesList.append(scaledSpotsMatrix)
-        print 'Lattice: %d - Scale: %.3f - scaledSpotMatricesList: (%d, %d)'%(lattice, latticeScale, scaledSpotsMatrix.shape[0], scaledSpotsMatrix.shape[1])
+        
     
     outputPath = '%s/spotsMatricesList-Scaled-r%s'%(outputFolder, runNumber)
     if not os.path.exists(outputPath):

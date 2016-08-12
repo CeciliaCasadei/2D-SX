@@ -10,6 +10,8 @@ import getopt
 import os
 import h5py
 import numpy
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 
 def checkH5contentFunction(myArguments):

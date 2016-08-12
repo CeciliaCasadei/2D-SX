@@ -47,7 +47,7 @@ def transform_makeSpotsMatrixFunction(myArguments):
         spotsMatricesList.append(spotsMatrix2D)     ### spotsMatricesList[lattice n in list.txt][n spot]
                
     nLattices = len(spotsMatricesList)
-    print 'N lattices: %d'%nLattices
+    print 'N processed lattices: %d'%nLattices
     
     joblib.dump(spotsMatricesList, '%s/r%s_spotsMatricesList.jbl'%(spotMatricesFolder, runNumber))
 

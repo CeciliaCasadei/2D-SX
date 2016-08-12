@@ -108,18 +108,18 @@ cdef sample_and_correlate(int n, int nmin, I1, I2, int size=100):
     CC_avg = average(CC)
     return CC_avg
 
-
-
-
+        
+    
 def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float deltaQrodThreshold):
-    # spotsL1, spotsL2: h k qRod I
+    # spotsL1: h k qRod I (flag)          # L1 CAN BE THE MODEL
+    # spotsL2: h k qRod I flag
 
     cdef int n_I
     cdef int n_i
     cdef int n_p
     cdef int n_ip
     
-    cdef int nSpotsL1 = spotsL1.shape[0]
+    cdef int nSpotsL1 = spotsL1.shape[0]  # L1 or MODEL
     cdef int nSpotsL2 = spotsL2.shape[0]
     
     cdef int i, j
@@ -138,63 +138,192 @@ def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float 
     I1_ip = []
     I2_ip = []
     
-    for i in range(0, nSpotsL1):
-        h = spotsL1[i, 0]
-        k = spotsL1[i, 1]
+    h_L1 = spotsL1[:, 0]                  # L1 or MODEL
+    k_L1 = spotsL1[:, 1]
+    q_L1 = spotsL1[:, 2]
+    I_L1 = spotsL1[:, 3]
+    q_L1 = numpy.asarray(q_L1, dtype = numpy.float32)
+    
+    for i in range(0, nSpotsL2):
+        h = spotsL2[i, 0]
+        k = spotsL2[i, 1]
+        q = spotsL2[i, 2]
+        I = spotsL2[i, 3]
         
-        if numpy.isnan(spotsL1[i, 3]):
+        if numpy.isnan(spotsL2[i, 3]):
+            continue
+                
+        indices_qEqual    = numpy.argwhere(abs(q_L1 - q) <= deltaQrodThreshold)
+        indices_qOpposite = numpy.argwhere(abs(q_L1 + q) <= deltaQrodThreshold)
+        
+        for index in indices_qEqual:
+            if numpy.isnan(spotsL1[index, 3]):
+                continue
+            h1 = h_L1[index]
+            k1 = k_L1[index]
+            # IDENTITY
+            if ((h1 == h and k1 == k) or (h1 == -h-k and k1 == h) or (h1 == k and k1 == -h-k)):
+                I1_I.append(I_L1[index])
+                I2_I.append(I)
+            # INVERSION
+            if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):
+                I1_i.append(I_L1[index])
+                I2_i.append(I)
+            # PERMUTATION
+            if ((h1 == k and k1 == h) or (h1 == -k-h and k1 == k) or (h1 == h and k1 == -k-h)):
+                I1_p.append(I_L1[index])
+                I2_p.append(I)
+            # INVERSION - PERMUTATION
+            if ((h1 == -k and k1 == -h) or (h1 == k+h and k1 == -k) or (h1 == -h and k1 == k+h)):
+                I1_ip.append(I_L1[index])
+                I2_ip.append(I)
+                
+        for index in indices_qOpposite:
+            if numpy.isnan(spotsL1[index, 3]):
+                continue
+            h1 = h_L1[index]
+            k1 = k_L1[index]
+            # INVERSION
+            if ((h1 == h and k1 == k) or (h1 == -h-k and k1 == h) or (h1 == k and k1 == -h-k)):
+                I1_i.append(I_L1[index])
+                I2_i.append(I)
+            # IDENTITY
+            if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):
+                I1_I.append(I_L1[index])
+                I2_I.append(I)
+            # INVERSION-PERMUTATION
+            if ((h1 == k and k1 == h) or (h1 == -k-h and k1 == k) or (h1 == h and k1 == -k-h)):
+                I1_ip.append(I_L1[index])
+                I2_ip.append(I)
+            # PERMUTATION
+            if ((h1 == -k and k1 == -h) or (h1 == k+h and k1 == -k) or (h1 == -h and k1 == k+h)):
+                I1_p.append(I_L1[index])
+                I2_p.append(I)
+
+                        
+    n_I = len(I1_I)    
+    n_i = len(I1_i)
+    n_p = len(I1_p)
+    n_ip = len(I1_ip)                                          
+    n_min = min([n_I, n_i, n_p, n_ip])
+    if n_min > 3:
+        CC_I_avg = sample_and_correlate(n_I, n_min, I1_I, I2_I)
+        CC_i_avg = sample_and_correlate(n_i, n_min, I1_i, I2_i)
+        CC_p_avg = sample_and_correlate(n_p, n_min, I1_p, I2_p)
+        CC_ip_avg = sample_and_correlate(n_ip, n_min, I1_ip, I2_ip)    
+        
+        avg_CCs = [CC_I_avg, CC_i_avg, CC_p_avg, CC_ip_avg]
+    else:
+        avg_CCs = [0, 0, 0, 0]
+    return n_min, avg_CCs
+    
+    
+    
+    
+##########################################################################################################
+def DRAFT_determineTransformation(DTYPE_t[:, :] spotsModel, DTYPE_t[:, :] spotsL, float deltaQrodThreshold):
+    # spotsModel: h k qRod I
+    # spotsLattice: n h k qRod I Icorrected
+
+    cdef int n_I
+    cdef int n_i
+    cdef int n_p
+    cdef int n_ip
+    
+    cdef int nSpotsModel = spotsModel.shape[0]
+    cdef int nSpotsL = spotsL.shape[0]
+    
+    cdef int i, j
+    cdef DTYPE_t h, k  # why?
+        
+    n_I = 0
+    I1_I = []
+    I2_I = []
+    n_i = 0
+    I1_i = []
+    I2_i = []
+    n_p = 0
+    I1_p = []
+    I2_p = []
+    n_ip = 0
+    I1_ip = []
+    I2_ip = []
+    
+    hModel = spotsModel[:, 0]
+    kModel = spotsModel[:, 1]
+    qModel = spotsModel[:, 2]
+    Imodel = spotsModel[:, 3]
+    
+    for i in range(0, nSpotsL):
+        h = spotsL[i, 1]
+        k = spotsL[i, 2]
+        q = spotsL[i, 3]
+        I = spotsL[i, 5]
+        
+        if numpy.isnan(spotsL[i, 5]):
             continue
         
-        for j in range(0, nSpotsL2):
-            if numpy.isnan(spotsL2[j, 3]):
-                continue
+        # IDENTITY
+        Ipartial_model_I = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]-q)<=deltaQrodThreshold and (          (hModel[item] == h    and kModel[item] == k   ) 
+                                                                                                                                  or (hModel[item] == -h-k and kModel[item] == h   )
+                                                                                                                                  or (hModel[item] == k    and kModel[item] == -h-k)      )]
+        for item in Ipartial_model_I:
+            I1_I.append(item)
+            I2_I.append(I)
+        Ipartial_model_I = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]+q)<=deltaQrodThreshold and (          (hModel[item] == -h  and kModel[item] == -k   ) 
+                                                                                                                                  or (hModel[item] == h+k and kModel[item] == -h   )  
+                                                                                                                                  or (hModel[item] == -k  and kModel[item] == h+k  )      )]
+        for item in Ipartial_model_I:
+            I1_I.append(item)
+            I2_I.append(I)
             
-            # IDENTITY
-            if (spotsL2[j, 0] == h and spotsL2[j, 1] == k) or (spotsL2[j, 0] == -h-k and spotsL2[j, 1] == h) or (spotsL2[j, 0] == k and spotsL2[j, 1] == -h-k):
-                if abs(spotsL1[i, 2] - spotsL2[j, 2]) < deltaQrodThreshold:                
-                    n_I = n_I+1
-                    I1_I.append(spotsL1[i, 3])
-                    I2_I.append(spotsL2[j, 3])
-            if (spotsL2[j, 0] == -h and spotsL2[j, 1] == -k) or (spotsL2[j, 0] == h+k and spotsL2[j, 1] == -h) or (spotsL2[j, 0] == -k and spotsL2[j, 1] == h+k):
-                if abs(spotsL1[i, 2] + spotsL2[j, 2]) < deltaQrodThreshold:                
-                    n_I = n_I+1
-                    I1_I.append(spotsL1[i, 3])
-                    I2_I.append(spotsL2[j, 3])    
-            # INVERSION
-            if (spotsL2[j, 0] == -h and spotsL2[j, 1] == -k) or (spotsL2[j, 0] == h+k and spotsL2[j, 1] == -h) or (spotsL2[j, 0] == -k and spotsL2[j, 1] == h+k):
-                if abs(spotsL1[i, 2] - spotsL2[j, 2]) < deltaQrodThreshold:
-                    n_i = n_i+1
-                    I1_i.append(spotsL1[i, 3])
-                    I2_i.append(spotsL2[j, 3])
-            if (spotsL2[j, 0] == h and spotsL2[j, 1] == k) or (spotsL2[j, 0] == -h-k and spotsL2[j, 1] == h) or (spotsL2[j, 0] == k and spotsL2[j, 1] == -h-k):
-                if abs(spotsL1[i, 2] + spotsL2[j, 2]) < deltaQrodThreshold:
-                    n_i = n_i+1
-                    I1_i.append(spotsL1[i, 3])
-                    I2_i.append(spotsL2[j, 3])
+        # INVERSION
+        Ipartial_model_i = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]-q)<=deltaQrodThreshold and (          (hModel[item] == -h   and kModel[item] == -k  ) 
+                                                                                                                                  or (hModel[item] == h+k  and kModel[item] == -h  )
+                                                                                                                                  or (hModel[item] == -k   and kModel[item] == h+k )      )]
+        for item in Ipartial_model_i:
+            I1_i.append(item)
+            I2_i.append(I)
+        Ipartial_model_i = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]+q)<=deltaQrodThreshold and (          (hModel[item] == h    and kModel[item] == k   ) 
+                                                                                                                                  or (hModel[item] == -h-k and kModel[item] == h   ) 
+                                                                                                                                  or (hModel[item] == k    and kModel[item] == -h-k)      )]
+        for item in Ipartial_model_i:
+            I1_i.append(item)
+            I2_i.append(I)
+            
+        if h != k:  
             # PERMUTATION
-            if h != k:            
-                if (spotsL2[j, 0] == k and spotsL2[j, 1] == h) or (spotsL2[j, 0] == -k-h and spotsL2[j, 1] == k) or (spotsL2[j, 0] == h and spotsL2[j, 1] == -k-h):
-                    if abs(spotsL1[i, 2] - spotsL2[j, 2]) < deltaQrodThreshold:
-                        n_p = n_p+1
-                        I1_p.append(spotsL1[i, 3])
-                        I2_p.append(spotsL2[j, 3])
-                if (spotsL2[j, 0] == -k and spotsL2[j, 1] == -h) or (spotsL2[j, 0] == k+h and spotsL2[j, 1] == -k) or (spotsL2[j, 0] == -h and spotsL2[j, 1] == k+h):
-                    if abs(spotsL1[i, 2] + spotsL2[j, 2]) < deltaQrodThreshold:
-                        n_p = n_p+1
-                        I1_p.append(spotsL1[i, 3])
-                        I2_p.append(spotsL2[j, 3])
-                # INVERSION AND PERMUTATION            
-                if (spotsL2[j, 0] == -k and spotsL2[j, 1] == -h) or (spotsL2[j, 0] == k+h and spotsL2[j, 1] == -k) or (spotsL2[j, 0] == -h and spotsL2[j, 1] == k+h):
-                    if abs(spotsL1[i, 2] - spotsL2[j, 2]) < deltaQrodThreshold:
-                        n_ip = n_ip+1
-                        I1_ip.append(spotsL1[i, 3])
-                        I2_ip.append(spotsL2[j, 3])
-                if (spotsL2[j, 0] == k and spotsL2[j, 1] == h) or (spotsL2[j, 0] == -k-h and spotsL2[j, 1] == k) or (spotsL2[j, 0] == h and spotsL2[j, 1] == -k-h):
-                    if abs(spotsL1[i, 2] + spotsL2[j, 2]) < deltaQrodThreshold:
-                        n_ip = n_ip+1
-                        I1_ip.append(spotsL1[i, 3])
-                        I2_ip.append(spotsL2[j, 3])
-                                         
+            Ipartial_model_p = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]-q)<=deltaQrodThreshold  and (     (hModel[item] == k    and kModel[item] == h   ) 
+                                                                                                                                  or (hModel[item] == -k-h and kModel[item] == k   ) 
+                                                                                                                                  or (hModel[item] == h    and kModel[item] == -k-h)      )]
+            for item in Ipartial_model_p:
+                I1_p.append(item)
+                I2_p.append(I)
+            Ipartial_model_p = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]+q)<=deltaQrodThreshold  and (     (hModel[item] == -k   and kModel[item] == -h  ) 
+                                                                                                                                  or (hModel[item] == k+h  and kModel[item] == -k  ) 
+                                                                                                                                  or (hModel[item] == -h   and kModel[item] == k+h )      )]
+            for item in Ipartial_model_p:
+                I1_p.append(item)
+                I2_p.append(I)
+            # INVERSION-PERMUTATION
+            Ipartial_model_ip = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]-q)<=deltaQrodThreshold and (     (hModel[item] == -k   and kModel[item] == -h  ) 
+                                                                                                                                  or (hModel[item] == k+h  and kModel[item] == -k  ) 
+                                                                                                                                  or (hModel[item] == -h   and kModel[item] == k+h )      )]
+            for item in Ipartial_model_ip:
+                I1_ip.append(item)
+                I2_ip.append(I)
+            Ipartial_model_ip = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]+q)<=deltaQrodThreshold and (     (hModel[item] == k    and kModel[item] == h   ) 
+                                                                                                                                  or (hModel[item] == -k-h and kModel[item] == k   ) 
+                                                                                                                                  or (hModel[item] == h    and kModel[item] == -k-h)      )]
+            for item in Ipartial_model_ip:
+                I1_ip.append(item)
+                I2_ip.append(I)
+
+                        
+    n_I = len(I1_I)    
+    n_i = len(I1_i)
+    n_p = len(I1_p)
+    n_ip = len(I1_ip)                                          
     n_min = min([n_I, n_i, n_p, n_ip])
     if n_min > 3:
         CC_I_avg = sample_and_correlate(n_I, n_min, I1_I, I2_I)

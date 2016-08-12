@@ -9,6 +9,8 @@ AND INDEXED, CALCULATED PATTERN(S).
 """
 import warnings
 import os
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 import numpy
 import math

@@ -30,7 +30,7 @@ os.system('cp ./runSetup_1_r0200.py ./Output_r%s/runSetup.log'%runNumber)
 # MAKE IMAGE LIST
 imagesDirectoryName = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_@_LCLS/r%s-images/data1'%runNumber
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python makeImageList.py --runNumber %s --imagesDirectoryName %s'
                %(runNumber, imagesDirectoryName))
@@ -41,7 +41,7 @@ if flag == 1:
 tiltAngle = 20               # degrees 
 imageListDirectory = '%s/ImageLists'%outFolder
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python storeImageObjects.py --runNumber %s --tiltAngle %f --imageListDirectory %s'
                %(runNumber, tiltAngle, imageListDirectory))
@@ -65,7 +65,7 @@ peaksFile = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified
 geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
 pixelSize = 0.000110         # m
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python extractExpInfo.py --runNumber %s --selectedImageList %s --peaksFile %s --geometryFile %s --pixelSize %f'
                %(runNumber, selectedImageList, peaksFile, geometryFile, pixelSize))
@@ -86,7 +86,7 @@ hmax = 100                   # int
 kmax = 100                   # int
 resolutionLimit = 5.0        # A
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python reciprocalLattice.py --referenceCellSize %f --hmax %d --kmax %d --resolutionLimit %f --outFolder %s'
                %(referenceCellSize, hmax, kmax, resolutionLimit, outFolder))
@@ -106,7 +106,7 @@ azimuthTolerance = 3         # degrees
 minNofPeaksPerLattice = 18   # int
 maxNofPeaksPerImage = 250    # int
         
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python latticeIndexing.py --referenceCellSize %f --runNumber %s --detectorDistance %f --pixelSize %f --radialTolerance %f --pixelTolerance %f --azimuthTolerance %f --minNofPeaksPerLattice %d --maxNofPeaksPerImage %d --geometryFile %s'
     %(referenceCellSize, runNumber, detectorDistance, pixelSize, radialTolerance, pixelTolerance, azimuthTolerance, minNofPeaksPerLattice, maxNofPeaksPerImage, geometryFile))
@@ -119,7 +119,7 @@ nOrientationRefSteps = 21
 widthSizeRefSteps = 0.004
 widthOrientationRefSteps = 0.2
     
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python orientationAndCellRefinement.py --referenceCellSize %f --runNumber %s --nSizeRefSteps %d --nOrientationRefSteps %d --widthSizeRefSteps %f --widthOrientationRefSteps %f --hmax %d --kmax %d --resolutionLimit %f'
                %(referenceCellSize, runNumber, nSizeRefSteps, nOrientationRefSteps, widthSizeRefSteps, widthOrientationRefSteps, hmax, kmax, resolutionLimit))
@@ -142,7 +142,7 @@ nCountsPerPhoton = 26
 integrationRadius = 5
 fractionDetectedThreshold = 0.55
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python processingAndIntegration.py --runNumber %s --bgSubtractionMethod %s --minimizationMethod %s --lowResLimit %f --highResLimit %f --nCountsPerPhoton %d --integrationRadius %d --geometryFile %s --imageFolder %s --fractionDetectedThreshold %f'
                %(runNumber, bgSubtractionMethod, minimizationMethod, lowResLimit, highResLimit, nCountsPerPhoton, integrationRadius, geometryFile, imagesDirectoryName, fractionDetectedThreshold))
@@ -167,7 +167,6 @@ if flag == 1:
     
 # DETERMINE TRANSFORMATIONS
 deltaQrodThreshold = 0.005
-deltaSelfThreshold = 0
 n_minThreshold = 6
 nSeeds = 6
 nUsedLattices = 'all'
@@ -176,48 +175,48 @@ nGoodFraction = 0.6
     
 flag = 0
 if flag == 1:
-    os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --dSelf %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d --nGoodFraction %f'
-              %(runNumber, deltaQrodThreshold, deltaSelfThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles, nGoodFraction))
+    os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d --nGoodFraction %f'
+              %(runNumber, deltaQrodThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles, nGoodFraction))
               
               
               
 # DETERMINE TRANSFORMATIONS - SEEDS COMPARISON
-flag = 0
+flag = 1
 if flag == 1:
-    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f --dSelf %f'
-               %(runNumber, nSeeds, deltaQrodThreshold, deltaSelfThreshold))
+    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f'
+               %(runNumber, nSeeds, deltaQrodThreshold))
                
 
                
 # APPLY TRANSFORMATIONS
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python transform_applyTransformations.py --runNumber %s'%runNumber)
     
     
     
 # SCALING
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python scaling.py --runNumber %s'%runNumber)
     
     
     
 # SCALING - SEEDS COMPARISON
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python scaling_seedComparison.py --runNumber %s'%runNumber)
     
     
     
 # SCALING - APPLY SCALES
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python scaling_applyScales.py --runNumber %s'%runNumber)
         
     
     
 # PLOT RODS
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python plotRods.py --runNumber %s'%runNumber)

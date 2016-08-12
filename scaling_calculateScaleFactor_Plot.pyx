@@ -3,6 +3,7 @@ import numpy
 cimport cython
 import random
 from libc.math cimport sqrt  # pow, sin, cos, fabs
+import matplotlib.pyplot
 
 DTYPE = numpy.float32
 ctypedef numpy.float32_t DTYPE_t
@@ -61,10 +62,11 @@ def calculateScaleFactorFunction(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, f
     if n_pairs > 5:
         I1 = numpy.asarray(I1)
         I2 = numpy.asarray(I2)
-        I1 = I1[:,numpy.newaxis]
+        I1_toFit = I1[:,numpy.newaxis]
 
-        scale, _, _, _ = numpy.linalg.lstsq(I1, I2) # I2 = scale*I1    Lattice2 = scale*Lattice1   scale = scale_L1toL2
+        scale, _, _, _ = numpy.linalg.lstsq(I1_toFit, I2) # I2 = scale*I1    Lattice2 = scale*Lattice1   scale = scale_L1toL2
+        
     else:
         scale = numpy.nan
     
-    return n_pairs, scale
+    return n_pairs, scale, I1, I2

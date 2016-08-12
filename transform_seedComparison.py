@@ -44,13 +44,13 @@ def transform_seedComparisonFunction(myArguments):
     
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "nSeeds=", "dQrod=", "dSelf="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "nSeeds=", "dQrod="])
     except getopt.GetoptError:
-        print 'Usage: python transform_seedComparison.py --runNumber <runNumber> --nSeeds <nSeeds> --dQrod <dQrod> --dSelf <dSelf>'
+        print 'Usage: python transform_seedComparison.py --runNumber <runNumber> --nSeeds <nSeeds> --dQrod <dQrod>'
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python transform_seedComparison.py --runNumber <runNumber> --nSeeds <nSeeds> --dQrod <dQrod> --dSelf <dSelf>'
+            print 'Usage: python transform_seedComparison.py --runNumber <runNumber> --nSeeds <nSeeds> --dQrod <dQrod>'
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
@@ -58,12 +58,10 @@ def transform_seedComparisonFunction(myArguments):
             nSeeds = int(value)
         elif option == "--dQrod":
             deltaQrodThreshold = float(value)
-        elif option == "--dSelf":
-            deltaSelfThreshold = float(value)
         
 
     outputFolder = './Output_r%s/transformAndScale'%runNumber
-    orientationsList = joblib.load('%s/r%s-%dseeds-dQrod%.3f-orientations.jbl'%(outputFolder, runNumber, nSeeds, deltaQrodThreshold, deltaSelfThreshold))
+    orientationsList = joblib.load('%s/r%s-%dseeds-dQrod%.3f-orientations.jbl'%(outputFolder, runNumber, nSeeds, deltaQrodThreshold))
    
     # FOR EACH SEED, COUNT N OF ORIENTED LATTICES 
     seedScores = []  

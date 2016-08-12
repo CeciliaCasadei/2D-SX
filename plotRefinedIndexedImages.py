@@ -7,6 +7,8 @@ FOR EACH DIFFRACTION IMAGE
 PLOT EXPERIMENTAL PEAKS (FROM peaks.txt) AND REFINED, INDEXED PREDICTED LATTICE(S)
 """
 import warnings
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 import pickle
 import math

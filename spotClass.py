@@ -42,6 +42,8 @@ class diffractionSpot:
         
     def spotProcessingPlot(self, runNumber, imageNumber, latticeNumberInImage, boxWidth):
         import warnings
+        import matplotlib
+        matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
         import matplotlib.pyplot
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         

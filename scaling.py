@@ -5,6 +5,7 @@ import random
 import time
 import numpy
 import sys
+import os
 
 import scaling_calculateScaleFactor
 
@@ -13,7 +14,7 @@ def scalingFunction(myArguments):
     
     # DEFAULTS
     runNumber = '' 
-    nSeeds = 10
+    nSeeds = 6
     deltaQrodThreshold = 0.003
     n_minThreshold = 8
     nTriangles = 100
@@ -34,23 +35,21 @@ def scalingFunction(myArguments):
 
     outputFolder = './Output_r%s/transformAndScale'%runNumber
     
-    #LOAD LATTICES LIST OF MATRICES: n h k qRod I Icorrected h_transformed k_transformed      
+    #LOAD LATTICES LIST OF MATRICES: h_transformed k_transformed qRod I flag    
     myList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))
     nLattices = len(myList)
     
     #SCALE LATTICES WITH RESPECT TO (nSeeds) SEEDS
     LtoSS_vector = []
     n = 0
-    for i in range(0, nSeeds):        
+    for i in range(0, 100):        
         mySeed = random.sample(range(nLattices), 1)
         spotsSeed = myList[mySeed[0]]
-        
-        if spotsSeed.shape[1] == 8:
+        if spotsSeed[0, 4] == 1:  # check flag value
+            n = n + 1
             startTime = time.time()
-            print 'Good seed choice! (n %d)'%mySeed[0]
-            n = n+1
-            LtoSi_vector = []
             
+            print 'Good seed choice! (n %d)'%mySeed[0]          
             fOpen = open('%s/r%s_scaling_%s.txt'%(outputFolder, runNumber, n), 'w')
             fOpen.write('Total: %s lattices\n'%nLattices)
             fOpen.write('Delta qRod: %f\n'%deltaQrodThreshold)
@@ -58,60 +57,65 @@ def scalingFunction(myArguments):
             fOpen.write('Product threshold: %f\n'%productThreshold)
             fOpen.write('\nSeed n: %s\n'%mySeed[0])
             
+            # LOOP ON LATTICES, FOR EACH LATTICE DETERMINE SCALE WRT SEED
+            LtoSi_vector = []
             for firstNeighbor in range(0, nLattices):
                 spots1stN = myList[firstNeighbor]  
-                if spots1stN.shape[1] == 6:
-                    scale = numpy.nan
-                    fOpen.write('Lattice %s, Bad 1st N (non oriented)\n'%firstNeighbor)
-                    LtoSi_vector.append(scale)
-                    continue
                 
-                print 'New 1st neighbor. Lattice %d'%firstNeighbor                
-                nGood = 0
-                nBad = 0
-                spotsSeed = numpy.asarray(spotsSeed, dtype=numpy.float32)
-                spots1stN = numpy.asarray(spots1stN, dtype=numpy.float32)
-                n_min, scale_seedTo1stN = scaling_calculateScaleFactor.calculateScaleFactorFunction(spotsSeed, spots1stN, deltaQrodThreshold)
-                if n_min < n_minThreshold:
+                # BAD LATTICE
+                if spots1stN[0, 4] == 0:
                     scale = numpy.nan
-                    fOpen.write('Lattice %s, Bad 1st N\n'%firstNeighbor)
+                    fOpen.write('Lattice %s: non oriented.\n'%firstNeighbor)
+                    print 'Lattice %s: non oriented.\n'%firstNeighbor
+                    
+                # GOOD LATTICE
                 else:
-                    secondShell = random.sample(range(nLattices), nTriangles)
-                    for secondNeighbor in secondShell:                    
-                        spots2ndN = myList[secondNeighbor]
-                        if spots2ndN.shape[1] == 8:
-                            spots2ndN = numpy.asarray(spots2ndN, dtype=numpy.float32)
-                            n_min, scale_1stNto2ndN = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots1stN, spots2ndN, deltaQrodThreshold)
-                            if n_min >= n_minThreshold:
-                                
-                                
-                                n_min, scale_2ndNtoSeed = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots2ndN, spotsSeed, deltaQrodThreshold)
-                                if n_min >= n_minThreshold:
-                                    product = scale_seedTo1stN*scale_1stNto2ndN*scale_2ndNtoSeed
-                                    print product
-                                    if abs(product-1) <= productThreshold:
-                                        nGood = nGood + 1
-                                    else:
-                                        nBad = nBad + 1
-                                    
-                    if nGood+nBad >= 10 and float(nGood)/(nGood+nBad) >= 0.70:
-                        scale = float(1)/scale_seedTo1stN
-                        fOpen.write('Lattice %s, Scale: %.3f (nGood = %d, nBad = %d)\n'%(firstNeighbor, scale, nGood, nBad))
-                    else:
+                    nGood = 0
+                    nBad = 0
+                    n_min, scale_seedTo1stN = scaling_calculateScaleFactor.calculateScaleFactorFunction(spotsSeed, spots1stN, deltaQrodThreshold)
+                    # BAD LATTICE
+                    if n_min < n_minThreshold:
                         scale = numpy.nan
-                        fOpen.write('Lattice %s, Scaling: N\A (nGood = %d, nBad = %d)\n'%(firstNeighbor, nGood, nBad)) 
+                        fOpen.write('Lattice %s, n_min below threshold.\n'%firstNeighbor)
+                        print 'Lattice %s, n_min below threshold.\n'%firstNeighbor
+                    # VERIFY SCALE
+                    else:
+                        secondShell = random.sample(range(nLattices), nTriangles)
+                        for secondNeighbor in secondShell:                    
+                            spots2ndN = myList[secondNeighbor]
+                            if spots2ndN[0, 4] == 1:                         
+                                n_min, scale_1stNto2ndN = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots1stN, spots2ndN, deltaQrodThreshold)
+                                if n_min >= n_minThreshold:
+                                    n_min, scale_2ndNtoSeed = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots2ndN, spotsSeed, deltaQrodThreshold)
+                                    if n_min >= n_minThreshold:
+                                        product = scale_seedTo1stN*scale_1stNto2ndN*scale_2ndNtoSeed
+                                        if abs(product-1) <= productThreshold:
+                                            nGood = nGood + 1
+                                        else:
+                                            nBad = nBad + 1
+                                        
+                        if nGood+nBad >= 10 and float(nGood)/(nGood+nBad) >= 0.70:
+                            scale = float(1)/scale_seedTo1stN
+                            fOpen.write('Lattice %s, Scale: %.3f (good = %d, bad = %d)\n'%(firstNeighbor, scale, nGood, nBad))
+                            print 'Lattice %s, Scale: %.3f (good = %d, bad = %d)\n'%(firstNeighbor, scale, nGood, nBad)
+                        else:
+                            scale = numpy.nan
+                            fOpen.write('Lattice %s, Scale: n/a (good = %d, bad = %d)\n'%(firstNeighbor, nGood, nBad)) 
+                            print 'Lattice %s, Scale: n/a (good = %d, bad = %d)\n'%(firstNeighbor, nGood, nBad)
                 LtoSi_vector.append(scale) # lattice to seed
                 
             LtoSS_vector.append(LtoSi_vector)
             runTime = time.time() - startTime
-            fOpen.write('\n It took: %.1f s'%runTime)
+            fOpen.write('\nIt took: %.1f s'%runTime)
             fOpen.close
-            
-            print len(LtoSS_vector)
-            for i in range(0, len(LtoSS_vector)):
-                print len(LtoSS_vector[i])
-            
-    joblib.dump(LtoSS_vector, '%s/r%s-scaling.jbl'%(outputFolder, runNumber))
+        
+        if n == nSeeds:
+            break
+                
+    if not os.path.exists('%s/r%s-scaling'%(outputFolder, runNumber)):
+        os.mkdir('%s/r%s-scaling'%(outputFolder, runNumber))
+        
+    joblib.dump(LtoSS_vector, '%s/r%s-scaling/r%s-scaling.jbl'%(outputFolder, runNumber, runNumber))
 
 if __name__ == "__main__":
     print "\n**** CALLING scaling ****"

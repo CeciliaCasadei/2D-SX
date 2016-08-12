@@ -5,6 +5,8 @@ Created on Fri Mar 18 13:24:08 2016
 PLOT LOCAL BACKGROUND PLANE (ALSO INTERACTIVE MODE, ONLY STATIC IMAGE IS SAVED)
 """
 import os
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 import warnings
 from mpl_toolkits.mplot3d import Axes3D

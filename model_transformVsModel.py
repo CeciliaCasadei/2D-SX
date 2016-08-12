@@ -9,7 +9,6 @@ import os
 
 ### CYTHON MODULES ###
 import transform_calculateCCs
-import transform_calculateCCs_model
 
 def indexToMatrix(index):
     identity = numpy.matrix([[1, 0],[0, 1]])
@@ -59,30 +58,18 @@ def main(myArguments):
             nTriangles = int(value)  
         elif option == "--nGoodFraction":
             nGoodFraction = float(value)
-            
-    transformationFolder = './Output_runMerging/transformAndScaleToModel_r%s'%runNumber
+    
+    newFolder = './Output_runMergingVsModel'
+    if not os.path.exists(newFolder):
+        os.mkdir(newFolder)         
+    transformationFolder = '%s/transformAndScaleToModel_r%s'%(newFolder, runNumber)
     if not os.path.exists(transformationFolder):
         os.mkdir(transformationFolder)
-    
-    # FROM MODEL (polynomial fit of data), BUILD MATRIX: h k qRod I     
-    startModel_dictionary = joblib.load('./Output_runMerging/startModel/startModel_dictionary.jbl')
-    lattice_model = []
-    n = 0
-    for key, value in startModel_dictionary.items():
-        x_model = value[0]
-        y_model = value[1]
-        indices = key.split('_')
-        hRod = indices[0]
-        kRod = indices[1]
-        for i in range(0, len(x_model)):
-            spot_model = [int(hRod), int(kRod), x_model[i], y_model[i]] # h k qRod I
-            lattice_model.append(spot_model)
-            n = n + 1
+
+    # LOAD MODEL: h k qRod I
+    lattice_model = joblib.load('./Output_runMerging/model/lattice_model.jbl')  
             
-    lattice_model = numpy.asarray(lattice_model, dtype=numpy.float32)
-    joblib.dump(lattice_model, './Output_runMerging/startModel/lattice_model.jbl')
-            
-    # LOAD LATTICES LIST OF MATRICES: n h k qRod I Icorrected       
+    # LOAD LATTICES LIST OF MATRICES: h k qRod I    
     myList = joblib.load('Output_r%s/transformAndScale/spotsMatricesList-r%s/r%s_spotsMatricesList.jbl'%(runNumber, runNumber, runNumber))
     nLattices = len(myList)
     if nUsedLattices == 'all':
@@ -102,12 +89,13 @@ def main(myArguments):
     fOpen.write('Min pairs n: %d\n'%n_minThreshold)
    
     for firstNeighbor in range(0, nUsedLattices):
-        print '\nNew 1st neighbor. Lattice %d'%firstNeighbor                
+        print '\nLattice %d'%firstNeighbor                
         nGood = 0
         nBad = 0
         
-        spots1stN = myList[firstNeighbor]               
-        n_min, avg_CCs = transform_calculateCCs_model.determineTransformation(lattice_model, spots1stN, deltaQrodThreshold)
+        spots1stN = myList[firstNeighbor]   
+        print spots1stN.shape            
+        n_min, avg_CCs = transform_calculateCCs.determineTransformation(lattice_model, spots1stN, deltaQrodThreshold)
         if n_min < n_minThreshold:
             transformation_ModelTo1stN = numpy.nan
             fOpen.write('Lattice %s, Bad 1st N\n'%firstNeighbor)
@@ -129,7 +117,7 @@ def main(myArguments):
                     transformation_1stNto2ndN = avg_CCs.index(max(avg_CCs))
                     transformationMatrix_1stNto2ndN = indexToMatrix(transformation_1stNto2ndN)
                     
-                    n_min, avg_CCs = transform_calculateCCs_model.determineTransformation(lattice_model, spots2ndN, deltaQrodThreshold)
+                    n_min, avg_CCs = transform_calculateCCs.determineTransformation(lattice_model, spots2ndN, deltaQrodThreshold)
                     if n_min < n_minThreshold:
                         print 'n_min below threshold (model to 2nd neighbour)'
                     else:
@@ -138,10 +126,9 @@ def main(myArguments):
                         
                         if numpy.array_equal(transformationMatrix_ModelTo1stN*transformationMatrix_1stNto2ndN*transformationMatrix_2ndToModel, identity):
                             nGood = nGood + 1
-                            print 'Transformation lattice to model verified.'
                         else:
                             nBad = nBad + 1
-                            print 'Transformation lattice to model NOT verified.'
+                            
                 if nGood+nBad >= 0.4*nTriangles and float(nGood)/(nGood+nBad) >= nGoodFraction:
                     break
                             

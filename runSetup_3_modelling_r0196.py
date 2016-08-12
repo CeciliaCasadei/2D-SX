@@ -22,12 +22,12 @@ if flag == 1:
     
     
 # APPLY INDICES TRANSFORMATIONS
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python model_applyTransformations.py --runNumber %s'%runNumber)
 
 # DETERMINE LATTICE TO MODEL SCALE FACTOR    
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python model_scaleVsModel.py --runNumber %s'%runNumber)
 

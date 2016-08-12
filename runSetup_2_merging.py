@@ -28,6 +28,13 @@ if flag == 1:
     
     
 # PLOT MERGED RODS
+inputFolder = './Output_runMerging'
 flag = 1
 if flag == 1:
-    os.system('python plotRods_runMerging.py')
+    os.system('python merging.py --inputFolder %s'%inputFolder)
+    
+    
+# CALCULATE R-MEAS
+flag = 1
+if flag == 1:
+    os.system('python calculate_Rfactor.py --inputFolder %s'%inputFolder)

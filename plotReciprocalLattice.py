@@ -4,6 +4,8 @@ Created on Mon Jan  4 12:43:29 2016
 @author: casadei_c
 PRODUCE RECIPROCAL LATTICE FIGURE.
 """
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 import pickle
 import warnings 

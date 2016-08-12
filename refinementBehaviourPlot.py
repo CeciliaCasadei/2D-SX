@@ -10,6 +10,7 @@ DURING REFINEMENT ITERATIONS IN IMAGE PROCESSING.
 """
 import warnings
 import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import numpy
 
 def refinementBehaviourPlotFunction(self, folderName, myString):

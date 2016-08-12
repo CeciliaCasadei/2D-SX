@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*
 import numpy
 import joblib
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm

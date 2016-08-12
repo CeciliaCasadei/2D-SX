@@ -8,6 +8,8 @@ Created on Tue Jan 26 19:19:34 2016
   PLOT ATTRIBUTE latticeErrorMatrix
 """
 import warnings
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 
 def plotLatticeErrorMatrixFunction(self, filename):    

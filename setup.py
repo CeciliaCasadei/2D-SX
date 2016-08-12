@@ -5,7 +5,7 @@ import numpy
 print numpy.get_include()
 
 setup(
-    ext_modules = cythonize("transform_calculateCCs.pyx", ),
+    ext_modules = cythonize("scaling_calculateScaleFactor_Plot.pyx", ),
     include_dirs=[numpy.get_include(), ]
 )
 

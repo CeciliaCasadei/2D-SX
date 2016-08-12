@@ -2,7 +2,8 @@
 import os
 import sys
 
-from runSetup_tiltAngles import tiltAngles
+from runSetup_settings import tiltAngles
+from runSetup_settings import nGoodFractions
 
 
 # SETUP FOR CURRENT RUN
@@ -167,24 +168,25 @@ if flag == 1:
     
 # DETERMINE TRANSFORMATIONS
 deltaQrodThreshold = 0.005
-deltaSelfThreshold = 0
 n_minThreshold = 6
 nSeeds = 6
 nUsedLattices = 'all'
 nTriangles = 100
+nGoodFraction = float(nGoodFractions['%s'%runNumber])   
     
+
 flag = 0
 if flag == 1:
-    os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --dSelf %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d'
-              %(runNumber, deltaQrodThreshold, deltaSelfThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles))
+    os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d --nGoodFraction %f'
+              %(runNumber, deltaQrodThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles, nGoodFraction))
               
               
               
 # DETERMINE TRANSFORMATIONS - SEEDS COMPARISON
 flag = 0
 if flag == 1:
-    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f --dSelf %f'
-               %(runNumber, nSeeds, deltaQrodThreshold, deltaSelfThreshold))
+    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f'
+               %(runNumber, nSeeds, deltaQrodThreshold))
                
 
                

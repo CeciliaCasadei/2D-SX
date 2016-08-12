@@ -4,6 +4,8 @@ Created on Wed Mar 16 12:29:10 2016
 @author: casadei_c
 DRAW DISTRIBUTION OF N OF PEAKS (FROM peaks.txt FILE) PER IMAGE
 """
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 def nPeaksDistributionHistogramFunction(runNumber, nPeaksList):
     matplotlib.pyplot.close()

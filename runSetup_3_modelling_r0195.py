@@ -30,4 +30,4 @@ if flag == 1:
 # DETERMINE LATTICE TO MODEL SCALE FACTOR    
 flag = 1
 if flag == 1:
-    os.system('python model_scaleVsModel_optimized.py --runNumber %s'%runNumber)
+    os.system('python model_scaleVsModel.py --runNumber %s'%runNumber)

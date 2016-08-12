@@ -1,23 +1,34 @@
 # -*- coding: utf-8 -*-
 import getopt
 import joblib
-import random
 import time
 import numpy
 import sys
 import os
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 
-import scaling_calculateScaleFactor
-import scaling_calculateScaleFactor_model
+
+import scaling_calculateScaleFactor_Plot
+
+def Correlate(x1, x2):
+    x1Avg = numpy.average(x1)
+    x2Avg = numpy.average(x2)
+    numTerm = numpy.multiply(x1-x1Avg, x2-x2Avg)
+    num = numTerm.sum()
+    resX1Sq = numpy.multiply(x1-x1Avg, x1-x1Avg)
+    resX2Sq = numpy.multiply(x2-x2Avg, x2-x2Avg)
+    den = numpy.sqrt(numpy.multiply(resX1Sq.sum(), resX2Sq.sum()))
+    CC = num/den
+    return CC
 
 def scalingFunction(myArguments):
     
     # DEFAULTS
     runNumber = '' 
     deltaQrodThreshold = 0.001
-    n_minThreshold = 8
-    nTriangles = 100
-    productThreshold = 0.25
+    n_minThreshold = 100
+    CC_threshold = 0.92
     
     # READ INPUTS    
     try:
@@ -32,90 +43,81 @@ def scalingFunction(myArguments):
         elif option == "--runNumber":
             runNumber = value.zfill(4)
 
-    outputFolder = './Output_runMerging/transformAndScaleToModel_r%s'%runNumber
+    outputFolder = './Output_runMergingVsModel/transformAndScaleToModel_r%s'%runNumber
+    figuresFolder = '%s/scalingFigures'%outputFolder
+    if not os.path.exists(figuresFolder):
+        os.mkdir(figuresFolder)
     
-    # LOAD LATTICES LIST OF MATRICES: n h k qRod I Icorrected h_transformed k_transformed      
+    # LOAD LATTICES LIST OF MATRICES: h k qRod I flag
     myList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))
     nLattices = len(myList)
+    print 'Total n of lattices: %d'%nLattices
     
     # LOAD MODEL: h k qRod I        
-    lattice_model = joblib.load('./Output_runMerging/startModel/lattice_model.jbl')
+    lattice_model = joblib.load('./Output_runMerging/model/lattice_model.jbl')
     lattice_model = numpy.asarray(lattice_model, dtype=numpy.float32)
    
-    # SCALE LATTICES WITH RESPECT TO MODEL  
-    startTime = time.time()
-    #LtoModel_vector = []
-    scaledLattices_list = []
+    # SCALE LATTICES WITH RESPECT TO MODEL    
+    LtoModel_vector = []
     nScaled = 0
     
+    startTime = time.time()  
     fOpen = open('%s/r%s_scaling.txt'%(outputFolder, runNumber), 'w')
     fOpen.write('Total: %s lattices\n'%nLattices)
     fOpen.write('Delta qRod: %f\n'%deltaQrodThreshold)
     fOpen.write('Min pairs n: %d\n'%n_minThreshold)
-    fOpen.write('Product threshold: %f\n'%productThreshold)
+    fOpen.write('CC threshold: %f\n'%CC_threshold)
     
     for firstNeighbor in range(0, nLattices):
         spots1stN = myList[firstNeighbor]  
-        if spots1stN.shape[1] == 6:
+        if spots1stN[0, 4] == 0:
             scale = numpy.nan
-            fOpen.write('Lattice %s, Bad 1st N (non oriented)\n'%firstNeighbor)
-            #LtoModel_vector.append(scale)
-            continue
-        
-        print 'New 1st neighbor. Lattice %d'%firstNeighbor                
-        nGood = 0
-        nBad = 0
-        
-        spots1stN = numpy.asarray(spots1stN, dtype=numpy.float32) # n h k qRod I Icorrected h_transformed k_transformed
-        n_min, scale_modelTo1stN = scaling_calculateScaleFactor_model.calculateScaleFactorFunction(lattice_model, spots1stN, deltaQrodThreshold)
-        if n_min < n_minThreshold:
-            scale = numpy.nan
-            fOpen.write('Lattice %s, Bad 1st N\n'%firstNeighbor)
-        else:
-            secondShell = random.sample(range(nLattices), nTriangles)
-            for secondNeighbor in secondShell:                    
-                spots2ndN = myList[secondNeighbor]
-                if spots2ndN.shape[1] == 8:
-                    spots2ndN = numpy.asarray(spots2ndN, dtype=numpy.float32)
-                    n_min, scale_1stNto2ndN = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots1stN, spots2ndN, 3*deltaQrodThreshold)
-                    if n_min >= n_minThreshold:
-                        n_min, scale_modelTo2ndN = scaling_calculateScaleFactor_model.calculateScaleFactorFunction(lattice_model, spots2ndN, deltaQrodThreshold)
-                        scale_2ndNtoModel = float(1)/scale_modelTo2ndN
-                        #n_min, scale_2ndNtoModel = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots2ndN, lattice_modelForScaling, deltaQrodThreshold)
-                        if n_min >= n_minThreshold:
-                            product = scale_modelTo1stN*scale_1stNto2ndN*scale_2ndNtoModel
-                            print product
-                            if abs(product-1) <= productThreshold:
-                                nGood = nGood + 1
-                            else:
-                                nBad = nBad + 1
-                            
-            if nGood+nBad >= 10 and float(nGood)/(nGood+nBad) >= 0.70:
-                nScaled = nScaled + 1
-                scale = float(1)/scale_modelTo1stN
-                fOpen.write('Lattice %s, Scale: %.3f (nGood = %d, nBad = %d)\n'%(firstNeighbor, scale, nGood, nBad))
-                spots1stN_scaled = []
-                for spot in spots1stN:
-                    scaledSpot = [spot[6], spot[7], spot[3], scale*spot[5]]   # h_transformed k_transformed qRod I_scaled
-                    spots1stN_scaled.append(scaledSpot)
-                spots1stN_scaled = numpy.asarray(spots1stN_scaled, dtype=numpy.float32)
-            else:
+            print 'Lattice %s: Non oriented\n'%firstNeighbor
+            fOpen.write('Lattice %s: Non oriented\n'%firstNeighbor)            
+        else:        
+            print 'Lattice %d'%firstNeighbor                
+
+            n_pairs, scale_modelTo1stN, I1, I2 = scaling_calculateScaleFactor_Plot.calculateScaleFactorFunction(lattice_model, spots1stN, deltaQrodThreshold)
+            if n_pairs < n_minThreshold:
                 scale = numpy.nan
-                fOpen.write('Lattice %s, Scaling: N\A (nGood = %d, nBad = %d)\n'%(firstNeighbor, nGood, nBad)) 
+                fOpen.write('Lattice %s: n_pairs model-lattice below threshold.\n'%firstNeighbor)
+            else:               
+                ##########################################################################
+                CC = Correlate(I1, I2)
+                print 'N points: %d'%len(I1)
+                print CC
+                
+                matplotlib.pyplot.figure()
+                matplotlib.pyplot.plot(I1, I2, 'bo')
+                x = numpy.linspace(0, max(I1), num=float(max(I1))/0.001, endpoint = True)
+                matplotlib.pyplot.plot(x, scale_modelTo1stN*x, 'r-')
+                matplotlib.pyplot.title('CC = %.5f'%CC)
+                matplotlib.pyplot.savefig('%s/scaleToModel_lattice%d.png'%(figuresFolder, firstNeighbor))
+                matplotlib.pyplot.close()                    
+                ##########################################################################
+                if CC >= CC_threshold:
+                    nScaled = nScaled + 1
+                    scale = float(1)/scale_modelTo1stN
+                    fOpen.write('Lattice %s, Scale (lattice to model): %.3f\n'%(firstNeighbor, scale))
+                    print 'Lattice %s, Scale (lattice to model): %.3f\n'%(firstNeighbor, scale)
+                else:
+                    scale = numpy.nan
+                    fOpen.write('Lattice %s, Scale: n/a\n'%firstNeighbor) 
+                    print 'Lattice %s, Scale: n/a\n'%firstNeighbor
                
-        #LtoModel_vector.append(scale) # lattice to model
-        scaledLattices_list.append(spots1stN_scaled) # list of numpy 2D arrays: h_transformed k_transformed qRod I_scaled
-    
+        LtoModel_vector.append(scale) # lattice to model
+        
     scaledFraction = float(nScaled)/nLattices
     fOpen.write('\nFraction of scaled lattices: %.2f.'%scaledFraction)    
     runTime = time.time() - startTime
     fOpen.write('\nIt took: %.1f s'%runTime)
     fOpen.close
-                
-    #joblib.dump(LtoModel_vector, '%s/r%s-scaling.jbl'%(outputFolder, runNumber))
-    if not os.path.exists('%s/r%s_scaledLatticesList'%(outputFolder, runNumber)):
-        os.mkdir('%s/r%s_scaledLatticesList'%(outputFolder, runNumber))
-    joblib.dump(scaledLattices_list, '%s/r%s_scaledLatticesList/r%s_scaledLatticesList.jbl'%(outputFolder, runNumber, runNumber))
+    print 'Total n of lattices: %d'%len(LtoModel_vector)  
+    print 'Fraction of scaled lattices: %.2f.'%scaledFraction
+     
+    if not os.path.exists('%s/r%s-scales'%(outputFolder, runNumber)):
+        os.mkdir('%s/r%s-scales'%(outputFolder, runNumber))           
+    joblib.dump(LtoModel_vector, '%s/r%s-scales/r%s-scales.jbl'%(outputFolder, runNumber, runNumber))
     
 if __name__ == "__main__":
     print "\n**** CALLING model_scaleVsModel ****"

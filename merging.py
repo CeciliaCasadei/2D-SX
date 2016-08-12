@@ -3,42 +3,40 @@ import sys
 import getopt
 import os
 import joblib
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 import numpy
 from numpy.polynomial import polynomial as P
 
-def plotRodsFunction(myArguments):
-    
+def mergingFunction(myArguments):
+    # DEFAULTS
+    inputFolder = './Output_runMerging'
     runNumbers = ['0195', '0196', '0197', '0198', '0199', '0200', '0201']
+    rodIndices = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
+                  [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
+                  [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]      
     
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h")
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["inputFolder="])
     except getopt.GetoptError:
-        print 'Usage: python plotRods.py'
+        print 'Usage: python merging.py --inputFolder <inputFolder>'
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python plotRods.py'
+            print 'Usage: python merging.py --inputFolder <inputFolder>'
             sys.exit()
-        
-
-    outputFolder = './Output_runMerging/mergedRods_scaledToModel'
+        elif option == "--inputFolder":
+            inputFolder = value
+    
+    outputFolder = '%s/mergedRods'%inputFolder      
     if not os.path.exists(outputFolder):
         os.mkdir(outputFolder)
-
-    nIn = 0
-    nOut = 0
-    
-    rodIndices = [[1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
-                  [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
-                  [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]      
                   
     IsAtZero = numpy.zeros(shape=(len(rodIndices), 3))
-    startModel_dictionary = {}
+    lattice_model = []
     rodNumber = 0   
-    
-
     # PLOT I vs QROD, FOR EVERY ROD, AND PRODUCE MODEL (POLYNOMIAL FIT OF MEDIAN VALUES)    
     for indices in rodIndices:
         print '\n\n************************\nRod: %s'%indices
@@ -47,22 +45,23 @@ def plotRodsFunction(myArguments):
         Qrod_vector = []
         Irod_vector = []
         
-        # FOR EVERY ROD, COLLECT (QROD, I) POINTS FROM ALL RUNS            
+        # FOR EVERY ROD, COLLECT (QROD, I) POINTS FROM ALL RUNS (AFTER RUN SCALING, WITH AVG SCALE SET TO 1)              
         for runNumber in runNumbers:
             print 'Extracting (qRod, I) points from run %s'%runNumber
-            myList = joblib.load('./Output_runMerging/transformAndScaleToModel_r%s/r%s_scaledLatticesList/r%s_scaledLatticesList.jbl'%(runNumber, runNumber, runNumber))
-            #myList = joblib.load('./Output_runMerging/spotsMatricesList-Scaled-r%s-AvgTo1/r%s_scaledSpotsMatricesList.jbl'%(runNumber, runNumber))
+            myList = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(inputFolder, runNumber, runNumber))
         
-            for latticeMatrix in myList:   # h_transformed k_transformed qRod I_scaled   
-                for spot in latticeMatrix:
-                    h_transformed = spot[0]
-                    k_transformed = spot[1]
-                    if (h_transformed == hRod and k_transformed == kRod) or (h_transformed == -hRod-kRod and k_transformed == hRod) or (h_transformed == kRod and k_transformed == -hRod-kRod):
-                        Irod_vector.append(spot[3])
-                        Qrod_vector.append(spot[2])
-                    if (h_transformed == -hRod and k_transformed == -kRod) or (h_transformed == hRod+kRod and k_transformed == -hRod) or (h_transformed == -kRod and k_transformed == hRod+kRod):
-                        Irod_vector.append(spot[3])
-                        Qrod_vector.append(-spot[2])
+            for latticeMatrix in myList:   # h k qRod I flag
+                latticeMatrix = numpy.asarray(latticeMatrix)
+                if latticeMatrix[0, 4] == 1:
+                    for spot in latticeMatrix:
+                        h = spot[0]
+                        k = spot[1]
+                        if (h == hRod and k == kRod) or (h == -hRod-kRod and k == hRod) or (h == kRod and k == -hRod-kRod):
+                            Irod_vector.append(spot[3])
+                            Qrod_vector.append(spot[2])
+                        if (h == -hRod and k == -kRod) or (h == hRod+kRod and k == -hRod) or (h == -kRod and k == hRod+kRod):
+                            Irod_vector.append(spot[3])
+                            Qrod_vector.append(-spot[2])
          
         # REMOVE NAN VALUES
         cleanedList_Irod = [Irod_vector[i] for i in range(0, len(Irod_vector)) if not numpy.isnan(Irod_vector[i])]
@@ -76,7 +75,6 @@ def plotRodsFunction(myArguments):
         Xs = []
         Ys_means = []
         Ys_medians = []
-        Y_poissonError = []
         # FOR EACH BIN, COLLECT BIN CENTER ON HORIZONTAL AXIS, MEAN AND MEDIAN OF INTENSITY. CHECK WHETHER THE I DISTRIBUTION IN THE BIN IS POISSONIAN.
         for i in range(0, len(bins)-1):
             edge_l = bins[i]
@@ -91,79 +89,68 @@ def plotRodsFunction(myArguments):
                 Ys_means.append(Y_mean)
                 Y_median = numpy.median(binList_Irod)
                 Ys_medians.append(Y_median)
-                Y_poissonError.append(numpy.sqrt(Y_mean))
                 print '\nN of points in the bin = %d, Mean = %.2f, Median = %.2f'%(len(binList_Irod), Y_mean, Y_median)
-                interval_l = Y_mean - numpy.log(2)
-                interval_r = Y_mean + (float(1)/3)
-                print 'Poisson interval for median: [%.2f, %.2f]'%(interval_l, interval_r)
-                if interval_l <= Y_median < interval_r:
-                    print 'Median falls WITHIN Poissonian interval about the mean.'
-                    nIn = nIn + 1
-                else:
-                    print 'Median falls OUT of Poissonian interval about the mean.'
-                    nOut = nOut + 1
                 
         
         # POLYNOMIAL FIT ORDER
-        n = 14                   
         if indices == [1, 0]:
             n = 6  
         if indices == [1, 1]:
             n = 6                 
         if indices == [1, 2]:
-            n = 4                
+            n = 5                
         if indices == [1, 3]:
-            n = 8                 
+            n = 7              
         if indices == [1, 4]:
-            n = 8                
+            n = 10               
         if indices == [1, 5]:
-            n = 12
+            n = 13
         if indices == [1, 6]:
             n = 14
         if indices == [1, 7]:
-            n = 14
+            n = 13
         if indices == [2, 0]:
             n = 4
         if indices == [2, 1]:
-            n = 6
+            n = 5
         if indices == [2, 2]:
             n = 6
         if indices == [2, 3]:
-            n = 16
+            n = 13
         if indices == [2, 4]:
-            n = 14
+            n = 12
         if indices == [2, 5]:
             n = 16
         if indices == [2, 6]:
-            n = 14
+            n = 12
         if indices == [3, 0]:
             n = 6
         if indices == [3, 1]:
-            n = 4
+            n = 7
         if indices == [3, 2]:
-            n = 10
+            n = 13
         if indices == [3, 3]:
             n = 12
         if indices == [3, 4]:
-            n = 10
+            n = 9
         if indices == [3, 5]:
             n = 10
         if indices == [4, 0]:
             n = 6
         if indices == [4, 1]:
-            n = 12
-        if indices == [4, 2]:
             n = 10
+        if indices == [4, 2]:
+            n = 12
         if indices == [4, 3]:
-            n = 8
+            n = 9
         if indices == [4, 4]:
-            n = 14
+            n = 15
         if indices == [5, 0]:
             n = 14
         if indices == [5, 1]:
-            n = 14
+            n = 13
         if indices == [5, 2]:
-            n = 8
+            n = 16
         if indices == [5, 3]:
             n = 10
         if indices == [6, 0]:
@@ -171,11 +158,11 @@ def plotRodsFunction(myArguments):
         if indices == [6, 1]:
             n = 14
         if indices == [6, 2]:
-            n = 10
-        if indices == [7, 0]:
-            n = 14
-        if indices == [7, 1]:
             n = 12
+        if indices == [7, 0]:
+            n = 15
+        if indices == [7, 1]:
+            n = 13
         
         # EXTEND INTERVAL ON WHICH FIT IS PERFORMED TO AVOID RAPID OSCILLATIONS OR THE POLYNIMIAL AT THE INTERVAL EDGES.
         Xs_extended = []
@@ -197,18 +184,28 @@ def plotRodsFunction(myArguments):
         y_fit = numpy.zeros(shape=x_fit.shape)
         for exponent in range(0, n+1):
             y_fit = y_fit + c[exponent]*(x_fit**exponent)
+            
+        for i in range(0, len(x_fit)):
+            spot_model = [int(hRod), int(kRod), x_fit[i], y_fit[i]] # h k qRod I
+            lattice_model.append(spot_model)
                
         # PLOT BRAGG ROD
         matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
         matplotlib.pyplot.plot(x_fit, y_fit, '.m-')
-        #matplotlib.pyplot.plot(Xs, Ys_means, '.b-')
-        #matplotlib.pyplot.errorbar(Xs, Ys_means, yerr=Y_poissonError, ecolor='m')
         matplotlib.pyplot.plot(Xs, Ys_medians, '.b-')
         myAxis = matplotlib.pyplot.gca()
         myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
-        matplotlib.pyplot.savefig('%s/mediansAndFit_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
+        matplotlib.pyplot.savefig('%s/medians_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
         matplotlib.pyplot.close()
-    
+       
+        matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
+        matplotlib.pyplot.plot(Xs, Ys_medians, '.b-')
+        matplotlib.pyplot.plot(Xs, Ys_means, '.m-')
+        myAxis = matplotlib.pyplot.gca()
+        myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
+        matplotlib.pyplot.savefig('%s/means_medians_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
+        matplotlib.pyplot.close()
+        
         matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
         matplotlib.pyplot.plot(x_fit, y_fit, '.b-')
         myAxis = matplotlib.pyplot.gca()
@@ -218,7 +215,7 @@ def plotRodsFunction(myArguments):
         scale = 1.1*max(cleanedList_Irod)
         myAxis.set_ylim([-0.1*scale,1*scale])
         myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
-        matplotlib.pyplot.savefig('%s/onlyFit_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
+        matplotlib.pyplot.savefig('%s/polyFit_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
         matplotlib.pyplot.close()
         
         # COLLECT I(qRod = 0)
@@ -226,21 +223,17 @@ def plotRodsFunction(myArguments):
         IsAtZero[rodNumber, 1]= kRod
         IsAtZero[rodNumber, 2]= c[0]
         
-        # SAVE ROD MODEL
-        startModel_dictionary['%s_%s'%(hRod, kRod)] = [x_fit, y_fit]
-        
         rodNumber = rodNumber + 1
-    
-    if not os.path.exists('./Output_runMerging/intensitiesAtZero_scaledToModel'):
-        os.mkdir('./Output_runMerging/intensitiesAtZero_scaledToModel')
-    joblib.dump(IsAtZero, './Output_runMerging/intensitiesAtZero_scaledToModel/intensitiesAtZero.jbl')
-    if not os.path.exists('./Output_runMerging/model'):
-        os.mkdir('./Output_runMerging/model')
-    joblib.dump(startModel_dictionary, './Output_runMerging/model/startModel_dictionary.jbl')
-    
-    print '\nFraction of bins where the median falls within the Poissonian interval about the mean: %.1f'%(float(nIn)/(nIn+nOut))
         
+    lattice_model = numpy.asarray(lattice_model, dtype=numpy.float32)
+        
+    if not os.path.exists('%s/intensitiesAtZero'%inputFolder):
+        os.mkdir('%s/intensitiesAtZero'%inputFolder)
+    joblib.dump(IsAtZero, '%s/intensitiesAtZero/intensitiesAtZero.jbl'%inputFolder)
+    if not os.path.exists('%s/model'%inputFolder):
+        os.mkdir('%s/model'%inputFolder)
+    joblib.dump(lattice_model, '%s/model/lattice_model.jbl'%inputFolder)
 
 if __name__ == "__main__":
-    print "\n**** CALLING plotRods_scaledToModel ****"
-    plotRodsFunction(sys.argv[1:])    
+    print "\n**** CALLING merging ****"
+    mergingFunction(sys.argv[1:])    

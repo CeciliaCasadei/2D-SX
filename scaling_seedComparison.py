@@ -3,6 +3,7 @@ import sys
 import getopt
 import joblib
 import numpy
+import os
 
 def scaling_seedComparisonFunction(myArguments):
     
@@ -22,7 +23,7 @@ def scaling_seedComparisonFunction(myArguments):
     outputFolder = './Output_r%s/transformAndScale'%runNumber
 
     
-    scalesList = joblib.load('%s/r%s-scaling.jbl'%(outputFolder, runNumber))  # lattice to seed scales
+    scalesList = joblib.load('%s/r%s-scaling/r%s-scaling.jbl'%(outputFolder, runNumber, runNumber))  # lattice to seed scales
     nSeeds = len(scalesList)
     print 'N seeds: %d'%nSeeds
             
@@ -74,7 +75,7 @@ def scaling_seedComparisonFunction(myArguments):
             print '\nSeeds: %d %d'%(seed1, seed2)
             N = len(S1toS2)
             print 'Common scaled lattices: %d'%N
-            if N == 0:
+            if N < 11:
                 S_SeedSeed[seed1, seed2] = numpy.nan
             else:            
                 total = 0
@@ -127,14 +128,17 @@ def scaling_seedComparisonFunction(myArguments):
     for lattice in range(0, nLattices):
         flag = 0
         for seed in range(0, nGoodSeeds):
-            if not numpy.isnan(orderedScalesList[seed][lattice]):            
+            if not numpy.isnan(orderedScalesList[seed][lattice]) and not numpy.isnan(S_SeedSeed[seed, 0]):            
                 latticeToRefSeed = orderedScalesList[seed][lattice] * S_SeedSeed[seed, 0] # S(latticeToSeed) * S(seedToReferenceSeed)
                 latticeScales.append(latticeToRefSeed)
                 flag = 1
                 break
         if flag == 0:
             latticeScales.append(numpy.nan)
-    joblib.dump(latticeScales, '%s/r%s-finalScales.jbl'%(outputFolder, runNumber))
+    
+    if not os.path.exists('%s/r%s-finalScales'%(outputFolder, runNumber)):
+        os.mkdir('%s/r%s-finalScales'%(outputFolder, runNumber))
+    joblib.dump(latticeScales, '%s/r%s-finalScales/r%s-finalScales.jbl'%(outputFolder, runNumber, runNumber))
     
     
     
