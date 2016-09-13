@@ -17,6 +17,12 @@ if flag == 1:
     
     
 # CALCULATE R-MEAS
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python calculate_Rfactor.py --inputFolder %s'%inputFolder)
+
+
+# CALCULATE PATTERSON
+flag = 0
+if flag == 1:
+    os.system('python calculate_Patterson_normalized.py --inputFolder %s'%inputFolder)

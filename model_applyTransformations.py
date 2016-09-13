@@ -45,20 +45,20 @@ def model_applyTransformationsFunction(myArguments):
     outputFolder = './Output_runMergingVsModel/transformAndScaleToModel_r%s'%runNumber
 
 
-    spotsMatricesList = joblib.load('%s/spotsMatricesList-r%s/r%s_spotsMatricesList.jbl'%(inputFolder, runNumber, runNumber)) # h k qRod I
+    spotsMatricesList = joblib.load('%s/spotsMatricesList-r%s/r%s_spotsMatricesList.jbl'%(inputFolder, runNumber, runNumber)) # h k qRod I flag=1 i_unassembled j_unassembled
     latticeOrientations = joblib.load('%s/r%s_orientationsVsModel.jbl'%(outputFolder, runNumber))
     nLattices = len(latticeOrientations)  # equal to len(spotsMatricesList)
     
     transformedSpotMatricesList = []
     for lattice in range(0, nLattices):
         latticeOrientation = latticeOrientations[lattice]
-        spotsMatrix = spotsMatricesList[lattice]                                                                              # h k qRod I
+        spotsMatrix = spotsMatricesList[lattice]                                                                              # h k qRod I flag=1 i_unassembled j_unassembled
         print 'Lattice: %d - Orientation Vs model: %s'%(lattice, latticeOrientation)
         if numpy.isnan(latticeOrientation):
             flag = 0
             transformedSpotsMatrix = []
             for spot in spotsMatrix:
-                transformedSpot = [spot[0], spot[1], spot[2], spot[3], flag]
+                transformedSpot = [spot[0], spot[1], spot[2], spot[3], flag, spot[5], spot[6]]
                 transformedSpotsMatrix.append(transformedSpot)
         else:
             flag = 1
@@ -71,9 +71,9 @@ def model_applyTransformationsFunction(myArguments):
                 transformedIndices = latticeOrientationMatrix*indices
                 h_t = transformedIndices[0, 0]
                 k_t = transformedIndices[1, 0]
-                transformedSpot = [h_t, k_t, spot[2], spot[3], flag]
+                transformedSpot = [h_t, k_t, spot[2], spot[3], flag, spot[5], spot[6]]
                 transformedSpotsMatrix.append(transformedSpot)
-        transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix, dtype = numpy.float32)                                  # h k qRod I flag
+        transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix, dtype = numpy.float32)                                  # h k qRod I flag i_unassembled j_unassembled
         transformedSpotMatricesList.append(transformedSpotsMatrix)
     
     outputPath = '%s/spotsMatricesList-Transformed-r%s'%(outputFolder, runNumber)

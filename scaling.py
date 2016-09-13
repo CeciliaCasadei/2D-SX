@@ -22,16 +22,18 @@ def scalingFunction(myArguments):
     
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "dQrod="])
     except getopt.GetoptError:
-        print 'Usage: python scaling.py --runNumber <runNumber>'
+        print 'Usage: python scaling.py --runNumber <runNumber>  --dQrod <dQrod>'
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python scaling.py --runNumber <runNumber>'
+            print 'Usage: python scaling.py --runNumber <runNumber>  --dQrod <dQrod>'
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
+        elif option == "--dQrod":
+            deltaQrodThreshold = float(value)
 
     outputFolder = './Output_r%s/transformAndScale'%runNumber
     
@@ -72,7 +74,7 @@ def scalingFunction(myArguments):
                 else:
                     nGood = 0
                     nBad = 0
-                    n_min, scale_seedTo1stN = scaling_calculateScaleFactor.calculateScaleFactorFunction(spotsSeed, spots1stN, deltaQrodThreshold)
+                    n_min, scale_seedTo1stN, I1, I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(spotsSeed, spots1stN, deltaQrodThreshold)
                     # BAD LATTICE
                     if n_min < n_minThreshold:
                         scale = numpy.nan
@@ -84,9 +86,9 @@ def scalingFunction(myArguments):
                         for secondNeighbor in secondShell:                    
                             spots2ndN = myList[secondNeighbor]
                             if spots2ndN[0, 4] == 1:                         
-                                n_min, scale_1stNto2ndN = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots1stN, spots2ndN, deltaQrodThreshold)
+                                n_min, scale_1stNto2ndN, I1, I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots1stN, spots2ndN, deltaQrodThreshold)
                                 if n_min >= n_minThreshold:
-                                    n_min, scale_2ndNtoSeed = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots2ndN, spotsSeed, deltaQrodThreshold)
+                                    n_min, scale_2ndNtoSeed, I1, I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots2ndN, spotsSeed, deltaQrodThreshold)
                                     if n_min >= n_minThreshold:
                                         product = scale_seedTo1stN*scale_1stNto2ndN*scale_2ndNtoSeed
                                         if abs(product-1) <= productThreshold:

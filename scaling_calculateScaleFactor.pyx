@@ -22,20 +22,43 @@ def calculateScaleFactorFunction(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, f
     I1 = []
     I2 = []
     
+    ####################################
+    cdef float resolutionLimit = 7.1 # A
+    cdef float cellSize = 62.45      # A
+    ####################################
+    
     h_L1 = spotsL1[:, 0]
     k_L1 = spotsL1[:, 1]
     q_L1 = spotsL1[:, 2]
     I_L1 = spotsL1[:, 3]
     q_L1 = numpy.asarray(q_L1, dtype = numpy.float32)
     
+    #################################################################################################
+    directCell = cellSize * numpy.matrix([[1, numpy.cos(2*numpy.pi/3)],[0, numpy.sin(2*numpy.pi/3)]]) # A
+    reciprocalCellRows = 2 * numpy.pi * directCell.I    
+    #################################################################################################
+    
     for i in range(0, nSpotsL2):
         h = spotsL2[i, 0]
         k = spotsL2[i, 1]
-        q = spotsL2[i, 2]
+        q = spotsL2[i, 2] # qRod
         I = spotsL2[i, 3]
         
+        ############################################
+        reciprocalVector = [h, k]*reciprocalCellRows
+        q_x = reciprocalVector[0,0]         # A^(-1)
+        q_y = reciprocalVector[0,1]         # A^(-1)
+        q_2D = numpy.sqrt(q_x**2 + q_y**2)  # A^(-1)
+        resolution = 2* numpy.pi / q_2D     # A
+        ############################################
+        
         if numpy.isnan(spotsL2[i, 3]):
-            continue     
+            continue  
+        
+        ################################     
+        if resolution < resolutionLimit:
+            continue
+        ################################
         
         indices_qEqual    = numpy.argwhere(abs(q_L1 - q) <= deltaQrodThreshold)
         indices_qOpposite = numpy.argwhere(abs(q_L1 + q) <= deltaQrodThreshold)
@@ -67,4 +90,4 @@ def calculateScaleFactorFunction(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, f
     else:
         scale = numpy.nan
     
-    return n_pairs, scale
+    return n_pairs, scale, I1, I2

@@ -45,6 +45,11 @@ def mergingFunction(myArguments):
         Qrod_vector = []
         Irod_vector = []
         
+        Qrod_vector_untilted = []
+        Irod_vector_untilted = []
+        Qrod_vector_tilted = []
+        Irod_vector_tilted = []
+        
         # FOR EVERY ROD, COLLECT (QROD, I) POINTS FROM ALL RUNS (AFTER RUN SCALING, WITH AVG SCALE SET TO 1)              
         for runNumber in runNumbers:
             print 'Extracting (qRod, I) points from run %s'%runNumber
@@ -59,9 +64,22 @@ def mergingFunction(myArguments):
                         if (h == hRod and k == kRod) or (h == -hRod-kRod and k == hRod) or (h == kRod and k == -hRod-kRod):
                             Irod_vector.append(spot[3])
                             Qrod_vector.append(spot[2])
+                            if runNumber == '0127':
+                                Irod_vector_untilted.append(spot[3])
+                                Qrod_vector_untilted.append(spot[2])
+                            else:
+                                Irod_vector_tilted.append(spot[3])
+                                Qrod_vector_tilted.append(spot[2])
+                                
                         if (h == -hRod and k == -kRod) or (h == hRod+kRod and k == -hRod) or (h == -kRod and k == hRod+kRod):
                             Irod_vector.append(spot[3])
                             Qrod_vector.append(-spot[2])
+                            if runNumber == '0127':
+                                Irod_vector_untilted.append(spot[3])
+                                Qrod_vector_untilted.append(-spot[2])
+                            else:
+                                Irod_vector_tilted.append(spot[3])
+                                Qrod_vector_tilted.append(-spot[2])
          
         # REMOVE NAN VALUES
         cleanedList_Irod = [Irod_vector[i] for i in range(0, len(Irod_vector)) if not numpy.isnan(Irod_vector[i])]
@@ -190,21 +208,21 @@ def mergingFunction(myArguments):
             lattice_model.append(spot_model)
                
         # PLOT BRAGG ROD
-        matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
-        matplotlib.pyplot.plot(x_fit, y_fit, '.m-')
-        matplotlib.pyplot.plot(Xs, Ys_medians, '.b-')
-        myAxis = matplotlib.pyplot.gca()
-        myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
-        matplotlib.pyplot.savefig('%s/medians_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
-        matplotlib.pyplot.close()
-       
-        matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
-        matplotlib.pyplot.plot(Xs, Ys_medians, '.b-')
-        matplotlib.pyplot.plot(Xs, Ys_means, '.m-')
-        myAxis = matplotlib.pyplot.gca()
-        myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
-        matplotlib.pyplot.savefig('%s/means_medians_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
-        matplotlib.pyplot.close()
+#        matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
+#        matplotlib.pyplot.plot(x_fit, y_fit, '.m-')
+#        matplotlib.pyplot.plot(Xs, Ys_medians, '.b-')
+#        myAxis = matplotlib.pyplot.gca()
+#        myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
+#        matplotlib.pyplot.savefig('%s/medians_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
+#        matplotlib.pyplot.close()
+#       
+#        matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
+#        matplotlib.pyplot.plot(Xs, Ys_medians, '.b-')
+#        matplotlib.pyplot.plot(Xs, Ys_means, '.m-')
+#        myAxis = matplotlib.pyplot.gca()
+#        myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
+#        matplotlib.pyplot.savefig('%s/means_medians_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
+#        matplotlib.pyplot.close()
         
         matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
         matplotlib.pyplot.plot(x_fit, y_fit, '.b-')
@@ -215,9 +233,21 @@ def mergingFunction(myArguments):
         scale = 1.1*max(cleanedList_Irod)
         myAxis.set_ylim([-0.1*scale,1*scale])
         myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
-        matplotlib.pyplot.savefig('%s/polyFit_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
+        matplotlib.pyplot.savefig('%s/polyFit_with_r0127_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
         matplotlib.pyplot.close()
         
+        matplotlib.pyplot.scatter(Qrod_vector_tilted, Irod_vector_tilted, marker='o', color='c', alpha = 0.15, s=10)
+        matplotlib.pyplot.scatter(Qrod_vector_untilted, Irod_vector_untilted, marker='o', color='r', alpha = 0.15, s=10)
+        matplotlib.pyplot.plot(x_fit, y_fit, '.b-')
+        myAxis = matplotlib.pyplot.gca()
+        matplotlib.pyplot.axhline(y=0, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
+        matplotlib.pyplot.axhline(y=10, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
+        myAxis.set_xlim([-0.45,+0.45])
+        scale = 1.1*max(cleanedList_Irod)
+        myAxis.set_ylim([-0.1*scale,1*scale])
+        myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
+        matplotlib.pyplot.savefig('%s/untilted_tilted_polyFit_with_r0127_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
+        matplotlib.pyplot.close()
         ################POSTER######################################
 #        if indices == [6, 1] or indices == [1, 5] or indices == [3, 2] or indices == [4, 2]:
 #            matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)

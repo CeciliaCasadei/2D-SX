@@ -40,8 +40,8 @@ def transform_makeSpotsMatrixFunction(myArguments):
     for myLatticeFile in myList:
         n = n+1
         print n
-        myLatticeFile = myLatticeFile.strip('\n')   ### e.g. OrderedIntegratedIntensities_r0195_Img127_Lattice1.jbl
-        spotsMatrix2D = joblib.load(myLatticeFile)  ### h k qRod Icorrected
+        myLatticeFile = myLatticeFile.strip('\n')   ### e.g. OrderedIntegratedIntensities_r0195_Img0127_Lattice1.jbl
+        spotsMatrix2D = joblib.load(myLatticeFile)  ### h k qRod Icorrected flag=1 i_unassembled j_unassembled
         spotsMatrix2D = numpy.asarray(spotsMatrix2D, dtype=numpy.float32)
         print spotsMatrix2D.shape
         spotsMatricesList.append(spotsMatrix2D)     ### spotsMatricesList[lattice n in list.txt][n spot]

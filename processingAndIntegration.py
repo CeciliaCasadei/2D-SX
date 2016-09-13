@@ -486,7 +486,7 @@ def processing(myArguments):
             myLattice.refinementBehaviourPlot(processingFolder, minimizationMethod)
             
             
-            ### INTEGRATE AND PRODUCE SINGLE SPOT FIGURES AND GLOBAL PATTERN FIGURE ###
+            ### INTEGRATE AND PRODUCE SINGLE SPOT FIGURES ###
             integratedPeaks = []
             spotsDictionary = {}
             
@@ -509,6 +509,7 @@ def processing(myArguments):
                         break
                     
                 if successFlag == 1:
+                    
                     iFinal = iFinal_global-mySpot.yDown
                     jFinal = jFinal_global-mySpot.xLeft
                     if 0 <= iFinal < mySpot.peakDetectionMask.shape[0] and 0 <= jFinal < mySpot.peakDetectionMask.shape[0]:
@@ -528,6 +529,12 @@ def processing(myArguments):
                         integratedPeak.append(mySpot.qRod)
                         integratedPeak.append(mySpot.integratedIntensity)
                         integratedPeak.append(mySpot.correctedIntensity)
+                        
+                        ####################################
+                        integratedPeak.append(iFinal_global)
+                        integratedPeak.append(jFinal_global)
+                        ####################################
+                        
                         integratedPeaks.append(integratedPeak)
                         spotsDictionary['Spot%d'%mySpot.n] = mySpot
                     else:                                                                                                       # refined predicted position falls out of the box
@@ -547,6 +554,12 @@ def processing(myArguments):
             qRod_data = integratedPeaks[:, 3]
             I_data = integratedPeaks[:, 4]
             Ic_data = integratedPeaks[:, 5]
+            
+            ###################################
+            iIndex_data = integratedPeaks[:, 6]
+            jIndex_data = integratedPeaks[:, 7]
+            ###################################
+            
             for i in range(0, len(integratedPeaks)):
                 for j in range(i+1, len(integratedPeaks)):
                     if n_data[i] > n_data[j]:
@@ -557,12 +570,22 @@ def processing(myArguments):
                         iTemp = I_data[i]
                         icTemp = Ic_data[i]
                         
+                        ###########################
+                        iIndexTemp = iIndex_data[i]
+                        jIndexTemp = jIndex_data[i]
+                        ###########################
+                        
                         n_data[i] = n_data[j]
                         h_data[i] = h_data[j]
                         k_data[i] = k_data[j]
                         qRod_data[i] = qRod_data[j]
                         I_data[i] = I_data[j]
                         Ic_data[i] = Ic_data[j]
+                        
+                        ###############################
+                        iIndex_data[i] = iIndex_data[j]
+                        jIndex_data[i] = jIndex_data[j]
+                        ###############################
                         
                         n_data[j] = nTemp
                         h_data[j] = hTemp
@@ -571,12 +594,20 @@ def processing(myArguments):
                         I_data[j] = iTemp  
                         Ic_data[j] = icTemp
                         
-            orderedIntegratedIntensities = numpy.zeros((len(integratedPeaks), 4))
+                        ###########################
+                        iIndex_data[j] = iIndexTemp
+                        jIndex_data[j] = jIndexTemp
+                        ###########################
+                        
+            orderedIntegratedIntensities = numpy.zeros((len(integratedPeaks), 7))
             for i in range(0, len(integratedPeaks)):
                     orderedIntegratedIntensities[i,0]=h_data[i]
                     orderedIntegratedIntensities[i,1]=k_data[i]
                     orderedIntegratedIntensities[i,2]=qRod_data[i]
                     orderedIntegratedIntensities[i,3]=Ic_data[i]
+                    orderedIntegratedIntensities[i,4]=1                        # flag
+                    orderedIntegratedIntensities[i,5]=iIndex_data[i]
+                    orderedIntegratedIntensities[i,6]=jIndex_data[i]
                     
             myLattice.orderedIntegratedIntensities = orderedIntegratedIntensities
             

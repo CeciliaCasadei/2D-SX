@@ -69,7 +69,7 @@ def main(myArguments):
     # LOAD MODEL: h k qRod I
     lattice_model = joblib.load('./Output_runMerging/model/lattice_model.jbl')  
             
-    # LOAD LATTICES LIST OF MATRICES: h k qRod I    
+    # LOAD LATTICES LIST OF MATRICES: h k qRod I flag=1 i_unassembled j_unassembled   
     myList = joblib.load('Output_r%s/transformAndScale/spotsMatricesList-r%s/r%s_spotsMatricesList.jbl'%(runNumber, runNumber, runNumber))
     nLattices = len(myList)
     if nUsedLattices == 'all':

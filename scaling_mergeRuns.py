@@ -9,7 +9,7 @@ import os
 import scaling_calculateScaleFactor
 
 def scaling_mergeRunsFunction(myArguments):
-    runNumbers = ['0195', '0196', '0197', '0198', '0199', '0200', '0201']
+    runNumbers = ['0127', '0195', '0196', '0197', '0198', '0199', '0200', '0201']
 
     # READ INPUTS    
     try:
@@ -33,14 +33,14 @@ def scaling_mergeRunsFunction(myArguments):
     for i in range(0, nRuns):
         run_1 = runNumbers[i]
         folder_1 = './Output_runMerging/spotsMatricesList-Transformed-r%s'%run_1
-        myList_1 = joblib.load('%s/r%s_transformedSpotsMatricesList.jbl'%(folder_1, run_1))    # h k qRod I flag
+        myList_1 = joblib.load('%s/r%s_transformedSpotsMatricesList.jbl'%(folder_1, run_1))    # h k qRod I flag i_unassembled j_unassembled
         nLattices_1 = len(myList_1)
         for j in range(0, nRuns):
             run_2 = runNumbers[j]
             print '\nRun %s Run %s'%(run_1, run_2)
                 
             folder_2 = './Output_runMerging/spotsMatricesList-Transformed-r%s'%run_2        
-            myList_2 = joblib.load('%s/r%s_transformedSpotsMatricesList.jbl'%(folder_2, run_2)) # h k qRod I flag
+            myList_2 = joblib.load('%s/r%s_transformedSpotsMatricesList.jbl'%(folder_2, run_2)) # h k qRod I flag i_unassembled j_unassembled
             nLattices_2 = len(myList_2)
             print '%d %d'%(nLattices_1, nLattices_2)
             
@@ -51,10 +51,10 @@ def scaling_mergeRunsFunction(myArguments):
                 L2_index = random.sample(range(nLattices_2), 1)
                 L1 = myList_1[L1_index[0]]
                 L2 = myList_2[L2_index[0]]
-                L1 = numpy.asarray(L1, dtype=numpy.float32) # h k qRod I flag
-                L2 = numpy.asarray(L2, dtype=numpy.float32) # h k qRod I flag
+                L1 = numpy.asarray(L1, dtype=numpy.float32) # h k qRod I flag i_unassembled j_unassembled
+                L2 = numpy.asarray(L2, dtype=numpy.float32) # h k qRod I flag i_unassembled j_unassembled
                 if L1[0, 4] == 1 and L2[0, 4] == 1:
-                    n_min, scale_L1toL2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(L1, L2, deltaQrodThreshold) # I2 = scale * I1
+                    n_min, scale_L1toL2, I1, I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(L1, L2, deltaQrodThreshold) # I2 = scale * I1
                     if n_min >= n_minThreshold:
                         R1toR2_vector.append(scale_L1toL2)
             
@@ -129,14 +129,14 @@ def scaling_mergeRunsFunction(myArguments):
                 flag = 0
                 scaledLattice = []
                 for spot in lattice:
-                    scaled_spot = [spot[0], spot[1], spot[2], spot[3], flag]    # h k qRod I flag
+                    scaled_spot = [spot[0], spot[1], spot[2], spot[3], flag, spot[5], spot[6]]    # h k qRod I flag i_unassembled j_unassembled
                     scaledLattice.append(scaled_spot)
             else: 
                 flag = 1
                 scaledLattice = []
                 for spot in lattice:
                     I_scaled = runScale * spot[3]
-                    scaled_spot = [spot[0], spot[1], spot[2], I_scaled, flag]   # h k qRod I flag
+                    scaled_spot = [spot[0], spot[1], spot[2], I_scaled, flag, spot[5], spot[6]]   # h k qRod I flag i_unassembled j_unassembled
                     scaledLattice.append(scaled_spot)
             scaledLattice = numpy.asarray(scaledLattice)
             scaledRun.append(scaledLattice)

@@ -42,7 +42,7 @@ def calculate_Rfactor_Function(myArguments):
             print 'Extracting (qRod, I) points from run %s'%runNumber
             myList = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(inputFolder, runNumber, runNumber))
         
-            for latticeMatrix in myList:   # h k qRod I flag
+            for latticeMatrix in myList:   # h k qRod I flag i_unassembled j_unassembled
                 latticeMatrix = numpy.asarray(latticeMatrix)
                 if latticeMatrix[0, 4] == 1:
                     for spot in latticeMatrix:
@@ -78,7 +78,7 @@ def calculate_Rfactor_Function(myArguments):
                 sum_reflection = 0
                 for I in binList_Irod:
                     sum_reflection = sum_reflection + abs(I - I_mean)
-                    sum_2 = sum_2 + I
+                    sum_2 = sum_2 + I_mean
                 if N > 1:
                     sum_reflection = sum_reflection * numpy.sqrt(float(N)/(N-1))
                 else:

@@ -205,7 +205,7 @@ if flag == 1:
 # SCALING - SEEDS COMPARISON
 flag = 1
 if flag == 1:
-    os.system('python scaling_seedComparison.py --runNumber %s'%runNumber)
+    os.system('python scaling_seedComparison.py --runNumber %s > ./Test_output_S_r%s.log'%(runNumber, runNumber))
     
     
     

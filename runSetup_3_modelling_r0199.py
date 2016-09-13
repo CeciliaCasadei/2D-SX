@@ -22,7 +22,7 @@ if flag == 1:
     
     
 # APPLY INDICES TRANSFORMATIONS
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python model_applyTransformations.py --runNumber %s'%runNumber)
 

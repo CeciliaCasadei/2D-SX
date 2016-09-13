@@ -44,15 +44,16 @@ def checkH5contentFunction(myArguments):
      
     # IMAGE SELECTION 
     myList = sorted(os.listdir('/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_@_LCLS/r%s-images/data1'%(runNumber)))
-    filenames = myList[0:10]
+    filenames = myList[0:20]
     
     # READ GEOMETRY    
-    geometryFile = h5py.File('/afs/psi.ch/group/0620/casadei/2D-MX/2d_mx_processing/UnassembledData/r0195-all-nobgsub/geometry.h5', 'r')
+    geometryFile = h5py.File('/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5', 'r')
     xGeometry = geometryFile['/x']   ### float32 ###
     xGeometry_np = numpy.asarray(xGeometry, dtype=numpy.float32)
     yGeometry = geometryFile['/y']   ### float32 ###
     yGeometry_np = numpy.asarray(yGeometry, dtype=numpy.float32)
     
+    fOpen = open('%s/log_r%s_%s.log'%(outputFolder, runNumber, label), 'w')
     for filename in filenames:
         
         # LOAD UNASSEMBLED DATA
@@ -72,7 +73,7 @@ def checkH5contentFunction(myArguments):
         matplotlib.pyplot.title('%s'%filename, y=1.05)
         myAxesImageObject = matplotlib.pyplot.imshow(unassembledData, origin='lower', interpolation='nearest', vmin = 0, vmax = 100)
         myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)
-        matplotlib.pyplot.savefig('%s/unassembledImage_%s.png'%(outputFolder, filename))
+        matplotlib.pyplot.savefig('%s/unassembledImage_%s.png'%(outputFolder, filename.strip('.h5')))
         matplotlib.pyplot.close()   
                                                              
         # PLOT ASSEMBLED IMAGE       
@@ -80,7 +81,7 @@ def checkH5contentFunction(myArguments):
         matplotlib.pyplot.title('%s'%filename, y=1.05)
         myAxesImageObject = matplotlib.pyplot.imshow(assembledData, origin='lower', interpolation='nearest', vmin = 0, vmax = 100)
         myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)
-        matplotlib.pyplot.savefig('%s/assembledImage_%s.png'%(outputFolder, filename))
+        matplotlib.pyplot.savefig('%s/assembledImage_%s.png'%(outputFolder, filename.strip('.h5')))
         matplotlib.pyplot.close()   
         
         # EXTRACT PEAKS COORDINATES FROM CHEETAH peaks.txt FILE   
@@ -114,6 +115,7 @@ def checkH5contentFunction(myArguments):
     
         # N OF PEAKS FOUND
         print 'Cheetah peaks: %d'%(len(peak_x_raw_converted))
+        fOpen.write('%s: n Cheetah peaks: %d\n'%(filename, len(peak_x_raw_converted)))
             
         # PLOT ASSEMBLED DATA AND PEAKS FOUND IN NEW peaks.txt
         peak_x_raw_converted = numpy.asarray(peak_x_raw_converted)
@@ -125,8 +127,18 @@ def checkH5contentFunction(myArguments):
         myAxesImageObject = matplotlib.pyplot.imshow(assembledData, origin='lower', interpolation='nearest', vmin = 0, vmax = 100)
         myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)
         matplotlib.pyplot.scatter(peak_x_raw_converted, peak_y_raw_converted, marker="o", color='w', facecolors='none', s=40)
-        matplotlib.pyplot.savefig('%s/cheetahPeaks_image_%s.png'%(outputFolder, filename))
+        matplotlib.pyplot.savefig('%s/cheetahPeaks_image_%s.png'%(outputFolder, filename.strip('.h5')))
         matplotlib.pyplot.close()  
+        
+        # PLOT UNASSEMBLED DATA AND PEAKS FOUND IN NEW peaks.txt
+        myFigureObject  = matplotlib.pyplot.figure(figsize=(40,40), dpi=4*96, facecolor='w',frameon=True)
+        matplotlib.pyplot.title('%s'%filename, y=1.05)
+        myAxesImageObject = matplotlib.pyplot.imshow(unassembledData, origin='lower', interpolation='nearest', vmin = 0, vmax = 100)
+        myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)
+        matplotlib.pyplot.scatter(peak_x_raw, peak_y_raw, marker="o", color='w', facecolors='none', s=40)
+        matplotlib.pyplot.savefig('%s/cheetahPeaks_unassembled_image_%s.png'%(outputFolder, filename.strip('.h5')))
+        matplotlib.pyplot.close()  
+    fOpen.close()
     
 if __name__ == "__main__":
     print "\n**** CALLING checkH5content ****"

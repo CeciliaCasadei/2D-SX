@@ -7,7 +7,7 @@ import os
 
 
 def model_applyScalesFunction(myArguments):
-    runNumbers = ['0195', '0196', '0197', '0198', '0199', '0200', '0201']
+    runNumbers = ['0127', '0195', '0196', '0197', '0198', '0199', '0200', '0201']
     
     # READ INPUTS    
     try:
@@ -20,6 +20,7 @@ def model_applyScalesFunction(myArguments):
             print 'Usage: python model_applyScales.py'
             sys.exit()
     
+    # CALCULATE NORMALIZATION FACTOR
     totalScale = 0
     nLattices = 0    
     for runNumber in runNumbers:
@@ -32,6 +33,7 @@ def model_applyScalesFunction(myArguments):
                 nLattices = nLattices + 1
     avgScale = totalScale/nLattices
     
+    # CALCULATE NORMALIZED SCALES
     for runNumber in runNumbers:
         scales = joblib.load('./Output_runMergingVsModel/transformAndScaleToModel_r%s/r%s-scales/r%s-scales.jbl'%(runNumber, runNumber, runNumber))
         normalizedScales = []
@@ -46,7 +48,7 @@ def model_applyScalesFunction(myArguments):
             
         joblib.dump(normalizedScales, './Output_runMergingVsModel/transformAndScaleToModel_r%s/r%s-scales/r%s-normalizedScales.jbl'%(runNumber, runNumber, runNumber))
       
-      
+    # APPLY NORMALIZED SCALES 
     for runNumber in runNumbers:
         normalizedScales = joblib.load('./Output_runMergingVsModel/transformAndScaleToModel_r%s/r%s-scales/r%s-normalizedScales.jbl'%(runNumber, runNumber, runNumber))
         latticesList = joblib.load('./Output_runMergingVsModel/transformAndScaleToModel_r%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(runNumber, runNumber, runNumber))
@@ -60,14 +62,14 @@ def model_applyScalesFunction(myArguments):
             if not numpy.isnan(normalizedScale):
                 flag = 1
                 scaledLattice = []
-                for spot in latticeMatrix: # h k qRod I flag
-                    scaledSpot = [spot[0], spot[1], spot[2], normalizedScale*spot[3], flag]
+                for spot in latticeMatrix: # h k qRod I flag i_unassembled j_unassembled
+                    scaledSpot = [spot[0], spot[1], spot[2], normalizedScale*spot[3], flag, spot[5], spot[6]]
                     scaledLattice.append(scaledSpot)
             else:
                 flag = 0
                 scaledLattice = []
-                for spot in latticeMatrix: # h k qRod I flag
-                    scaledSpot = [spot[0], spot[1], spot[2], spot[3], flag]
+                for spot in latticeMatrix: # h k qRod I flag i_unassembled j_unassembled
+                    scaledSpot = [spot[0], spot[1], spot[2], spot[3], flag, spot[5], spot[6]]
                     scaledLattice.append(scaledSpot)
             scaledLattice = numpy.asarray(scaledLattice, dtype = numpy.float32)
             scaledLatticesList.append(scaledLattice)

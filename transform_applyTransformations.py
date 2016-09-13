@@ -51,7 +51,7 @@ def transform_applyTransformationsFunction(myArguments):
     transformedSpotMatricesList = []
     for lattice in range(0, nLattices):
         latticeOrientation = latticeOrientations[lattice]
-        spotsMatrix = spotsMatricesList[lattice] # h k qRod I 
+        spotsMatrix = spotsMatricesList[lattice] # h k qRod I flag=1 i_unassembled j_unassembled
         print 'Lattice: %d - Orientation: %s'%(lattice, latticeOrientation)
         if numpy.isnan(latticeOrientation):
             flag = 0
@@ -61,7 +61,7 @@ def transform_applyTransformationsFunction(myArguments):
                 k = spot[1]
                 q = spot[2]
                 I = spot[3]
-                transformedSpot = [h, k, q, I, flag]
+                transformedSpot = [h, k, q, I, flag, spot[5], spot[6]]
                 transformedSpotsMatrix.append(transformedSpot)
         else:
             flag = 1
@@ -76,10 +76,10 @@ def transform_applyTransformationsFunction(myArguments):
                 transformedIndices = latticeOrientationMatrix*indices
                 h_t = transformedIndices[0, 0]
                 k_t = transformedIndices[1, 0]
-                transformedSpot = [h_t, k_t, q, I, flag]
+                transformedSpot = [h_t, k_t, q, I, flag, spot[5], spot[6]]
                 transformedSpotsMatrix.append(transformedSpot)
                 
-        transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix, dtype=numpy.float32) # h_transformed k_transformed qRod I flag
+        transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix, dtype=numpy.float32) # h_transformed k_transformed qRod I flag i_unassembled j_unassembled
         transformedSpotMatricesList.append(transformedSpotsMatrix)
         
     

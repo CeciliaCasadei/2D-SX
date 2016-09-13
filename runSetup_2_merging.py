@@ -10,7 +10,7 @@ deltaQrodThreshold = 0.005
 n_minThreshold = 6
 nLatticePairs = 200
 
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python transform_CCmethod_mergeRuns.py --dQrod %f --nMin %d --nLatticePairs %d'%(deltaQrodThreshold, n_minThreshold, nLatticePairs))    
     #os.system('python transform_CCmethod_mergeRuns.py --dQrod 0.005 --nMin 6 --nLatticePairs 200')
@@ -22,7 +22,7 @@ deltaQrodThreshold = 0.003
 n_minThreshold = 8
 nLatticePairs = 1400
 
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python scaling_mergeRuns.py --dQrod %f --nMin %d --nLatticePairs %d'%(deltaQrodThreshold, n_minThreshold, nLatticePairs))
     
@@ -35,6 +35,6 @@ if flag == 1:
     
     
 # CALCULATE R-MEAS
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python calculate_Rfactor.py --inputFolder %s'%inputFolder)

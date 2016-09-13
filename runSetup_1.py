@@ -120,7 +120,7 @@ nOrientationRefSteps = 21
 widthSizeRefSteps = 0.004
 widthOrientationRefSteps = 0.2
     
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python orientationAndCellRefinement.py --referenceCellSize %f --runNumber %s --nSizeRefSteps %d --nOrientationRefSteps %d --widthSizeRefSteps %f --widthOrientationRefSteps %f --hmax %d --kmax %d --resolutionLimit %f'
                %(referenceCellSize, runNumber, nSizeRefSteps, nOrientationRefSteps, widthSizeRefSteps, widthOrientationRefSteps, hmax, kmax, resolutionLimit))
@@ -128,7 +128,7 @@ if flag == 1:
                
                
 # PLOT REFINED LATTICES
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python plotRefinedLattices.py --runNumber %s'%runNumber)
 
@@ -137,13 +137,13 @@ if flag == 1:
 # IMAGE PROCESSING
 bgSubtractionMethod = 'plane'
 minimizationMethod = '4Dbf'    # 4Dbf or Powell
-lowResLimit = 50.0
+lowResLimit = 55.0
 highResLimit = 7.1
 nCountsPerPhoton = 26
 integrationRadius = 5
-fractionDetectedThreshold = 0.5
+fractionDetectedThreshold = 0.55
 
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python processingAndIntegration.py --runNumber %s --bgSubtractionMethod %s --minimizationMethod %s --lowResLimit %f --highResLimit %f --nCountsPerPhoton %d --integrationRadius %d --geometryFile %s --imageFolder %s --fractionDetectedThreshold %f'
                %(runNumber, bgSubtractionMethod, minimizationMethod, lowResLimit, highResLimit, nCountsPerPhoton, integrationRadius, geometryFile, imagesDirectoryName, fractionDetectedThreshold))
@@ -160,7 +160,7 @@ if flag == 1:
                
                
 # MAKE LIST OF SPOT MATRICES
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python transform_makeSpotsMatrix.py --runNumber %s'%runNumber)
     
@@ -175,7 +175,7 @@ nTriangles = 100
 nGoodFraction = float(nGoodFractions['%s'%runNumber])   
     
 
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d --nGoodFraction %f'
               %(runNumber, deltaQrodThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles, nGoodFraction))
@@ -183,7 +183,7 @@ if flag == 1:
               
               
 # DETERMINE TRANSFORMATIONS - SEEDS COMPARISON
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f'
                %(runNumber, nSeeds, deltaQrodThreshold))
@@ -191,34 +191,34 @@ if flag == 1:
 
                
 # APPLY TRANSFORMATIONS
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python transform_applyTransformations.py --runNumber %s'%runNumber)
     
     
     
 # SCALING
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python scaling.py --runNumber %s'%runNumber)
     
     
     
 # SCALING - SEEDS COMPARISON
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python scaling_seedComparison.py --runNumber %s'%runNumber)
     
     
     
 # SCALING - APPLY SCALES
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python scaling_applyScales.py --runNumber %s'%runNumber)
         
     
     
 # PLOT RODS
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python plotRods.py --runNumber %s'%runNumber)

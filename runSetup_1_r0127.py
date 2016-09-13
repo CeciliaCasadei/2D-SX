@@ -9,7 +9,7 @@ import os
 
 # SETUP FOR CURRENT RUN
 
-runNumber = '0198'
+runNumber = '0127'
 
 # OUTPUT FOLDER
 outFolder = './Output_r%s'%runNumber
@@ -19,7 +19,7 @@ if not os.path.exists(outFolder):
 
 
 # LOG CURRENT SETTINGS
-os.system('cp ./runSetup_1_r0198.py ./Output_r%s/runSetup.log'%runNumber)
+os.system('cp ./runSetup_1_r0127.py ./Output_r%s/runSetup.log'%runNumber)
 
 
 
@@ -38,7 +38,7 @@ if flag == 1:
 
 
 # STORE IMAGE OBJECTS
-tiltAngle = 5               # degrees 
+tiltAngle = 0              # degrees 
 imageListDirectory = '%s/ImageLists'%outFolder
 
 flag = 0
@@ -61,7 +61,7 @@ if flag == 1:
 
 # EXTRACT INFO FROM CHEETAH peaks.txt
 selectedImageList = '%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(outFolder, runNumber)
-peaksFile = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
+peaksFile = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-9/peaks.txt'%runNumber
 geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
 pixelSize = 0.000110         # m
 
@@ -84,7 +84,7 @@ if flag == 1:
 referenceCellSize = 62.45    # A
 hmax = 100                   # int
 kmax = 100                   # int
-resolutionLimit = 5.0        # A
+resolutionLimit = 4.0        # A
 
 flag = 0
 if flag == 1:
@@ -99,11 +99,11 @@ if flag == 1:
     
     
 # INDEX LATTICES
-detectorDistance = 0.285     # m
+detectorDistance = 0.235     # m
 radialTolerance = 8          # pxls
 pixelTolerance = 12          # pxls
 azimuthTolerance = 3         # degrees
-minNofPeaksPerLattice = 18   # int
+minNofPeaksPerLattice = 20   # int
 maxNofPeaksPerImage = 250    # int
         
 flag = 0
@@ -114,8 +114,8 @@ if flag == 1:
     
     
 # ORIENTATION AND CELL SIZE REFINEMENT
-nSizeRefSteps = 21
-nOrientationRefSteps = 21
+nSizeRefSteps = 25
+nOrientationRefSteps = 25
 widthSizeRefSteps = 0.004
 widthOrientationRefSteps = 0.2
     
@@ -137,10 +137,10 @@ if flag == 1:
 bgSubtractionMethod = 'plane'
 minimizationMethod = '4Dbf'    # 4Dbf or Powell
 lowResLimit = 55.0
-highResLimit = 7.1
+highResLimit = 4.0
 nCountsPerPhoton = 26
 integrationRadius = 5
-fractionDetectedThreshold = 0.55
+fractionDetectedThreshold = 0.25
 
 flag = 0
 if flag == 1:
@@ -159,21 +159,21 @@ if flag == 1:
                
                
 # MAKE LIST OF SPOT MATRICES
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python transform_makeSpotsMatrix.py --runNumber %s'%runNumber)
     
     
     
 # DETERMINE TRANSFORMATIONS
-deltaQrodThreshold = 0.005
+deltaQrodThreshold = 0.001
 n_minThreshold = 6
 nSeeds = 6
 nUsedLattices = 'all'
 nTriangles = 100
 nGoodFraction = 0.7
     
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d --nGoodFraction %f'
               %(runNumber, deltaQrodThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles, nGoodFraction))
@@ -181,42 +181,42 @@ if flag == 1:
               
               
 # DETERMINE TRANSFORMATIONS - SEEDS COMPARISON
-flag = 1
+flag = 0
 if flag == 1:
-    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f > ./Test_output_T_r%s.log'
-               %(runNumber, nSeeds, deltaQrodThreshold, runNumber))
+    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f'
+               %(runNumber, nSeeds, deltaQrodThreshold))
                
 
                
 # APPLY TRANSFORMATIONS
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python transform_applyTransformations.py --runNumber %s'%runNumber)
     
     
     
 # SCALING
-flag = 1
+flag = 0
 if flag == 1:
-    os.system('python scaling.py --runNumber %s'%runNumber)
+    os.system('python scaling.py --runNumber %s --dQrod %f'%(runNumber, deltaQrodThreshold))
     
     
     
 # SCALING - SEEDS COMPARISON
-flag = 1
+flag = 0
 if flag == 1:
-    os.system('python scaling_seedComparison.py --runNumber %s > ./Test_output_S_r%s.log'%(runNumber, runNumber))
+    os.system('python scaling_seedComparison.py --runNumber %s'%runNumber)
     
     
     
 # SCALING - APPLY SCALES
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python scaling_applyScales.py --runNumber %s'%runNumber)
         
     
     
 # PLOT RODS
-flag = 1
+flag = 0
 if flag == 1:
-    os.system('python plotRods.py --runNumber %s'%runNumber)
+    os.system('python plotRods_check_r0127_results.py --runNumber %s'%runNumber)

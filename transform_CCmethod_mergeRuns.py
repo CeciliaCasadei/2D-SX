@@ -32,7 +32,7 @@ def indexToMatrix(index):
     
 def main(myArguments): 
     
-    runNumbers = ['0195', '0196', '0197', '0198', '0199', '0200', '0201']
+    runNumbers = ['0127', '0195', '0196', '0197', '0198', '0199', '0200', '0201']
     
     #READ COMMAND LINE ARGUMENTS
     try:
@@ -51,19 +51,20 @@ def main(myArguments):
         elif option == "--nLatticePairs":
             nLatticePairs = int(value)
             
+
     nRuns = len(runNumbers)
     transformations_RR = numpy.zeros(shape=(nRuns, nRuns))
     for i in range(0, nRuns):
         run_1 = runNumbers[i]
         transformationFolder_1 = './Output_r%s/transformAndScale'%run_1
-        myList_1 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(transformationFolder_1, run_1, run_1))       # h_transformed k_transformed qRod Iscaled flag
+        myList_1 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(transformationFolder_1, run_1, run_1))       # h_transformed k_transformed qRod Iscaled flag i_unassembled j_unassembled
         nLattices_1 = len(myList_1) 
         for j in range(0, nRuns):
             run_2 = runNumbers[j]
             print '\nRun %s Run %s'%(run_1, run_2)
                 
             transformationFolder_2 = './Output_r%s/transformAndScale'%run_2            
-            myList_2 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(transformationFolder_2, run_2, run_2))   # h_transformed k_transformed qRod Iscaled flag
+            myList_2 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(transformationFolder_2, run_2, run_2))   # h_transformed k_transformed qRod Iscaled flag i_unassembled j_unassembled
             nLattices_2 = len(myList_2)
             print '%d %d'%(nLattices_1, nLattices_2)
     
@@ -146,7 +147,7 @@ def main(myArguments):
             spotMatricesList = joblib.load('./Output_r%s/transformAndScale/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(runNumber, runNumber, runNumber)) 
             transformedSpotMatricesList = []
             
-            for spotMatrix in spotMatricesList: # LATTICE:    h_transformed k_transformed qRod Iscaled flag
+            for spotMatrix in spotMatricesList: # LATTICE: h_transformed k_transformed qRod Iscaled flag i_unassembled j_unassembled
                 spotMatrix = numpy.asarray(spotMatrix)
                 if spotMatrix[0, 4] == 1:
                     transformedSpotsMatrix = []                    
@@ -157,16 +158,16 @@ def main(myArguments):
                         transformedIndices = runOrientationMatrix*indices
                         h_t = transformedIndices[0, 0]
                         k_t = transformedIndices[1, 0]
-                        transformedSpot = [h_t, k_t, spot[2], spot[3], spot[4]]
+                        transformedSpot = [h_t, k_t, spot[2], spot[3], spot[4], spot[5], spot[6]]
                         transformedSpotsMatrix.append(transformedSpot)
                 else:
                     transformedSpotsMatrix = []                    
                     for spot in spotMatrix:
                         h = spot[0]
                         k = spot[1]
-                        transformedSpot = [h, k, spot[2], spot[3], spot[4]]
+                        transformedSpot = [h, k, spot[2], spot[3], spot[4], spot[5], spot[6]]
                         transformedSpotsMatrix.append(transformedSpot)
-                transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix) # h k qRod I flag
+                transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix) # h k qRod I flag i_unassembled j_unassembled
                 transformedSpotMatricesList.append(transformedSpotsMatrix)
                     
         

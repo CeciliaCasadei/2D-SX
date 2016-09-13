@@ -7,9 +7,10 @@ import sys
 import os
 import matplotlib
 matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
+import matplotlib.pyplot
 
 
-import scaling_calculateScaleFactor_Plot
+import scaling_calculateScaleFactor
 
 def Correlate(x1, x2):
     x1Avg = numpy.average(x1)
@@ -23,7 +24,7 @@ def Correlate(x1, x2):
     return CC
 
 def scalingFunction(myArguments):
-    
+
     # DEFAULTS
     runNumber = '' 
     deltaQrodThreshold = 0.001
@@ -48,7 +49,7 @@ def scalingFunction(myArguments):
     if not os.path.exists(figuresFolder):
         os.mkdir(figuresFolder)
     
-    # LOAD LATTICES LIST OF MATRICES: h k qRod I flag
+    # LOAD LATTICES LIST OF MATRICES: h k qRod I flag i_unassembled j_unassembled
     myList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))
     nLattices = len(myList)
     print 'Total n of lattices: %d'%nLattices
@@ -77,15 +78,20 @@ def scalingFunction(myArguments):
         else:        
             print 'Lattice %d'%firstNeighbor                
 
-            n_pairs, scale_modelTo1stN, I1, I2 = scaling_calculateScaleFactor_Plot.calculateScaleFactorFunction(lattice_model, spots1stN, deltaQrodThreshold)
+            n_pairs, scale_modelTo1stN, I1, I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(lattice_model, spots1stN, deltaQrodThreshold)
             if n_pairs < n_minThreshold:
                 scale = numpy.nan
                 fOpen.write('Lattice %s: n_pairs model-lattice below threshold.\n'%firstNeighbor)
             else:               
                 ##########################################################################
+                I1 = numpy.asarray(I1)
+                I2 = numpy.asarray(I2)
+                I1 = I1.flatten()
+                I2 = I2.flatten()
                 CC = Correlate(I1, I2)
                 print 'N points: %d'%len(I1)
-                print CC
+                print 'CC: %.4f'%CC
+                
                 
                 matplotlib.pyplot.figure()
                 matplotlib.pyplot.plot(I1, I2, 'bo')

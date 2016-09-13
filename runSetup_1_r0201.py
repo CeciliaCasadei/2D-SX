@@ -159,7 +159,7 @@ if flag == 1:
                
                
 # MAKE LIST OF SPOT MATRICES
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python transform_makeSpotsMatrix.py --runNumber %s'%runNumber)
     
@@ -168,12 +168,12 @@ if flag == 1:
 # DETERMINE TRANSFORMATIONS
 deltaQrodThreshold = 0.005
 n_minThreshold = 6
-nSeeds = 6
+nSeeds = 10
 nUsedLattices = 'all'
 nTriangles = 100
 nGoodFraction = 0.6
     
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d --nGoodFraction %f'
               %(runNumber, deltaQrodThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles, nGoodFraction))
@@ -183,8 +183,8 @@ if flag == 1:
 # DETERMINE TRANSFORMATIONS - SEEDS COMPARISON
 flag = 1
 if flag == 1:
-    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f'
-               %(runNumber, nSeeds, deltaQrodThreshold))
+    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f > ./Test_output_T_r%s.log'
+               %(runNumber, nSeeds, deltaQrodThreshold, runNumber))
                
 
                
@@ -205,7 +205,7 @@ if flag == 1:
 # SCALING - SEEDS COMPARISON
 flag = 1
 if flag == 1:
-    os.system('python scaling_seedComparison.py --runNumber %s'%runNumber)
+    os.system('python scaling_seedComparison.py --runNumber %s > ./Test_output_S_r%s.log'%(runNumber, runNumber))
     
     
     

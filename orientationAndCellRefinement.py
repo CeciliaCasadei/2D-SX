@@ -100,7 +100,7 @@ def orientationAndCellRefinementFunction(myArguments):
     sizeRefinementSteps = referenceCellSize * sizeRefinementRescalings    
     for sizeRefinementStep in sizeRefinementSteps:
         reciprocalLattice = buildReciprocalLattice.buildReciprocalLatticeFunction(sizeRefinementStep, hmax, kmax, resolutionLimit)
-        f = open('./Output_r%s/OrientationAndCellRefinement/ReciprocalLattices/reciprocalLattice_cellSize_%.3f.pkl'%(runNumber, sizeRefinementStep), 'wb') 
+        f = open('%s/reciprocalLattice_cellSize_%.3f.pkl'%(reciprocalLatticesFolder, sizeRefinementStep), 'wb') 
         pickle.dump(reciprocalLattice, f)
         f.close()
     

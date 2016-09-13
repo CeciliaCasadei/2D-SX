@@ -21,29 +21,29 @@ def scaling_applyScalesFunction(myArguments):
             runNumber = value.zfill(4)
 
     outputFolder = './Output_r%s/transformAndScale'%runNumber
-    spotsMatricesList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber)) # h_transformed k_transformed qRod I flag
+    spotsMatricesList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber)) # h_transformed k_transformed qRod I flag i_unassembled j_unassembled
     latticeScales = joblib.load('%s/r%s-finalScales/r%s-finalScales.jbl'%(outputFolder, runNumber, runNumber))
     nLattices = len(latticeScales)  # equal to len(spotsMatricesList)
     
     scaledSpotMatricesList = []
     for lattice in range(0, nLattices):
         latticeScale = latticeScales[lattice]
-        spotsMatrix = spotsMatricesList[lattice]                                    # h_transformed k_transformed qRod I flag
+        spotsMatrix = spotsMatricesList[lattice]                                    # h_transformed k_transformed qRod I flag i_unassembled j_unassembled scale
         print 'Lattice: %d - Scale: %.3f'%(lattice, latticeScale)
         if numpy.isnan(latticeScale):
             flag = 0
             scaledSpotsMatrix = []
             for spot in spotsMatrix:
-                scaledSpot = [spot[0], spot[1], spot[2], spot[3], flag]
+                scaledSpot = [spot[0], spot[1], spot[2], spot[3], flag, spot[5], spot[6], latticeScale]
                 scaledSpotsMatrix.append(scaledSpot)
         else:
             flag = 1
             scaledSpotsMatrix = []
             for spot in spotsMatrix:
                 scaledI = spot[3] * latticeScale
-                scaledSpot = [spot[0], spot[1], spot[2], scaledI, flag]
+                scaledSpot = [spot[0], spot[1], spot[2], scaledI, flag, spot[5], spot[6], latticeScale]
                 scaledSpotsMatrix.append(scaledSpot)
-        scaledSpotsMatrix = numpy.asarray(scaledSpotsMatrix)                         # h_transformed k_transformed qRod Iscaled flag
+        scaledSpotsMatrix = numpy.asarray(scaledSpotsMatrix)                         # h_transformed k_transformed qRod Iscaled flag i_unassembled j_unassembled scale
         scaledSpotMatricesList.append(scaledSpotsMatrix)
         
     

@@ -124,6 +124,11 @@ def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float 
     
     cdef int i, j
     cdef DTYPE_t h, k  # why?
+    
+    ####################################
+    cdef float resolutionLimit = 7.1 # A
+    cdef float cellSize = 62.45      # A
+    ####################################
         
     n_I = 0
     I1_I = []
@@ -138,6 +143,11 @@ def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float 
     I1_ip = []
     I2_ip = []
     
+    #################################################################################################
+    directCell = cellSize * numpy.matrix([[1, numpy.cos(2*numpy.pi/3)],[0, numpy.sin(2*numpy.pi/3)]]) # A
+    reciprocalCellRows = 2 * numpy.pi * directCell.I    
+    #################################################################################################
+    
     h_L1 = spotsL1[:, 0]                  # L1 or MODEL
     k_L1 = spotsL1[:, 1]
     q_L1 = spotsL1[:, 2]
@@ -147,11 +157,24 @@ def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float 
     for i in range(0, nSpotsL2):
         h = spotsL2[i, 0]
         k = spotsL2[i, 1]
-        q = spotsL2[i, 2]
+        q = spotsL2[i, 2]  # qRod
         I = spotsL2[i, 3]
+        
+        ############################################
+        reciprocalVector = [h, k]*reciprocalCellRows
+        q_x = reciprocalVector[0,0]         # A^(-1)
+        q_y = reciprocalVector[0,1]         # A^(-1)
+        q_2D = numpy.sqrt(q_x**2 + q_y**2)  # A^(-1)
+        resolution = 2* numpy.pi / q_2D     # A
+        ############################################
         
         if numpy.isnan(spotsL2[i, 3]):
             continue
+                
+        ################################     
+        if resolution < resolutionLimit:
+            continue
+        ################################
                 
         indices_qEqual    = numpy.argwhere(abs(q_L1 - q) <= deltaQrodThreshold)
         indices_qOpposite = numpy.argwhere(abs(q_L1 + q) <= deltaQrodThreshold)
@@ -199,125 +222,6 @@ def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float 
             if ((h1 == -k and k1 == -h) or (h1 == k+h and k1 == -k) or (h1 == -h and k1 == k+h)):
                 I1_p.append(I_L1[index])
                 I2_p.append(I)
-
-                        
-    n_I = len(I1_I)    
-    n_i = len(I1_i)
-    n_p = len(I1_p)
-    n_ip = len(I1_ip)                                          
-    n_min = min([n_I, n_i, n_p, n_ip])
-    if n_min > 3:
-        CC_I_avg = sample_and_correlate(n_I, n_min, I1_I, I2_I)
-        CC_i_avg = sample_and_correlate(n_i, n_min, I1_i, I2_i)
-        CC_p_avg = sample_and_correlate(n_p, n_min, I1_p, I2_p)
-        CC_ip_avg = sample_and_correlate(n_ip, n_min, I1_ip, I2_ip)    
-        
-        avg_CCs = [CC_I_avg, CC_i_avg, CC_p_avg, CC_ip_avg]
-    else:
-        avg_CCs = [0, 0, 0, 0]
-    return n_min, avg_CCs
-    
-    
-    
-    
-##########################################################################################################
-def DRAFT_determineTransformation(DTYPE_t[:, :] spotsModel, DTYPE_t[:, :] spotsL, float deltaQrodThreshold):
-    # spotsModel: h k qRod I
-    # spotsLattice: n h k qRod I Icorrected
-
-    cdef int n_I
-    cdef int n_i
-    cdef int n_p
-    cdef int n_ip
-    
-    cdef int nSpotsModel = spotsModel.shape[0]
-    cdef int nSpotsL = spotsL.shape[0]
-    
-    cdef int i, j
-    cdef DTYPE_t h, k  # why?
-        
-    n_I = 0
-    I1_I = []
-    I2_I = []
-    n_i = 0
-    I1_i = []
-    I2_i = []
-    n_p = 0
-    I1_p = []
-    I2_p = []
-    n_ip = 0
-    I1_ip = []
-    I2_ip = []
-    
-    hModel = spotsModel[:, 0]
-    kModel = spotsModel[:, 1]
-    qModel = spotsModel[:, 2]
-    Imodel = spotsModel[:, 3]
-    
-    for i in range(0, nSpotsL):
-        h = spotsL[i, 1]
-        k = spotsL[i, 2]
-        q = spotsL[i, 3]
-        I = spotsL[i, 5]
-        
-        if numpy.isnan(spotsL[i, 5]):
-            continue
-        
-        # IDENTITY
-        Ipartial_model_I = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]-q)<=deltaQrodThreshold and (          (hModel[item] == h    and kModel[item] == k   ) 
-                                                                                                                                  or (hModel[item] == -h-k and kModel[item] == h   )
-                                                                                                                                  or (hModel[item] == k    and kModel[item] == -h-k)      )]
-        for item in Ipartial_model_I:
-            I1_I.append(item)
-            I2_I.append(I)
-        Ipartial_model_I = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]+q)<=deltaQrodThreshold and (          (hModel[item] == -h  and kModel[item] == -k   ) 
-                                                                                                                                  or (hModel[item] == h+k and kModel[item] == -h   )  
-                                                                                                                                  or (hModel[item] == -k  and kModel[item] == h+k  )      )]
-        for item in Ipartial_model_I:
-            I1_I.append(item)
-            I2_I.append(I)
-            
-        # INVERSION
-        Ipartial_model_i = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]-q)<=deltaQrodThreshold and (          (hModel[item] == -h   and kModel[item] == -k  ) 
-                                                                                                                                  or (hModel[item] == h+k  and kModel[item] == -h  )
-                                                                                                                                  or (hModel[item] == -k   and kModel[item] == h+k )      )]
-        for item in Ipartial_model_i:
-            I1_i.append(item)
-            I2_i.append(I)
-        Ipartial_model_i = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]+q)<=deltaQrodThreshold and (          (hModel[item] == h    and kModel[item] == k   ) 
-                                                                                                                                  or (hModel[item] == -h-k and kModel[item] == h   ) 
-                                                                                                                                  or (hModel[item] == k    and kModel[item] == -h-k)      )]
-        for item in Ipartial_model_i:
-            I1_i.append(item)
-            I2_i.append(I)
-            
-        if h != k:  
-            # PERMUTATION
-            Ipartial_model_p = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]-q)<=deltaQrodThreshold  and (     (hModel[item] == k    and kModel[item] == h   ) 
-                                                                                                                                  or (hModel[item] == -k-h and kModel[item] == k   ) 
-                                                                                                                                  or (hModel[item] == h    and kModel[item] == -k-h)      )]
-            for item in Ipartial_model_p:
-                I1_p.append(item)
-                I2_p.append(I)
-            Ipartial_model_p = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]+q)<=deltaQrodThreshold  and (     (hModel[item] == -k   and kModel[item] == -h  ) 
-                                                                                                                                  or (hModel[item] == k+h  and kModel[item] == -k  ) 
-                                                                                                                                  or (hModel[item] == -h   and kModel[item] == k+h )      )]
-            for item in Ipartial_model_p:
-                I1_p.append(item)
-                I2_p.append(I)
-            # INVERSION-PERMUTATION
-            Ipartial_model_ip = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]-q)<=deltaQrodThreshold and (     (hModel[item] == -k   and kModel[item] == -h  ) 
-                                                                                                                                  or (hModel[item] == k+h  and kModel[item] == -k  ) 
-                                                                                                                                  or (hModel[item] == -h   and kModel[item] == k+h )      )]
-            for item in Ipartial_model_ip:
-                I1_ip.append(item)
-                I2_ip.append(I)
-            Ipartial_model_ip = [Imodel[item] for item in range(0, len(Imodel)) if abs(qModel[item]+q)<=deltaQrodThreshold and (     (hModel[item] == k    and kModel[item] == h   ) 
-                                                                                                                                  or (hModel[item] == -k-h and kModel[item] == k   ) 
-                                                                                                                                  or (hModel[item] == h    and kModel[item] == -k-h)      )]
-            for item in Ipartial_model_ip:
-                I1_ip.append(item)
-                I2_ip.append(I)
 
                         
     n_I = len(I1_I)    

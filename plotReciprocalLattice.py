@@ -34,7 +34,7 @@ def plotReciprocalLatticeFunction(cellSize, outFolder):
     myAxes = myFigure.add_subplot(1,1,1)    # Axes object  -  one row, one column, first plot    
     myAxes.scatter(x_data, y_data, color="red", marker=".")
     for label, x, y in zip(myLabels, x_data, y_data):
-        matplotlib.pyplot.annotate(label, xy = (x, y), xytext = (-3, 3), size = 10, 
+        matplotlib.pyplot.annotate(label, xy = (x, y), xytext = (-3, 3), size = 9, 
                                    textcoords = 'offset points', ha = 'right', va = 'bottom', 
                                    bbox = dict(boxstyle = 'round,pad=0.3', fc = 'yellow', alpha = 0.3, ec='none'))
     
@@ -45,8 +45,8 @@ def plotReciprocalLatticeFunction(cellSize, outFolder):
     matplotlib.pyplot.axhline(y=0, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
     matplotlib.pyplot.axvline(x=0, ymin=-1, ymax=1, linewidth=0.5, color = 'b')
     
-    myAxes.set_xlim([-1,1])
-    myAxes.set_ylim([-1,1])
+    myAxes.set_xlim([min(x_data)-0.1,max(x_data)+0.1])
+    myAxes.set_ylim([min(y_data)-0.1,max(y_data)+0.1])
     
     myAxes.set_xlabel("q$_x$ (A$^{-1}$)", fontsize = 22, rotation = 'horizontal')
     myAxes.set_ylabel("q$_y$ (A$^{-1}$)", fontsize = 22, rotation = 'vertical')
