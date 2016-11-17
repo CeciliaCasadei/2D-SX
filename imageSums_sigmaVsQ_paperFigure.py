@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot
+
+import os
 import numpy
 import scipy.optimize
 import pickle

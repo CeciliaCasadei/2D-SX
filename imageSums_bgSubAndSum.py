@@ -8,6 +8,8 @@ import pickle
 import scipy.interpolate
 import scipy.optimize
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot
 
 import makeOrbits

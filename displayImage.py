@@ -5,6 +5,8 @@ Created on Tue Jan  5 15:49:56 2016
 MEMBER OF diffractionImage CLASS
 DISPLAY ***ASSEMBLED*** IMAGE ASSOCIATED TO EACH diffractionImage OBJECT.
 """
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot
 import h5py
 import warnings

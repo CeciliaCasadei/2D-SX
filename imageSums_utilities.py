@@ -2,6 +2,8 @@
 import numpy
 import scipy
 import os
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter

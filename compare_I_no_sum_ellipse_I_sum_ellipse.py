@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot
 
 import imageSums_utilities
