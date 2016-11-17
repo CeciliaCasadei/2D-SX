@@ -2,6 +2,7 @@
 import os
 import sys
 
+from runSetup_settings import nGoodFractions
 
 # SETUP FOR CURRENT RUN                                                                                                                                                                       
 if len(sys.argv) != 2:
@@ -17,7 +18,7 @@ deltaQrodThreshold = 0.001
 n_minThreshold = 6
 nUsedLattices = 'all'
 nTriangles = 100
-nGoodFraction = 0.7
+nGoodFraction = float(nGoodFractions['%s'%runNumber])  
 
 flag = 1
 if flag == 1:

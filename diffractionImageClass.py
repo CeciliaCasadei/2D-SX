@@ -87,3 +87,8 @@ class diffractionImage:
         # Plot refinement results
         # Plot experimental peaks (from peaks.txt) and indexed calculated pattern(s)
         # after lattice orientation and cell size refinement.
+        
+    
+    def plotRefinedLattices_imageOverlap(self, resolutionRadii):
+        import plotRefinedIndexedImages
+        plotRefinedIndexedImages.plotRefinedIndexedImagesFunction_imageOverlap(self, resolutionRadii)

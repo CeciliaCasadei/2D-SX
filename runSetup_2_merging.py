@@ -34,7 +34,11 @@ if flag == 1:
     os.system('python merging.py --inputFolder %s'%inputFolder)
     
     
-# CALCULATE R-MEAS
-flag = 0
-if flag == 1:
-    os.system('python calculate_Rfactor.py --inputFolder %s'%inputFolder)
+## CALCULATE R-FACTOR
+#flag = 0
+#if flag == 1:
+#    os.system('python calculate_Rfactor.py --inputFolder %s'%inputFolder)
+
+newFolder = './Output_runMergingVsModel'
+if not os.path.exists(newFolder):
+    os.mkdir(newFolder)   

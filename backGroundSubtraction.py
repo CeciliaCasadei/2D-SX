@@ -9,6 +9,8 @@ OR
 - FITTING WITH A PLANE
 """
 import numpy
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot
 import scipy.linalg
 

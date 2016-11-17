@@ -7,21 +7,26 @@ import os
 
 def scaling_seedComparisonFunction(myArguments):
     
+    # DEFAULTS:
+    outputFolder = ''
+    
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "outputFolder="])
     except getopt.GetoptError:
-        print 'Usage: python scaling_seedComparison.py --runNumber <runNumber>'
+        print 'Usage: python scaling_seedComparison.py --runNumber <runNumber> --outputFolder <outputFolder>'
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python scaling_seedComparison.py --runNumber <runNumber>'
+            print 'Usage: python scaling_seedComparison.py --runNumber <runNumber> --outputFolder <outputFolder>'
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
+        elif option == "--outputFolder":
+            outputFolder = value
 
-    outputFolder = './Output_r%s/transformAndScale'%runNumber
-
+    if outputFolder == '':
+        outputFolder = './Output_r%s/transformAndScale'%runNumber
     
     scalesList = joblib.load('%s/r%s-scaling/r%s-scaling.jbl'%(outputFolder, runNumber, runNumber))  # lattice to seed scales
     nSeeds = len(scalesList)
@@ -139,14 +144,43 @@ def scaling_seedComparisonFunction(myArguments):
     if not os.path.exists('%s/r%s-finalScales'%(outputFolder, runNumber)):
         os.mkdir('%s/r%s-finalScales'%(outputFolder, runNumber))
     joblib.dump(latticeScales, '%s/r%s-finalScales/r%s-finalScales.jbl'%(outputFolder, runNumber, runNumber))
+    print 'N SCALE FACTORS BEFORE NORMALIZATION: ', len(latticeScales)
+
+
+    # SET AVERAGE SCALE TO 1
+    nScaled = 0
+    scaleSum = 0
+    for scale in latticeScales:
+        if not numpy.isnan(scale):
+            nScaled = nScaled + 1
+            scaleSum = scaleSum + scale
+    scaleAvg = scaleSum / nScaled
+    print 'AVERAGE SCALE: ', scaleAvg
+    latticeScales_normalized = []
+    for scale in latticeScales:
+        if not numpy.isnan(scale):
+            scale = scale / scaleAvg
+        latticeScales_normalized.append(scale)
+    print 'N SCALE FACTORS AFTER NORMALIZATION: ', len(latticeScales_normalized)
     
+    # CHECK NORMALIZATION:
+    nScaled = 0
+    scaleSum = 0
+    for scale in latticeScales_normalized:
+        if not numpy.isnan(scale):
+            nScaled = nScaled + 1
+            scaleSum = scaleSum + scale
+    scaleAvg = scaleSum / nScaled
+    print 'AVERAGE SCALE (AFTER NORMALIZATION): ', scaleAvg
+    
+    joblib.dump(latticeScales_normalized, '%s/r%s-finalScales/r%s-finalScales-normalized.jbl'%(outputFolder, runNumber, runNumber))
     
     
     # LOG FINAL SCALES   
     fOpen = open('%s/r%s-finalScales.txt'%(outputFolder, runNumber), 'w')
     n = 0
     nScaled_final = 0
-    for scale in latticeScales:
+    for scale in latticeScales_normalized:
         fOpen.write('Lattice: %d - Scale: %s \n'%(n, scale))
         n = n+1
         if not numpy.isnan(scale):

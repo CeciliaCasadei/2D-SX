@@ -7,22 +7,29 @@ import os
 
 def scaling_applyScalesFunction(myArguments):
     
+    # DEFAULTS
+    outputFolder = ''
+    
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "outputFolder="])
     except getopt.GetoptError:
-        print 'Usage: python scaling_applyScales.py --runNumber <runNumber>'
+        print 'Usage: python scaling_applyScales.py --runNumber <runNumber> --outputFolder <outputFolder>'
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python scaling_applyScales.py --runNumber <runNumber>'
+            print 'Usage: python scaling_applyScales.py --runNumber <runNumber> --outputFolder <outputFolder>'
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
+        elif option == "--outputFolder":
+            outputFolder = value
 
-    outputFolder = './Output_r%s/transformAndScale'%runNumber
+    if outputFolder == '':
+        outputFolder = './Output_r%s/transformAndScale'%runNumber
+        
     spotsMatricesList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber)) # h_transformed k_transformed qRod I flag i_unassembled j_unassembled
-    latticeScales = joblib.load('%s/r%s-finalScales/r%s-finalScales.jbl'%(outputFolder, runNumber, runNumber))
+    latticeScales = joblib.load('%s/r%s-finalScales/r%s-finalScales-normalized.jbl'%(outputFolder, runNumber, runNumber))
     nLattices = len(latticeScales)  # equal to len(spotsMatricesList)
     
     scaledSpotMatricesList = []

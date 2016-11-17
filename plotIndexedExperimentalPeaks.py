@@ -70,11 +70,23 @@ def plotIndexedExperimentalPeaksFunction(self, detectorDistance, pixelSize, reso
             myX.append(predicted_x)
             myY.append(predicted_y)
             myLabels.append(hk)
+            
+        # REMOVE DUPLICATES
+        myLabels_cleaned = []
+        myX_cleaned = []
+        myY_cleaned = []
+        for i in range(0, len(myLabels)):
+            label = myLabels[i]
+            if label not in myLabels_cleaned:
+                myLabels_cleaned.append(label)
+                myX_cleaned.append(myX[i])
+                myY_cleaned.append(myY[i])
 
-        myAxes.scatter(myX, myY, color=myColor, marker="o", facecolors='none', s=70)
-        for label, x, y in zip(myLabels, myX, myY):
+        myAxes.scatter(myX_cleaned, myY_cleaned, color=myColor, marker="o", facecolors='none', s=70)
+        for label, x, y in zip(myLabels_cleaned, myX_cleaned, myY_cleaned):
             matplotlib.pyplot.annotate(label, xy = (x, y), xytext = (-3, 3), size = myTextSize, textcoords = 'offset points', ha = 'right', va = 'bottom', bbox = dict(boxstyle = 'round,pad=0.3', fc = 'yellow', alpha = 0.3, ec='none'))
         nScatter = nScatter + 1
+        
     myRadii = []
     for i in resolutionRadii:
         i = float(i)

@@ -2,14 +2,11 @@
 import os
 
 # INSTRUCTIONS: 
-# python runSetup_1_rXXXX.py
-# python runSetup_1_rXXXX.py > log.log
-
-
+# python runSetup_nonTilted.py
 
 # SETUP FOR CURRENT RUN
 
-runNumber = '0198'
+runNumber = '0127'
 
 # OUTPUT FOLDER
 outFolder = './Output_r%s'%runNumber
@@ -19,7 +16,7 @@ if not os.path.exists(outFolder):
 
 
 # LOG CURRENT SETTINGS
-os.system('cp ./runSetup_1_r0198.py ./Output_r%s/runSetup.log'%runNumber)
+os.system('cp ./runSetup_r0127.py ./Output_r%s/runSetup.log'%runNumber)
 
 
 
@@ -38,7 +35,7 @@ if flag == 1:
 
 
 # STORE IMAGE OBJECTS
-tiltAngle = 5               # degrees 
+tiltAngle          = 0              # degrees 
 imageListDirectory = '%s/ImageLists'%outFolder
 
 flag = 0
@@ -61,9 +58,9 @@ if flag == 1:
 
 # EXTRACT INFO FROM CHEETAH peaks.txt
 selectedImageList = '%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(outFolder, runNumber)
-peaksFile = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
-geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
-pixelSize = 0.000110         # m
+peaksFile         = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-9/peaks.txt'%runNumber
+geometryFile      = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
+pixelSize         = 0.000110 # m
 
 flag = 0
 if flag == 1:
@@ -84,7 +81,7 @@ if flag == 1:
 referenceCellSize = 62.45    # A
 hmax = 100                   # int
 kmax = 100                   # int
-resolutionLimit = 5.0        # A
+resolutionLimit = 4.0        # A
 
 flag = 0
 if flag == 1:
@@ -99,12 +96,12 @@ if flag == 1:
     
     
 # INDEX LATTICES
-detectorDistance = 0.285     # m
-radialTolerance = 8          # pxls
-pixelTolerance = 12          # pxls
-azimuthTolerance = 3         # degrees
-minNofPeaksPerLattice = 18   # int
-maxNofPeaksPerImage = 250    # int
+detectorDistance      = 0.235     # m
+radialTolerance       = 6         # pxls
+pixelTolerance        = 10        # pxls
+azimuthTolerance      = 3         # degrees
+minNofPeaksPerLattice = 20        # int
+maxNofPeaksPerImage   = 250       # int
         
 flag = 0
 if flag == 1:
@@ -114,9 +111,9 @@ if flag == 1:
     
     
 # ORIENTATION AND CELL SIZE REFINEMENT
-nSizeRefSteps = 21
-nOrientationRefSteps = 21
-widthSizeRefSteps = 0.004
+nSizeRefSteps            = 25
+nOrientationRefSteps     = 25
+widthSizeRefSteps        = 0.002
 widthOrientationRefSteps = 0.2
     
 flag = 0
@@ -130,17 +127,24 @@ if flag == 1:
 flag = 0
 if flag == 1:
     os.system('python plotRefinedLattices.py --runNumber %s'%runNumber)
+    
+    
+    
+# PLOT REFINED LATTICES - PAPER FIGURE
+flag = 0
+if flag == 1:
+    os.system('python plotRefinedLattices_imageOverlap.py --runNumber %s'%runNumber)
 
 
 
 # IMAGE PROCESSING
-bgSubtractionMethod = 'plane'
-minimizationMethod = '4Dbf'    # 4Dbf or Powell
-lowResLimit = 55.0
-highResLimit = 7.1
-nCountsPerPhoton = 26
-integrationRadius = 5
-fractionDetectedThreshold = 0.55
+bgSubtractionMethod       = 'plane'
+minimizationMethod        = '4Dbf'    # 4Dbf or Powell
+lowResLimit               = 55.0      # A
+highResLimit              = 4.0       # A
+nCountsPerPhoton          = 26
+integrationRadius         = 5         # pxls
+fractionDetectedThreshold = 0.28
 
 flag = 0
 if flag == 1:
@@ -155,25 +159,32 @@ if flag == 1:
 #                                    --lowResLimit <lowResLimit> --highResLimit <highResLimit>
 #                                    --nCountsPerPhoton <nCountsPerPhoton> --integrationRadius <integrationRadius> --geometryFile <geometryFile>'
 #                                    --imageFolder <imageFolder> --imageSelection <imageSelection> --latticeSelection <latticeSelection>' 
+
+
                
-               
+# PLOT CELL SIZE DISTRIBUTION 
+flag = 0
+if flag == 1:
+    os.system('python cellSizeDistribution.py --runNumber %s'%runNumber)
+    
+
                
 # MAKE LIST OF SPOT MATRICES
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python transform_makeSpotsMatrix.py --runNumber %s'%runNumber)
     
     
     
 # DETERMINE TRANSFORMATIONS
-deltaQrodThreshold = 0.005
+deltaQrodThreshold = 0.001
 n_minThreshold = 6
 nSeeds = 6
 nUsedLattices = 'all'
 nTriangles = 100
 nGoodFraction = 0.7
     
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d --nGoodFraction %f'
               %(runNumber, deltaQrodThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles, nGoodFraction))
@@ -181,42 +192,172 @@ if flag == 1:
               
               
 # DETERMINE TRANSFORMATIONS - SEEDS COMPARISON
-flag = 1
+flag = 0
 if flag == 1:
-    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f > ./Test_output_T_r%s.log'
-               %(runNumber, nSeeds, deltaQrodThreshold, runNumber))
+    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f'
+               %(runNumber, nSeeds, deltaQrodThreshold))
                
 
                
 # APPLY TRANSFORMATIONS
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python transform_applyTransformations.py --runNumber %s'%runNumber)
     
     
     
 # SCALING
-flag = 1
+flag = 0
 if flag == 1:
-    os.system('python scaling.py --runNumber %s'%runNumber)
+    os.system('python scaling.py --runNumber %s --dQrod %f'%(runNumber, deltaQrodThreshold))
     
     
     
 # SCALING - SEEDS COMPARISON
-flag = 1
+flag = 0
 if flag == 1:
-    os.system('python scaling_seedComparison.py --runNumber %s > ./Test_output_S_r%s.log'%(runNumber, runNumber))
+    os.system('python scaling_seedComparison.py --runNumber %s'%runNumber)
     
-    
+
+
+# PLOT SCALE FACTOR DISTRIBUTION 
+flag = 0
+if flag == 1:
+    os.system('python scaleFactorDistribution.py --runNumber %s'%runNumber)    
+
+
     
 # SCALING - APPLY SCALES
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python scaling_applyScales.py --runNumber %s'%runNumber)
         
     
     
-# PLOT RODS
+# PLOT RODS AND ORBIT HISTOGRAMS
+flag = 0
+if flag == 1:
+    os.system('python plotRods_r0127.py --runNumber %s'%runNumber)
+        
+    
+    
+# PLOT PAPER FIGURE (4 MERGING HISTOGRAMS)
+flag = 0
+if flag == 1:
+    os.system('python plotSelectedMergingHistograms.py --runNumber %s'%runNumber)
+
+
+
+# PLOT MERGING EFFICIENCY
+flag = 0
+if flag == 1:
+    os.system('python mergingEfficiency.py --runNumber %s'%runNumber)
+    
+
+
+### ************************************ IMAGE SUMS ************************************ ###
+    
+# IMAGE SUMS
+flag = 0
+if flag == 1:
+    os.system('python imageSums.py')
+
+    
+    
+####### ALTERNATIVE #######
+# IMAGE SUMS - FIRST BG SUBTRACTION AND THEN SUM
+#flag = 0
+#if flag == 1:
+#    os.system('python imageSums_bgSubAndSum.py')
+    
+    
+
+# IMAGE SUMS - PAPER PLOTS
+flag = 0
+if flag == 1:
+    os.system('python imageSums_plots.py')
+    
+    
+    
+# IMAGE SUMS - SIGMAS vs Q PLOTS
+flag = 0
+if flag == 1:
+    os.system('python imageSums_sigmaVsQ.py')
+    
+    
+    
+# IMAGE SUMS - PAPER PLOTS
+flag = 0
+if flag == 1:
+    os.system('python imageSums_sigmaVsQ_paperFigure.py')
+    
+    
+    
+# IMAGE SUMS - PAPER PLOTS
+flag = 0
+if flag == 1:
+    os.system('python imageSums_ellipse_Gauss_comparison.py')
+    
+    
+    
+# ELLIPTICAL INTEGRATION ON SINGLE IMAGES
+flag = 0
+if flag == 1:
+    os.system('python singleImage_ellipse_integration.py')
+    
+
+    
+# SCALE ELLIPTICAL INTEGRATED IMAGES
+ellipticalIntegrationFolder = './Output_elliptical_integration'
+flag = 0
+if flag == 1:
+    os.system('python scaling.py --runNumber %s --dQrod %f --outputFolder %s'%(runNumber, deltaQrodThreshold, ellipticalIntegrationFolder))
+        
+
+
+# SCALING - SEEDS COMPARISON
+flag = 0
+if flag == 1:
+    os.system('python scaling_seedComparison.py --runNumber %s --outputFolder %s'%(runNumber, ellipticalIntegrationFolder))
+        
+        
+        
+# SCALING - APPLY SCALES
+flag = 0
+if flag == 1:
+    os.system('python scaling_applyScales.py --runNumber %s --outputFolder %s'%(runNumber, ellipticalIntegrationFolder))
+    
+    
+    
+# PLOT RODS AND ORBIT HISTOGRAMS
+flag = 0
+if flag == 1:
+    os.system('python plotRods_r0127.py --runNumber %s --outputFolder %s'%(runNumber, ellipticalIntegrationFolder))
+    
+    
+    
+# PLOT PAPER FIGURE (4 MERGING HISTOGRAMS)
+flag = 0
+if flag == 1:
+    os.system('python plotSelectedMergingHistograms.py --runNumber %s --outputFolder %s'%(runNumber, ellipticalIntegrationFolder))
+    
+
+
+# COMPARE METHODS: MERGING AFTER ELLIPTICAL INTEGRATION OF SINGLE IMAGES - GAUSS INTEGRAL OF IMAGE SUMS    
+flag = 0
+if flag == 1:
+    os.system('python compare_I_no_sum_ellipse_I_sum_gauss.py')
+    
+    
+    
+# CALCULATE RESOLUTION CUTOFF USING SINGLE IMAGE METHOD
+flag = 0
+if flag == 1:
+    os.system('python resolutionCutoff_singleImage_ellipseIntegration.py')
+    
+    
+    
+# PLOT RESOLUTION CUTOFF USING SINGLE IMAGE METHOD AND IMAGE SUMS METHOD
 flag = 1
 if flag == 1:
-    os.system('python plotRods.py --runNumber %s'%runNumber)
+    os.system('python resolutionCutoff_plots.py')

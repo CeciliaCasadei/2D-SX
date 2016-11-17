@@ -48,8 +48,8 @@ def plotReciprocalLatticeFunction(cellSize, outFolder):
     myAxes.set_xlim([min(x_data)-0.1,max(x_data)+0.1])
     myAxes.set_ylim([min(y_data)-0.1,max(y_data)+0.1])
     
-    myAxes.set_xlabel("q$_x$ (A$^{-1}$)", fontsize = 22, rotation = 'horizontal')
-    myAxes.set_ylabel("q$_y$ (A$^{-1}$)", fontsize = 22, rotation = 'vertical')
+    myAxes.set_xlabel(r"q$_x$ ($\AA^{-1}$)", fontsize = 22, rotation = 'horizontal')
+    myAxes.set_ylabel(r"q$_y$ ($\AA^{-1}$)", fontsize = 22, rotation = 'vertical')
     
     matplotlib.pyplot.show()
     myFigure.savefig("%s/ReferenceReciprocalLattice/reciprocalLattice_cellSize_%.3f.png"%(outFolder, cellSize), fontsize = 20)

@@ -28,7 +28,7 @@ def transform_makeSpotsMatrixFunction(myArguments):
     if not os.path.exists(spotMatricesFolder):
         os.mkdir(spotMatricesFolder)
         
-    os.system('ls ./Output_r%s/UnassembledImageProcessing/*.jbl > %s/list-r%s.txt'%(runNumber, spotMatricesFolder, runNumber))
+    os.system('ls ./Output_r%s/UnassembledImageProcessing/Ordered*.jbl > %s/list-r%s.txt'%(runNumber, spotMatricesFolder, runNumber))
     f = open('%s/list-r%s.txt'%(spotMatricesFolder, runNumber), 'r')
     myList = list(f)
     f.close()

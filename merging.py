@@ -9,7 +9,10 @@ import matplotlib.pyplot
 import numpy
 from numpy.polynomial import polynomial as P
 
+import braggRodClass
+
 def mergingFunction(myArguments):
+    
     # DEFAULTS
     inputFolder = './Output_runMerging'
     runNumbers = ['0127', '0195', '0196', '0197', '0198', '0199', '0200', '0201']
@@ -30,9 +33,18 @@ def mergingFunction(myArguments):
         elif option == "--inputFolder":
             inputFolder = value
     
+    # PREPARE FOLDERS
     outputFolder = '%s/mergedRods'%inputFolder      
     if not os.path.exists(outputFolder):
         os.mkdir(outputFolder)
+    if not os.path.exists('%s/braggRodObjects'%inputFolder):
+        os.mkdir('%s/braggRodObjects'%inputFolder)
+    if not os.path.exists('%s/intensitiesAtZero'%inputFolder):
+        os.mkdir('%s/intensitiesAtZero'%inputFolder)
+    if not os.path.exists('%s/model'%inputFolder):
+        os.mkdir('%s/model'%inputFolder)
+        
+        
                   
     IsAtZero = numpy.zeros(shape=(len(rodIndices), 3))
     lattice_model = []
@@ -191,22 +203,6 @@ def mergingFunction(myArguments):
                
         # PLOT BRAGG ROD
         matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
-        matplotlib.pyplot.plot(x_fit, y_fit, '.m-')
-        matplotlib.pyplot.plot(Xs, Ys_medians, '.b-')
-        myAxis = matplotlib.pyplot.gca()
-        myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
-        matplotlib.pyplot.savefig('%s/medians_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
-        matplotlib.pyplot.close()
-       
-        matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
-        matplotlib.pyplot.plot(Xs, Ys_medians, '.b-')
-        matplotlib.pyplot.plot(Xs, Ys_means, '.m-')
-        myAxis = matplotlib.pyplot.gca()
-        myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
-        matplotlib.pyplot.savefig('%s/means_medians_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
-        matplotlib.pyplot.close()
-        
-        matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
         matplotlib.pyplot.plot(x_fit, y_fit, '.b-')
         myAxis = matplotlib.pyplot.gca()
         matplotlib.pyplot.axhline(y=0, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
@@ -218,34 +214,23 @@ def mergingFunction(myArguments):
         matplotlib.pyplot.savefig('%s/polyFit_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
         matplotlib.pyplot.close()
         
-        ################POSTER######################################
-#        if indices == [6, 1] or indices == [1, 5] or indices == [3, 2] or indices == [4, 2]:
-#            matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
-#            matplotlib.pyplot.plot(x_fit, y_fit, '.b-')
-#            myAxis = matplotlib.pyplot.gca()
-#            matplotlib.pyplot.axhline(y=0, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
-#            myAxis.set_xlim([-0.45,+0.45])
-#            myAxis.set_ylim([-10,70])
-#            myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
-#            matplotlib.pyplot.savefig('%s/POSTER_%d_%d_fit_%s_nPts%d.png'%(outputFolder, hRod, kRod, n, len(cleanedList_Irod)))
-#            matplotlib.pyplot.close()
-        ################POSTER#######################################
-            
-        
         # COLLECT I(qRod = 0)
         IsAtZero[rodNumber, 0]= hRod
         IsAtZero[rodNumber, 1]= kRod
         IsAtZero[rodNumber, 2]= c[0]
         
+        # GENERATE braggRod OBJECT
+        braggRodObject = braggRodClass.braggRod(hRod, kRod, Qrod_min, Qrod_max)
+        braggRodObject.setExperimentalPoints(cleanedList_Qrod, cleanedList_Irod)
+        braggRodObject.setModelPoints(x_fit, y_fit)
+        braggRodObject.setModelCoefficients(c)
+        joblib.dump(braggRodObject, '%s/braggRodObjects/braggRodObject_%d_%d.jbl'%(inputFolder, hRod, kRod))
+                
         rodNumber = rodNumber + 1
         
     lattice_model = numpy.asarray(lattice_model, dtype=numpy.float32)
-        
-    if not os.path.exists('%s/intensitiesAtZero'%inputFolder):
-        os.mkdir('%s/intensitiesAtZero'%inputFolder)
+            
     joblib.dump(IsAtZero, '%s/intensitiesAtZero/intensitiesAtZero.jbl'%inputFolder)
-    if not os.path.exists('%s/model'%inputFolder):
-        os.mkdir('%s/model'%inputFolder)
     joblib.dump(lattice_model, '%s/model/lattice_model.jbl'%inputFolder)
 
 if __name__ == "__main__":

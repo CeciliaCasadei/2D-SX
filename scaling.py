@@ -19,29 +19,35 @@ def scalingFunction(myArguments):
     n_minThreshold = 8
     nTriangles = 100
     productThreshold = 0.25
+    outputFolder = ''
     
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "dQrod="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "dQrod=", "outputFolder="])
     except getopt.GetoptError:
-        print 'Usage: python scaling.py --runNumber <runNumber>  --dQrod <dQrod>'
+        print 'Usage: python scaling.py --runNumber <runNumber>  --dQrod <dQrod> --outputFolder <outputFolder>'
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python scaling.py --runNumber <runNumber>  --dQrod <dQrod>'
+            print 'Usage: python scaling.py --runNumber <runNumber>  --dQrod <dQrod> --outputFolder <outputFolder>'
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
         elif option == "--dQrod":
             deltaQrodThreshold = float(value)
-
-    outputFolder = './Output_r%s/transformAndScale'%runNumber
+        elif option == "--outputFolder": #'./Output_Test_elliptical_integration'    
+            outputFolder = value
+                        
+    if outputFolder == '':
+        outputFolder = './Output_r%s/transformAndScale'%runNumber
+        
+    print 'OUTPUT FOLDER: ', outputFolder
     
-    #LOAD LATTICES LIST OF MATRICES: h_transformed k_transformed qRod I flag    
+    # LOAD LATTICES LIST OF MATRICES: h_transformed k_transformed qRod I flag    
     myList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))
     nLattices = len(myList)
     
-    #SCALE LATTICES WITH RESPECT TO (nSeeds) SEEDS
+    # SCALE LATTICES WITH RESPECT TO (nSeeds) SEEDS
     LtoSS_vector = []
     n = 0
     for i in range(0, 100):        

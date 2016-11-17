@@ -60,8 +60,8 @@ def main(myArguments):
             nGoodFraction = float(value)
     
     newFolder = './Output_runMergingVsModel'
-    if not os.path.exists(newFolder):
-        os.mkdir(newFolder)         
+    #if not os.path.exists(newFolder):
+        #os.mkdir(newFolder)         
     transformationFolder = '%s/transformAndScaleToModel_r%s'%(newFolder, runNumber)
     if not os.path.exists(transformationFolder):
         os.mkdir(transformationFolder)

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 import os
 
 
@@ -16,7 +15,7 @@ if flag == 1:
     os.system('python merging.py --inputFolder %s'%inputFolder)
     
     
-# CALCULATE R-MEAS
+# CALCULATE R-FACTOR
 flag = 0
 if flag == 1:
     os.system('python calculate_Rfactor.py --inputFolder %s'%inputFolder)
@@ -26,3 +25,10 @@ if flag == 1:
 flag = 0
 if flag == 1:
     os.system('python calculate_Patterson_normalized.py --inputFolder %s'%inputFolder)
+    
+
+
+# EXPORT h k l F sig(F) to MR
+flag = 1
+if flag == 1:
+    os.system('python prepare_MRdata.py')

@@ -8,11 +8,13 @@ import matplotlib
 matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 
+import makeOrbits
+
 def plotRodsFunction(myArguments):
     
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "resolutionLimit="])
     except getopt.GetoptError:
         print 'Usage: python plotRods.py --runNumber <runNumber>'
         sys.exit(2)   
@@ -22,6 +24,8 @@ def plotRodsFunction(myArguments):
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
+        elif option == "--resolutionLimit":
+            resolutionLimit = float(value)
 
     outputFolder = './Output_r%s/transformAndScale'%runNumber
     
@@ -30,9 +34,17 @@ def plotRodsFunction(myArguments):
     myList = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))
     
     # DEFINE ROD INDICES
-    rodIndices = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
-                  [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
-                  [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]      
+#    rodIndices = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
+#                  [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
+#                  [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]       
+    orbits = makeOrbits.makeOrbitsFunction(resolutionLimit)
+    rodIndices = []
+    for orbit in orbits:
+        orbit_label = orbit.label
+        if orbit_label[0] >= 0 and orbit_label[1] >= 0:
+            rodIndices.append(orbit_label)
+        
+    print '%d Rods'%len(rodIndices)
     
     # FOR EACH ROD, COLLECT P3-RELATED POINTS AND FRIEDEL MATES              
     for indices in rodIndices:
@@ -62,7 +74,6 @@ def plotRodsFunction(myArguments):
             os.mkdir('%s/Rods'%outputFolder)
         matplotlib.pyplot.savefig('%s/Rods/r%s_rod_%d_%d.png'%(outputFolder, runNumber, hRod, kRod))
         matplotlib.pyplot.close()
-
 
 #        ROD GAPS
 #        Run0198: Rod gaps are due to nan Intensities (i.e. integration circles touching detector gaps)        

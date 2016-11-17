@@ -11,7 +11,7 @@ def calculatePredictedPatternFunction(reciprocalLattice, trialInPlaneRotation, w
     predictedPattern = numpy.zeros((len(reciprocalLattice), 13))
         
     index = 0
-    for i in reciprocalLattice:                                                           # Reciprocal lattice vectors
+    for i in reciprocalLattice:                                                # Reciprocal lattice vectors
         h = i[0]
         k = i[1]
         qx = i[2]
