@@ -10,28 +10,33 @@ import numpy
 from numpy.polynomial import polynomial as P
 
 import braggRodClass
+import makeOrbits
 
 def mergingFunction(myArguments):
     
     # DEFAULTS
     inputFolder = './Output_runMerging'
     runNumbers = ['0127', '0195', '0196', '0197', '0198', '0199', '0200', '0201']
-    rodIndices = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
-                  [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
-                  [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]      
+    
+    
+#    rodIndices = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
+#                  [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
+#                  [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]      
     
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["inputFolder="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["inputFolder=", "resolutionLimit="])
     except getopt.GetoptError:
-        print 'Usage: python merging.py --inputFolder <inputFolder>'
+        print 'Usage: python merging.py --inputFolder <inputFolder> --resolutionLimit <resolutionLimit>'
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python merging.py --inputFolder <inputFolder>'
+            print 'Usage: python merging.py --inputFolder <inputFolder> --resolutionLimit <resolutionLimit>'
             sys.exit()
         elif option == "--inputFolder":
             inputFolder = value
+        elif option == "--resolutionLimit":
+            resolutionLimit = float(value)
     
     # PREPARE FOLDERS
     outputFolder = '%s/mergedRods'%inputFolder      
@@ -44,7 +49,15 @@ def mergingFunction(myArguments):
     if not os.path.exists('%s/model'%inputFolder):
         os.mkdir('%s/model'%inputFolder)
         
+    # DEFINE ROD INDICES       
+    orbits = makeOrbits.makeOrbitsFunction(resolutionLimit)
+    rodIndices = []
+    for orbit in orbits:
+        orbit_label = orbit.label
+        if orbit_label[0] >= 0 and orbit_label[1] >= 0:
+            rodIndices.append(orbit_label)
         
+    print '%d Rods'%len(rodIndices)   
                   
     IsAtZero = numpy.zeros(shape=(len(rodIndices), 3))
     lattice_model = []
@@ -175,6 +188,8 @@ def mergingFunction(myArguments):
             n = 15
         if indices == [7, 1]:
             n = 13
+        else:
+            n = 6
         
         # EXTEND INTERVAL ON WHICH FIT IS PERFORMED TO AVOID RAPID OSCILLATIONS OF THE POLYNOMIAL AT THE INTERVAL EDGES.
         Xs_extended = []

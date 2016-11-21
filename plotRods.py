@@ -33,10 +33,7 @@ def plotRodsFunction(myArguments):
     # LOAD LATTICES LIST OF MATRICES: h_transformed k_transformed qRod Iscaled flag 
     myList = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))
     
-    # DEFINE ROD INDICES
-#    rodIndices = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
-#                  [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
-#                  [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]       
+    # DEFINE ROD INDICES       
     orbits = makeOrbits.makeOrbitsFunction(resolutionLimit)
     rodIndices = []
     for orbit in orbits:

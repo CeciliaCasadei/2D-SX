@@ -9,7 +9,7 @@ import os
 import scaling_calculateScaleFactor
 
 def scaling_mergeRunsFunction(myArguments):
-    runNumbers = ['0127', '0195', '0196', '0197', '0198', '0199', '0200', '0201']
+    runNumbers = ['0195', '0196', '0197', '0198', '0199', '0200', '0201']
 
     # READ INPUTS    
     try:
