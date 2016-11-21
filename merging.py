@@ -16,7 +16,7 @@ def mergingFunction(myArguments):
     
     # DEFAULTS
     inputFolder = './Output_runMerging'
-    runNumbers = ['0127', '0195', '0196', '0197', '0198', '0199', '0200', '0201']
+    runNumbers = ['0195', '0196', '0197', '0198', '0199', '0200', '0201']
     
     
 #    rodIndices = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
@@ -120,73 +120,73 @@ def mergingFunction(myArguments):
         # POLYNOMIAL FIT ORDER
         if indices == [1, 0]:
             n = 6  
-        if indices == [1, 1]:
+        elif indices == [1, 1]:
             n = 6                 
-        if indices == [1, 2]:
+        elif indices == [1, 2]:
             n = 5                
-        if indices == [1, 3]:
+        elif indices == [1, 3]:
             n = 7              
-        if indices == [1, 4]:
+        elif indices == [1, 4]:
             n = 10               
-        if indices == [1, 5]:
+        elif indices == [1, 5]:
             n = 13
-        if indices == [1, 6]:
+        elif indices == [1, 6]:
             n = 14
-        if indices == [1, 7]:
+        elif indices == [1, 7]:
             n = 13
-        if indices == [2, 0]:
+        elif indices == [2, 0]:
             n = 4
-        if indices == [2, 1]:
+        elif indices == [2, 1]:
             n = 5
-        if indices == [2, 2]:
+        elif indices == [2, 2]:
             n = 6
-        if indices == [2, 3]:
+        elif indices == [2, 3]:
             n = 13
-        if indices == [2, 4]:
+        elif indices == [2, 4]:
             n = 12
-        if indices == [2, 5]:
+        elif indices == [2, 5]:
             n = 16
-        if indices == [2, 6]:
+        elif indices == [2, 6]:
             n = 12
-        if indices == [3, 0]:
+        elif indices == [3, 0]:
             n = 6
-        if indices == [3, 1]:
+        elif indices == [3, 1]:
             n = 7
-        if indices == [3, 2]:
+        elif indices == [3, 2]:
             n = 13
-        if indices == [3, 3]:
+        elif indices == [3, 3]:
             n = 12
-        if indices == [3, 4]:
+        elif indices == [3, 4]:
             n = 9
-        if indices == [3, 5]:
+        elif indices == [3, 5]:
             n = 10
-        if indices == [4, 0]:
+        elif indices == [4, 0]:
             n = 6
-        if indices == [4, 1]:
+        elif indices == [4, 1]:
             n = 10
-        if indices == [4, 2]:
+        elif indices == [4, 2]:
             n = 12
-        if indices == [4, 3]:
+        elif indices == [4, 3]:
             n = 9
-        if indices == [4, 4]:
+        elif indices == [4, 4]:
             n = 15
-        if indices == [5, 0]:
+        elif indices == [5, 0]:
             n = 14
-        if indices == [5, 1]:
+        elif indices == [5, 1]:
             n = 13
-        if indices == [5, 2]:
+        elif indices == [5, 2]:
             n = 16
-        if indices == [5, 3]:
+        elif indices == [5, 3]:
             n = 10
-        if indices == [6, 0]:
+        elif indices == [6, 0]:
             n = 12
-        if indices == [6, 1]:
+        elif indices == [6, 1]:
             n = 14
-        if indices == [6, 2]:
+        elif indices == [6, 2]:
             n = 12
-        if indices == [7, 0]:
+        elif indices == [7, 0]:
             n = 15
-        if indices == [7, 1]:
+        elif indices == [7, 1]:
             n = 13
         else:
             n = 6
