@@ -11,18 +11,14 @@ from numpy.polynomial import polynomial as P
 
 import braggRodClass
 import makeOrbits
+import model_poly_order
 
 def mergingFunction(myArguments):
     
     # DEFAULTS
     inputFolder = './Output_runMerging'
     runNumbers = ['0195', '0196', '0197', '0198', '0199', '0200', '0201']
-    
-    
-#    rodIndices = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
-#                  [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
-#                  [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]      
-    
+
     # READ INPUTS    
     try:
         optionPairs, leftOver = getopt.getopt(myArguments, "h", ["inputFolder=", "resolutionLimit="])
@@ -118,78 +114,79 @@ def mergingFunction(myArguments):
                 
         
         # POLYNOMIAL FIT ORDER
-        if indices == [1, 0]:
-            n = 6  
-        elif indices == [1, 1]:
-            n = 6                 
-        elif indices == [1, 2]:
-            n = 5                
-        elif indices == [1, 3]:
-            n = 7              
-        elif indices == [1, 4]:
-            n = 10               
-        elif indices == [1, 5]:
-            n = 13
-        elif indices == [1, 6]:
-            n = 14
-        elif indices == [1, 7]:
-            n = 13
-        elif indices == [2, 0]:
-            n = 4
-        elif indices == [2, 1]:
-            n = 5
-        elif indices == [2, 2]:
-            n = 6
-        elif indices == [2, 3]:
-            n = 13
-        elif indices == [2, 4]:
-            n = 12
-        elif indices == [2, 5]:
-            n = 16
-        elif indices == [2, 6]:
-            n = 12
-        elif indices == [3, 0]:
-            n = 6
-        elif indices == [3, 1]:
-            n = 7
-        elif indices == [3, 2]:
-            n = 13
-        elif indices == [3, 3]:
-            n = 12
-        elif indices == [3, 4]:
-            n = 9
-        elif indices == [3, 5]:
-            n = 10
-        elif indices == [4, 0]:
-            n = 6
-        elif indices == [4, 1]:
-            n = 10
-        elif indices == [4, 2]:
-            n = 12
-        elif indices == [4, 3]:
-            n = 9
-        elif indices == [4, 4]:
-            n = 15
-        elif indices == [5, 0]:
-            n = 14
-        elif indices == [5, 1]:
-            n = 13
-        elif indices == [5, 2]:
-            n = 16
-        elif indices == [5, 3]:
-            n = 10
-        elif indices == [6, 0]:
-            n = 12
-        elif indices == [6, 1]:
-            n = 14
-        elif indices == [6, 2]:
-            n = 12
-        elif indices == [7, 0]:
-            n = 15
-        elif indices == [7, 1]:
-            n = 13
-        else:
-            n = 6
+        n = int(model_poly_order['%s'%indices])
+#        if indices == [1, 0]:
+#            n = 6  
+#        elif indices == [1, 1]:
+#            n = 6                 
+#        elif indices == [1, 2]:
+#            n = 5                
+#        elif indices == [1, 3]:
+#            n = 7              
+#        elif indices == [1, 4]:
+#            n = 10               
+#        elif indices == [1, 5]:
+#            n = 13
+#        elif indices == [1, 6]:
+#            n = 14
+#        elif indices == [1, 7]:
+#            n = 13
+#        elif indices == [2, 0]:
+#            n = 4
+#        elif indices == [2, 1]:
+#            n = 5
+#        elif indices == [2, 2]:
+#            n = 6
+#        elif indices == [2, 3]:
+#            n = 13
+#        elif indices == [2, 4]:
+#            n = 12
+#        elif indices == [2, 5]:
+#            n = 16
+#        elif indices == [2, 6]:
+#            n = 12
+#        elif indices == [3, 0]:
+#            n = 6
+#        elif indices == [3, 1]:
+#            n = 7
+#        elif indices == [3, 2]:
+#            n = 13
+#        elif indices == [3, 3]:
+#            n = 12
+#        elif indices == [3, 4]:
+#            n = 9
+#        elif indices == [3, 5]:
+#            n = 10
+#        elif indices == [4, 0]:
+#            n = 6
+#        elif indices == [4, 1]:
+#            n = 10
+#        elif indices == [4, 2]:
+#            n = 12
+#        elif indices == [4, 3]:
+#            n = 9
+#        elif indices == [4, 4]:
+#            n = 15
+#        elif indices == [5, 0]:
+#            n = 14
+#        elif indices == [5, 1]:
+#            n = 13
+#        elif indices == [5, 2]:
+#            n = 16
+#        elif indices == [5, 3]:
+#            n = 10
+#        elif indices == [6, 0]:
+#            n = 12
+#        elif indices == [6, 1]:
+#            n = 14
+#        elif indices == [6, 2]:
+#            n = 12
+#        elif indices == [7, 0]:
+#            n = 15
+#        elif indices == [7, 1]:
+#            n = 13
+#        else:
+#            n = 6
         
         # EXTEND INTERVAL ON WHICH FIT IS PERFORMED TO AVOID RAPID OSCILLATIONS OF THE POLYNOMIAL AT THE INTERVAL EDGES.
         Xs_extended = []
@@ -222,7 +219,7 @@ def mergingFunction(myArguments):
         myAxis = matplotlib.pyplot.gca()
         matplotlib.pyplot.axhline(y=0, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
         matplotlib.pyplot.axhline(y=10, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
-        myAxis.set_xlim([-0.45,+0.45])
+        myAxis.set_xlim([-0.60,+0.60])
         scale = 1.1*max(cleanedList_Irod)
         myAxis.set_ylim([-0.1*scale,1*scale])
         myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
