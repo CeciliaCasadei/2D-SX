@@ -11,7 +11,7 @@ from numpy.polynomial import polynomial as P
 
 import braggRodClass
 import makeOrbits
-import model_poly_order
+from model_poly_order import poly_order
 
 def mergingFunction(myArguments):
     
@@ -111,82 +111,9 @@ def mergingFunction(myArguments):
                 Y_median = numpy.median(binList_Irod)
                 Ys_medians.append(Y_median)
                 print '\nN of points in the bin = %d, Mean = %.2f, Median = %.2f'%(len(binList_Irod), Y_mean, Y_median)
-                
-        
+                      
         # POLYNOMIAL FIT ORDER
-        n = int(model_poly_order['%s'%indices])
-#        if indices == [1, 0]:
-#            n = 6  
-#        elif indices == [1, 1]:
-#            n = 6                 
-#        elif indices == [1, 2]:
-#            n = 5                
-#        elif indices == [1, 3]:
-#            n = 7              
-#        elif indices == [1, 4]:
-#            n = 10               
-#        elif indices == [1, 5]:
-#            n = 13
-#        elif indices == [1, 6]:
-#            n = 14
-#        elif indices == [1, 7]:
-#            n = 13
-#        elif indices == [2, 0]:
-#            n = 4
-#        elif indices == [2, 1]:
-#            n = 5
-#        elif indices == [2, 2]:
-#            n = 6
-#        elif indices == [2, 3]:
-#            n = 13
-#        elif indices == [2, 4]:
-#            n = 12
-#        elif indices == [2, 5]:
-#            n = 16
-#        elif indices == [2, 6]:
-#            n = 12
-#        elif indices == [3, 0]:
-#            n = 6
-#        elif indices == [3, 1]:
-#            n = 7
-#        elif indices == [3, 2]:
-#            n = 13
-#        elif indices == [3, 3]:
-#            n = 12
-#        elif indices == [3, 4]:
-#            n = 9
-#        elif indices == [3, 5]:
-#            n = 10
-#        elif indices == [4, 0]:
-#            n = 6
-#        elif indices == [4, 1]:
-#            n = 10
-#        elif indices == [4, 2]:
-#            n = 12
-#        elif indices == [4, 3]:
-#            n = 9
-#        elif indices == [4, 4]:
-#            n = 15
-#        elif indices == [5, 0]:
-#            n = 14
-#        elif indices == [5, 1]:
-#            n = 13
-#        elif indices == [5, 2]:
-#            n = 16
-#        elif indices == [5, 3]:
-#            n = 10
-#        elif indices == [6, 0]:
-#            n = 12
-#        elif indices == [6, 1]:
-#            n = 14
-#        elif indices == [6, 2]:
-#            n = 12
-#        elif indices == [7, 0]:
-#            n = 15
-#        elif indices == [7, 1]:
-#            n = 13
-#        else:
-#            n = 6
+        n = int(poly_order['[%s, %s]'%(hRod, kRod)])
         
         # EXTEND INTERVAL ON WHICH FIT IS PERFORMED TO AVOID RAPID OSCILLATIONS OF THE POLYNOMIAL AT THE INTERVAL EDGES.
         Xs_extended = []
