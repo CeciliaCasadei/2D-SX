@@ -3,22 +3,23 @@ import os
 
 
 # NORMALIZE LATTICES TO MODEL SCALE FACTOR AND APPLY SCALE FACTOR
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python model_applyScales.py')
     
     
 # PLOT MERGED RODS
 inputFolder = './Output_runMergingVsModel'
-flag = 0
+resolutionLimit = 6.0
+flag = 1
 if flag == 1:
-    os.system('python merging.py --inputFolder %s'%inputFolder)
+    os.system('python merging.py --inputFolder %s --resolutionLimit %f'%(inputFolder, resolutionLimit))
     
     
 # CALCULATE R-FACTOR
-flag = 0
+flag = 1
 if flag == 1:
-    os.system('python calculate_Rfactor.py --inputFolder %s'%inputFolder)
+    os.system('python calculate_Rfactor.py --inputFolder %s --resolutionLimit %f'%(inputFolder, resolutionLimit))
 
 
 # CALCULATE PATTERSON
@@ -31,4 +32,4 @@ if flag == 1:
 # EXPORT h k l F sig(F) to MR
 flag = 1
 if flag == 1:
-    os.system('python prepare_MRdata.py')
+    os.system('python prepare_MRdata.py --resolutionLimit %f'%resolutionLimit)

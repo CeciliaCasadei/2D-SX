@@ -5,17 +5,21 @@ import numpy
 import sys
 import getopt
 
+import makeOrbits
+
 def prepare_MRdata_Function(myArguments):
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h")
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["resolutionLimit="])
     except getopt.GetoptError:
-        print 'Usage: python prepare_MRdata.py'
+        print 'Usage: python prepare_MRdata.py --resolutionLimit <resolutionLimit>'
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python prepare_MRdata.py'
+            print 'Usage: python prepare_MRdata.py --resolutionLimit <resolutionLimit>'
             sys.exit()
+        elif option == "--resolutionLimit":
+            resolutionLimit = float(value)
 
     if not os.path.exists('./Output_data_to_MR'):
         os.mkdir('./Output_data_to_MR')
@@ -28,9 +32,19 @@ def prepare_MRdata_Function(myArguments):
     c_long_star = 2*numpy.pi/c_long
     
     
-    rodIndices_all = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
-                      [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
-                      [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]      
+    # DEFINE ROD INDICES       
+    orbits = makeOrbits.makeOrbitsFunction(resolutionLimit)
+    rodIndices_all = []
+    for orbit in orbits:
+        orbit_label = orbit.label
+        if orbit_label[0] >= 0 and orbit_label[1] >= 0:
+            rodIndices_all.append(orbit_label)
+        
+    print '%d Rods'%len(rodIndices_all)   
+    
+#    rodIndices_all = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
+#                      [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
+#                      [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]      
                       
     # LOOP ON BRAGG RODS
     for rodIndices in rodIndices_all:
@@ -91,7 +105,7 @@ def prepare_MRdata_Function(myArguments):
             
     hkl_file.close()
 
-# 1466 reflections out of 4210    
+# 55A-7A: 1466 reflections out of 4210    
 
 if __name__ == "__main__":
     print "\n**** CALLING prepare_MRdata ****"

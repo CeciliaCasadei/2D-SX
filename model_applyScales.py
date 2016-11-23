@@ -7,7 +7,7 @@ import os
 
 
 def model_applyScalesFunction(myArguments):
-    runNumbers = ['0127', '0195', '0196', '0197', '0198', '0199', '0200', '0201']
+    runNumbers = ['0195', '0196', '0197', '0198', '0199', '0200', '0201']
     
     # READ INPUTS    
     try:

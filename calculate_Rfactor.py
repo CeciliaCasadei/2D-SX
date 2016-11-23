@@ -3,24 +3,39 @@ import sys
 import getopt
 import joblib
 
+import makeOrbits
+
 def calculate_Rfactor_Function(myArguments):
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["inputFolder="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["inputFolder=", "resolutionLimit="])
     except getopt.GetoptError:
-        print 'Usage: python calculate_Rfactor.py --inputFolder <inputFolder>'
+        print 'Usage: python calculate_Rfactor.py --inputFolder <inputFolder> --resolutionLimit <resolutionLimit>'
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python calculate_Rfactor.py --inputFolder <inputFolder>'
+            print 'Usage: python calculate_Rfactor.py --inputFolder <inputFolder> --resolutionLimit <resolutionLimit>'
             sys.exit()
         elif option == "--inputFolder":
             inputFolder = value
+        elif option == "--resolutionLimit":
+            resolutionLimit = float(value)
+            
+            
+    # DEFINE ROD INDICES       
+    orbits = makeOrbits.makeOrbitsFunction(resolutionLimit)
+    rodIndices = []
+    for orbit in orbits:
+        orbit_label = orbit.label
+        if orbit_label[0] >= 0 and orbit_label[1] >= 0:
+            rodIndices.append(orbit_label)
+        
+    print '%d Rods'%len(rodIndices)   
 
-    rodIndices = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
-                  [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
-                  [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]  
-    
+#    rodIndices = [[1, 0], [1, 1], [2, 0], [1, 2], [2, 1], [3, 0], [2, 2], [1, 3], [3, 1], [4, 0], [2, 3], [3, 2], [1, 4], [4, 1],
+#                  [5, 0], [3, 3], [2, 4], [4, 2], [1, 5], [5, 1], [6, 0], [3, 4], [4, 3], [2, 5], [5, 2], [1, 6], [6, 1],
+#                  [4, 4], [3, 5], [5, 3], [7, 0], [2, 6], [6, 2], [1, 7], [7, 1]]  
+#    
     R_value_up = 0
     R_value_down = 0    
     for rod_hk in rodIndices:
