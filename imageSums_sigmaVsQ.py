@@ -14,7 +14,7 @@ import imageSums_utilities
 photonThreshold = 2.0
 filter_distanceThreshold = 2.0
 nCountsPerPhoton = 26
-ellipse_multiplicative_factor = 4.0 # was 2.5
+ellipse_multiplicative_factor = 2.5 # was 2.5
 
 # TO BE FITTED
 qs = []

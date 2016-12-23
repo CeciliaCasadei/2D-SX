@@ -358,6 +358,6 @@ if flag == 1:
     
     
 # PLOT RESOLUTION CUTOFF USING SINGLE IMAGE METHOD AND IMAGE SUMS METHOD
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python resolutionCutoff_plots.py')

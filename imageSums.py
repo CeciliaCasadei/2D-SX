@@ -94,6 +94,9 @@ def imageSums():
         h_label = label[0]
         k_label = label[1]
         
+#        if not (label == [11, 2] or label == [2, 11] or label == [-11, -2] or label == [-2, -11]):
+#            continue
+        
         # LOOP ON ALL PROCESSED LATTICES 
         for index in range(0, len(lattices_names)):
             lattice_name = lattices_names[index]
@@ -296,13 +299,13 @@ def imageSums():
         matplotlib.pyplot.subplots_adjust(top=0.9)     
             
         if orbit.resolution > 7.0:
-            matplotlib.pyplot.savefig('%s/low_res/orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 4*96)
+            matplotlib.pyplot.savefig('%s/low_res/orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 4*96)
         if 6.0 < orbit.resolution <= 7.0:
-            matplotlib.pyplot.savefig('%s/high_res_7_6/orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 4*96)
+            matplotlib.pyplot.savefig('%s/high_res_7_6/orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 4*96)
         if 5.0 < orbit.resolution <= 6.0:
-            matplotlib.pyplot.savefig('%s/high_res_6_5/orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 4*96)
+            matplotlib.pyplot.savefig('%s/high_res_6_5/orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 4*96)
         if 4.0 < orbit.resolution <= 5.0:
-            matplotlib.pyplot.savefig('%s/high_res_5_4/orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 4*96)
+            matplotlib.pyplot.savefig('%s/high_res_5_4/orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 4*96)
         matplotlib.pyplot.close()  
         
         ### SINGLE PLOT ###
@@ -311,13 +314,13 @@ def imageSums():
         matplotlib.pyplot.title('Orbit: %d %d \nResolution: %.2f'%(h_label, k_label, orbit.resolution))
         myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)
         if orbit.resolution > 7.0:
-            matplotlib.pyplot.savefig('%s/low_res/bgsub_rotatetd_orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 2*96 )
+            matplotlib.pyplot.savefig('%s/low_res/bgsub_rotatetd_orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 2*96 )
         if 6.0 < orbit.resolution <= 7.0:
-            matplotlib.pyplot.savefig('%s/high_res_7_6/bgsub_rotated_orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 2*96)
+            matplotlib.pyplot.savefig('%s/high_res_7_6/bgsub_rotated_orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 2*96)
         if 5.0 < orbit.resolution <= 6.0:
-            matplotlib.pyplot.savefig('%s/high_res_6_5/bgsub_rotated_orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 2*96)
+            matplotlib.pyplot.savefig('%s/high_res_6_5/bgsub_rotated_orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 2*96)
         if 4.0 < orbit.resolution <= 5.0:
-            matplotlib.pyplot.savefig('%s/high_res_5_4/bgsub_rotated_orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 2*96)
+            matplotlib.pyplot.savefig('%s/high_res_5_4/bgsub_rotated_orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 2*96)
         matplotlib.pyplot.close()  
         
         ### GENERATE ORBIT ATTRIBUTES ###
@@ -369,19 +372,19 @@ def imageSums():
             
             ### PLOT GAUSS FIT ###
             myFigureObject = matplotlib.pyplot.figure()
-            myAxesImageObject = matplotlib.pyplot.imshow(data.reshape(30, 30), origin='lower', interpolation='nearest')
-            matplotlib.pyplot.gca().contour(x, y, data_fitted.reshape(30, 30), 4, colors='w')
+            myAxesImageObject = matplotlib.pyplot.imshow(data.reshape(2*halfWidth, 2*halfWidth), origin='lower', interpolation='nearest')
+            matplotlib.pyplot.gca().contour(x, y, data_fitted.reshape(2*halfWidth, 2*halfWidth), 4, colors='w')
             matplotlib.pyplot.title('Orbit: %d %d \nResolution: %.2f Gauss integral: %.1f counts'%(h_label, k_label, orbit.resolution, gauss_integral))
             myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)
             
             if orbit.resolution > 7.0:
-                matplotlib.pyplot.savefig('%s/low_res/gauss_bgsub_rotatetd_orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 2*96)
+                matplotlib.pyplot.savefig('%s/low_res/gauss_bgsub_rotatetd_orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 2*96)
             if 6.0 < orbit.resolution <= 7.0:
-                matplotlib.pyplot.savefig('%s/high_res_7_6/gauss_bgsub_rotated_orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 2*96)
+                matplotlib.pyplot.savefig('%s/high_res_7_6/gauss_bgsub_rotated_orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 2*96)
             if 5.0 < orbit.resolution <= 6.0:
-                matplotlib.pyplot.savefig('%s/high_res_6_5/gauss_bgsub_rotated_orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 2*96)
+                matplotlib.pyplot.savefig('%s/high_res_6_5/gauss_bgsub_rotated_orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 2*96)
             if 4.0 < orbit.resolution <= 5.0:
-                matplotlib.pyplot.savefig('%s/high_res_5_4/gauss_bgsub_rotated_orbit_%d_%d.png'%(outputFolder, h_label, k_label), dpi = 2*96)
+                matplotlib.pyplot.savefig('%s/high_res_5_4/gauss_bgsub_rotated_orbit_%d_%d_n_%d.png'%(outputFolder, h_label, k_label, nTerms), dpi = 2*96)
             matplotlib.pyplot.close()  
             
         except:

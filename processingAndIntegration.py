@@ -678,6 +678,7 @@ def processing(myArguments):
                                                        %(processingFolder, myLattice.runNumber, imageNumber, myLattice.latticeNumberInImage))    
                                                                                                             
             ### PAPER FIGURE (IMG N 74) ###
+            ### NB Final orientation will be p -> LABEL INDICES NEED TO BE PERMUTED ###
             if integratedPeaksFigureFlag == 1:
                 goodPredictions_x = []
                 goodPredictions_y = []
@@ -692,7 +693,7 @@ def processing(myArguments):
                 for spot in myLattice.refinedPredictedPattern:
                     h = spot[0]
                     k = spot[1]
-                    label = '%d, %d'%(h, k)
+                    label = r'%d, %d $\rightarrow$ %d, %d'%(h, k, k, h)
                     xPredicted = 874 + myLattice.refinedCenterXs[-1] + spot[10] * numpy.cos(spot[8]) 
                     yPredicted = 874 + myLattice.refinedCenterYs[-1] + spot[10] * numpy.sin(spot[8]) 
                     integrationFlag = 0
@@ -713,13 +714,12 @@ def processing(myArguments):
                         goodPredictions_y.append(yPredicted)
                         goodPredictions_labels.append(label)
                     if h == -13 and k == 11 or h == -11 and k == 13 or h == -13 and k == 2 or h == -11 and k == -2:
-                    #if h == 2 and k == 11 or h == 11 and k == 2 or h == 13 and k == -2 or h == 13 and k == -11:
                         if h == -13 and k == 2:
-                            label = r'-13, 2  $\equiv$ 2, 11'
+                            label = r'-13, 2  $\equiv$ 2, 11 $\rightarrow$ 11, 2'
                         if h == -11 and k == 13:
-                            label = r'-11, 13  $\equiv$ -2, -11'
+                            label = r'-11, 13  $\equiv$ -2, -11 $\rightarrow$ -11, -2'
                         if h == -13 and k == 11:
-                            label = r'-13, 11  $\equiv$ 11, 2'
+                            label = r'-13, 11  $\equiv$ 11, 2 $\rightarrow$ 2, 11'
                         zoomedSpots_x.append(xPredicted)
                         zoomedSpots_y.append(yPredicted)
                         zoomedSpots_labels.append(label)
@@ -806,7 +806,7 @@ def processing(myArguments):
                            
                 for i, ax in enumerate(matplotlib.pyplot.gcf().axes):
                     if i > 0:
-                        ax.text(0.5, 0.5, "%s"%(zoomedSpots_labels[i-1]), horizontalalignment='left', verticalalignment='bottom', fontsize=32)          
+                        ax.text(0.5, 0.5, "%s"%(zoomedSpots_labels[i-1]), horizontalalignment='left', verticalalignment='bottom', fontsize=28)          
                 
                 matplotlib.pyplot.savefig("%s/r%s_Image_%s_Lattice_%s_zoomed.png"%(processingFolder, runNumber, imageNumber, myLattice.latticeNumberInImage), fontsize = 20, dpi=96*4)
                 matplotlib.pyplot.close()
