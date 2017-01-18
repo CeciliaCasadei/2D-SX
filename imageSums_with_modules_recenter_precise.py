@@ -5,9 +5,6 @@ import numpy
 import os
 import pickle
 
-import scipy.interpolate
-import scipy.optimize
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot
@@ -16,120 +13,7 @@ import makeOrbits
 import imageSums_utilities
 import detectorModules
 
-def calculate_detectorAzimuth(xGeometry_np, yGeometry_np, i, j):   
-    xDetector = xGeometry_np[i, j]
-    yDetector = yGeometry_np[i, j]
-    if xDetector != 0:
-        detectorAzimuth = numpy.arctan(yDetector/xDetector)
-        if xDetector < 0 and yDetector > 0:
-            detectorAzimuth = detectorAzimuth + numpy.pi
-        if xDetector < 0 and yDetector < 0:
-            detectorAzimuth = detectorAzimuth - numpy.pi
-    else:
-        if yDetector > 0:
-            detectorAzimuth = + numpy.pi /2
-        else:
-            detectorAzimuth = - numpy.pi /2
-    return detectorAzimuth
-    
-def calculate_moduleRotation(xGeometry_np, yGeometry_np, i, j):
-    deltaXgeo = float(xGeometry_np[i, j+1] - xGeometry_np[i, j])
-    deltaYgeo = float(yGeometry_np[i, j+1] - yGeometry_np[i, j])
 
-    if deltaXgeo != 0:
-        moduleRotation = numpy.arctan(deltaYgeo/deltaXgeo) # From module to lab frame
-        if deltaXgeo < 0 and deltaYgeo > 0:
-            moduleRotation = moduleRotation + numpy.pi
-        elif deltaXgeo < 0 and deltaYgeo < 0:
-            moduleRotation = moduleRotation - numpy.pi
-    else:
-        if deltaYgeo > 0:
-            moduleRotation = numpy.pi / 2
-        else:
-            moduleRotation = -numpy.pi / 2
-    return moduleRotation
-    
-def clockWiseRotation(spotMatrix, rotationAngle):
-    x_windows_pix = range(-spotMatrix.shape[1]/2, +spotMatrix.shape[1]/2)  # -18, -17, ..., +17
-    y_windows_pix = range(-spotMatrix.shape[0]/2, +spotMatrix.shape[0]/2)  # -18, -17, ..., +17
-
-    [X_windows_pix, Y_windows_pix] = numpy.meshgrid(x_windows_pix, y_windows_pix)
-    X_windows_pix = numpy.asarray(X_windows_pix, dtype=numpy.float32)
-    Y_windows_pix = numpy.asarray(Y_windows_pix, dtype=numpy.float32)
-    
-    X_windows_pix_rotated = numpy.cos(rotationAngle)*X_windows_pix - numpy.sin(rotationAngle)*Y_windows_pix
-    Y_windows_pix_rotated = numpy.sin(rotationAngle)*X_windows_pix + numpy.cos(rotationAngle)*Y_windows_pix
-    
-    f = scipy.interpolate.interp2d(x_windows_pix, y_windows_pix, spotMatrix, kind='linear')
-    spotMatrix_rotated = numpy.zeros(spotMatrix.shape)
-    
-    for columnIndex in range(0, spotMatrix_rotated.shape[1]):
-        for rowIndex in range(0, spotMatrix_rotated.shape[0]):
-            rotated_x = X_windows_pix_rotated[rowIndex, columnIndex]
-            rotated_y = Y_windows_pix_rotated[rowIndex, columnIndex]
-            rotated_f = f(rotated_x, rotated_y)
-            spotMatrix_rotated[rowIndex, columnIndex] = rotated_f   
-            
-    return spotMatrix_rotated
-
-def do_gaussFit(sector):
-    try:                    
-        n_x = sector.shape[1]
-        n_y = sector.shape[0]
-        x = numpy.linspace(0, n_x-1, n_x)
-        y = numpy.linspace(0, n_y-1, n_y)
-        x, y = numpy.meshgrid(x, y)                      # column_index, row_index
-        
-        data = sector.ravel()           
-        data = data.T
-        data = numpy.asarray(data)
-        data = data.flatten()
-        
-        initial_x = float(n_x)/2
-        initial_y = float(n_y)/2
-        initial_guess = (numpy.amax(sector), initial_x, initial_y, 2.0, 2.0)
-        
-        popt, pcov = scipy.optimize.curve_fit(imageSums_utilities.twoD_Gaussian_simple, (x, y), data, p0=initial_guess)
-        data_fitted = imageSums_utilities.twoD_Gaussian_simple((x, y), *popt)       
-        
-        refined_amplitude = popt[0]
-        refined_x0 = popt[1]
-        refined_y0 = popt[2]
-        refined_sigma_x = popt[3]
-        refined_sigma_y = popt[4]
-              
-        ### ANALYTICAL GAUSSIAN INTEGRAL ###
-        gauss_integral = 2 * numpy.pi * refined_amplitude * refined_sigma_x * refined_sigma_y
-        
-    except:
-        print 'Gaussian fit not possible'
-        gauss_integral = numpy.nan
-        refined_amplitude = numpy.nan
-        refined_x0 = numpy.nan
-        refined_y0 = numpy.nan
-        refined_sigma_x = numpy.nan
-        refined_sigma_y = numpy.nan
-        data = numpy.nan
-        data_fitted = numpy.nan
-        
-    return refined_sigma_x, refined_sigma_y, refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted
-        
-def recenter(sector, x0, y0, precision_factor, truncated_halfWidth):
-    precision_factor = 10**precision_factor
-    expanded_sector = numpy.zeros((precision_factor*sector.shape[0], precision_factor*sector.shape[1]))
-    x0 = precision_factor*x0
-    y0 = precision_factor*y0
-    x0 = int(round(x0))
-    y0 = int(round(y0))
-    for i in range(0, sector.shape[0]):
-        for j in range(0, sector.shape[1]):
-            element = sector[i, j]
-            for m in range(i*precision_factor, i*precision_factor+precision_factor):
-                for n in range(j*precision_factor, j*precision_factor+precision_factor):
-                    expanded_sector[m, n] = element
-    truncated_halfWidth = precision_factor*truncated_halfWidth                
-    recentered_sum = expanded_sector[y0-truncated_halfWidth:y0+truncated_halfWidth, x0-truncated_halfWidth:x0+truncated_halfWidth] 
-    return recentered_sum
             
 def imageSums():
     
@@ -203,8 +87,8 @@ def imageSums():
     fOpen = open('%s/log.txt'%outputFolder, 'a')
     fOpen.write('h, k, module bottom, module top, module left, module right, nTerms, Gauss_x0, Gauss_y0, sigma_x, sigma_y, refined_amplitude, Gauss_I\n')
     
-    h_selected = -8
-    k_selected = -6
+    h_selected = -11
+    k_selected = -2
    
     # FOR EACH ORBIT, FOR EACH MODULE, DO SECTOR SUMS
     for orbit in orbits:
@@ -243,7 +127,7 @@ def imageSums():
         nUsed_orbit = 0
         
         # LOOP ON ALL MODULES
-        modules_sum = numpy.zeros((2*truncated_halfWidth*(10**precision_factor), 2*truncated_halfWidth*(10**precision_factor)))                    # 30x30
+        modules_sum = numpy.zeros((2*truncated_halfWidth*(10**precision_factor), 2*truncated_halfWidth*(10**precision_factor)))  # 300x300
         for module_row in range(0, len(row_interface)-1):
             for module_column in range(0, len(column_interface)-1):
                 bottom_bound = row_interface[module_row]
@@ -282,6 +166,7 @@ def imageSums():
                             i = int(spot[5])
                             j = int(spot[6])
                             
+                            # CHECK MODULE
                             if not (bottom_bound <= i < top_bound):
                                 continue
                             if not (left_bound <= j < right_bound):
@@ -294,7 +179,7 @@ def imageSums():
                             if left_edge < 0 or right_edge > nColumns or bottom_edge < 0 or top_edge > nRows:
                                 continue
                             
-                            ### EXTRACT 30x30 SECTOR ###
+                            ### EXTRACT 50x50 SECTOR ###
                             spotMatrix = unassembledData[bottom_edge:top_edge, left_edge:right_edge]  # 50x50
                             
                             ### SCALE ###
@@ -302,17 +187,17 @@ def imageSums():
                             spotMatrix = spot[7] * spotMatrix
                             
                             ### DETERMINE AZIMUTH ON DETECTOR ###
-                            detectorAzimuth = calculate_detectorAzimuth(xGeometry_np, yGeometry_np, i, j)
+                            detectorAzimuth = imageSums_utilities.calculate_detectorAzimuth(xGeometry_np, yGeometry_np, i, j)
                                     
                             ### DETERMINE MODULE ROTATION ANGLE ###
-                            moduleRotation = calculate_moduleRotation(xGeometry_np, yGeometry_np, i, j)
+                            moduleRotation = imageSums_utilities.calculate_moduleRotation(xGeometry_np, yGeometry_np, i, j)
                              
                             ### ROTATION ANGLE ###
                             rotationAngle = - detectorAzimuth + moduleRotation
                             rotationAngle = - rotationAngle ### DUE TO CLOCKWISE ROTATION FUNCTION !!! 
                             
                             ### ROTATE ###  ### CLOCKWISE !!! ###
-                            spotMatrix_rotated = clockWiseRotation(spotMatrix, rotationAngle)
+                            spotMatrix_rotated = imageSums_utilities.clockWiseRotation(spotMatrix, rotationAngle)
                             
                             ### SUM ###
                             orbitSumMatrix_rotated = orbitSumMatrix_rotated + spotMatrix_rotated # SUM ON SINGLE MODULE
@@ -339,73 +224,60 @@ def imageSums():
                 matplotlib.pyplot.title('Orbit: %d %d \nResolution: %.2f'%(h_label, k_label, orbit.resolution))
                 myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)
                 if orbit.resolution > 7.0:
-                    matplotlib.pyplot.savefig('%s/low_res/bgsub_rotatetd_orbit_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96 )
+                    matplotlib.pyplot.savefig('%s/low_res/bgsub_rotatetd_orbit_%d_%d_n_%d_top_%d_right_%d.png'
+                                               %(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96 )
                 if 6.0 < orbit.resolution <= 7.0:
-                    matplotlib.pyplot.savefig('%s/high_res_7_6/bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
+                    matplotlib.pyplot.savefig('%s/high_res_7_6/bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'
+                                               %(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
                 if 5.0 < orbit.resolution <= 6.0:
-                    matplotlib.pyplot.savefig('%s/high_res_6_5/bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
+                    matplotlib.pyplot.savefig('%s/high_res_6_5/bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'
+                                               %(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
                 if 4.0 < orbit.resolution <= 5.0:
-                    matplotlib.pyplot.savefig('%s/high_res_5_4/bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
+                    matplotlib.pyplot.savefig('%s/high_res_5_4/bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'
+                                               %(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
                 matplotlib.pyplot.close()  
                 
                 ### TRY GAUSSIAN FIT OF BG SUBTRACTED, ROTATED SUM ON SINGLE MODULE ###
-                refined_sigma_x, refined_sigma_y, refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted = do_gaussFit(bgSubtractedOrbitSumMatrix_rotated_normalized)
+                refined_sigma_x, refined_sigma_y, refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted = imageSums_utilities.do_gaussFit(bgSubtractedOrbitSumMatrix_rotated_normalized)
                 
                 if not numpy.isnan(gauss_integral):
                     ### PLOT GAUSS FIT, SINGLE MODULE ###
                     myFigureObject = matplotlib.pyplot.figure()
                     myAxesImageObject = matplotlib.pyplot.imshow(data.reshape(2*halfWidth, 2*halfWidth), origin='lower', interpolation='nearest')
-                    matplotlib.pyplot.gca().contour(numpy.linspace(0, 2*halfWidth-1, 2*halfWidth), numpy.linspace(0, 2*halfWidth-1, 2*halfWidth), data_fitted.reshape(2*halfWidth, 2*halfWidth), 4, colors='w')
-                    matplotlib.pyplot.title('Orbit: %d %d \nResolution: %.2f Gauss integral: %.1f counts'%(h_label, k_label, orbit.resolution, gauss_integral))
+                    matplotlib.pyplot.gca().contour(numpy.linspace(0, 2*halfWidth-1, 2*halfWidth), 
+                                                    numpy.linspace(0, 2*halfWidth-1, 2*halfWidth), 
+                                                    data_fitted.reshape(2*halfWidth, 2*halfWidth), 4, colors='w')
+                    matplotlib.pyplot.title('Orbit: %d %d \nResolution: %.2f Gauss integral: %.1f counts'
+                                             %(h_label, k_label, orbit.resolution, gauss_integral))
                     myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)
                     
                     if orbit.resolution > 7.0:
-                        matplotlib.pyplot.savefig('%s/low_res/gauss_bgsub_rotatetd_orbit_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
+                        matplotlib.pyplot.savefig('%s/low_res/gauss_bgsub_rotatetd_orbit_%d_%d_n_%d_top_%d_right_%d.png'
+                                                   %(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
                     if 6.0 < orbit.resolution <= 7.0:
-                        matplotlib.pyplot.savefig('%s/high_res_7_6/gauss_bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
+                        matplotlib.pyplot.savefig('%s/high_res_7_6/gauss_bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'
+                                                   %(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
                     if 5.0 < orbit.resolution <= 6.0:
-                        matplotlib.pyplot.savefig('%s/high_res_6_5/gauss_bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
+                        matplotlib.pyplot.savefig('%s/high_res_6_5/gauss_bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'
+                                                   %(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
                     if 4.0 < orbit.resolution <= 5.0:
-                        matplotlib.pyplot.savefig('%s/high_res_5_4/gauss_bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
+                        matplotlib.pyplot.savefig('%s/high_res_5_4/gauss_bgsub_rotated_orbit_%d_%d_n_%d_top_%d_right_%d.png'
+                                                   %(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
                     matplotlib.pyplot.close()  
 
                 # LOGGING
                 fOpen.write('%4d%4d %6d%6d%6d%6d %6d %10.3f%10.3f %8.2f%8.2f %10.1f %10.1f\n'
-                %(h_label, k_label, bottom_bound, top_bound, left_bound, right_bound, nTerms_module, refined_x0, refined_y0, refined_sigma_x, refined_sigma_y, refined_amplitude, gauss_integral))
+                %(h_label, k_label, bottom_bound, top_bound, left_bound, right_bound, nTerms_module, 
+                  refined_x0, refined_y0, refined_sigma_x, refined_sigma_y, refined_amplitude, gauss_integral))
 
                 # SELECT GOOD MODULES TO ENTER THE SUM               
                 if nTerms_module >= 50 and abs(gauss_integral) > 2*26 and refined_amplitude > 0:
                     module_results = [top_bound, right_bound, refined_sigma_x, refined_sigma_y, refined_x0, refined_y0, nTerms_module, gauss_integral]
                     results.append(module_results)
-                    
-                    # OLD
-#                    x0 = int(round(refined_x0))
-#                    y0 = int(round(refined_y0))
-#                    recentered_sum = orbitSumMatrix_rotated[y0-truncated_halfWidth:y0+truncated_halfWidth, x0-truncated_halfWidth:x0+truncated_halfWidth] # NO BG SUB, NO NORMALIZATION
-#                    
-#                    
-#                    modules_sum = modules_sum + recentered_sum
-#                    nUsed_orbit = nUsed_orbit + nTerms_module
-                    
-                    # TEST
-                    recentered_sum = recenter(orbitSumMatrix_rotated, refined_x0, refined_y0, precision_factor, truncated_halfWidth) # NO BG SUB, NO NORMALIZATION
+
+                    recentered_sum = imageSums_utilities.recenter(orbitSumMatrix_rotated, refined_x0, refined_y0, precision_factor, truncated_halfWidth) # 50x50 -> 300x300, NO BG SUB, NO NORMALIZATION
                     modules_sum = modules_sum + recentered_sum
                     nUsed_orbit = nUsed_orbit + nTerms_module
-#                    myFigureObject = matplotlib.pyplot.figure()
-#                    myAxesImageObject = matplotlib.pyplot.imshow(expanded_module, origin='lower', interpolation='nearest')
-#                    
-#                    matplotlib.pyplot.title('Orbit: %d %d '%(h_label, k_label))
-#                    myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)
-#                    
-#                    if orbit.resolution > 7.0:
-#                        matplotlib.pyplot.savefig('%s/low_res/expand_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
-#                    if 6.0 < orbit.resolution <= 7.0:
-#                        matplotlib.pyplot.savefig('%s/high_res_7_6/expand_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
-#                    if 5.0 < orbit.resolution <= 6.0:
-#                        matplotlib.pyplot.savefig('%s/high_res_6_5/expand_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
-#                    if 4.0 < orbit.resolution <= 5.0:
-#                        matplotlib.pyplot.savefig('%s/high_res_5_4/expand_%d_%d_n_%d_top_%d_right_%d.png'%(outputFolder, h_label, k_label, nTerms_module, top_bound, right_bound), dpi = 2*96)
-#                    matplotlib.pyplot.close()  
 
         
         modules_sum = modules_sum / nUsed_orbit     
@@ -418,17 +290,21 @@ def imageSums():
         matplotlib.pyplot.title('Orbit: %d %d'%(h_selected, k_selected))
         myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)
         if orbit.resolution > 7.0:
-            matplotlib.pyplot.savefig('%s/low_res/modules_sum_%d_%d_nUsed_%d_nTot_%d.png'%(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96 )
+            matplotlib.pyplot.savefig('%s/low_res/modules_sum_%d_%d_nUsed_%d_nTot_%d.png'
+                                       %(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96 )
         if 6.0 < orbit.resolution <= 7.0:
-            matplotlib.pyplot.savefig('%s/high_res_7_6/modules_sum_%d_%d_nUsed_%d_nTot_%d.png'%(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
+            matplotlib.pyplot.savefig('%s/high_res_7_6/modules_sum_%d_%d_nUsed_%d_nTot_%d.png'
+                                       %(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
         if 5.0 < orbit.resolution <= 6.0:
-            matplotlib.pyplot.savefig('%s/high_res_6_5/modules_sum_%d_%d_nUsed_%d_nTot_%d.png'%(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
+            matplotlib.pyplot.savefig('%s/high_res_6_5/modules_sum_%d_%d_nUsed_%d_nTot_%d.png'
+                                       %(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
         if 4.0 < orbit.resolution <= 5.0:
-            matplotlib.pyplot.savefig('%s/high_res_5_4/modules_sum_%d_%d_nUsed_%d_nTot_%d.png'%(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
+            matplotlib.pyplot.savefig('%s/high_res_5_4/modules_sum_%d_%d_nUsed_%d_nTot_%d.png'
+                                       %(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
         matplotlib.pyplot.close()  
                 
         # GAUSS FIT
-        refined_sigma_x, refined_sigma_y, refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted = do_gaussFit(bgSubtracted_modules_sum)
+        refined_sigma_x, refined_sigma_y, refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted = imageSums_utilities.do_gaussFit(bgSubtracted_modules_sum)
         refined_sigma_x = refined_sigma_x/(10**precision_factor)
         refined_sigma_y = refined_sigma_y/(10**precision_factor)
         gauss_integral = gauss_integral/((10**precision_factor)**2)
@@ -436,30 +312,39 @@ def imageSums():
         ### PLOT GAUSS FIT ###
         if not numpy.isnan(gauss_integral):
             myFigureObject = matplotlib.pyplot.figure()
-            myAxesImageObject = matplotlib.pyplot.imshow(data.reshape(2*truncated_halfWidth*(10**precision_factor), 2*truncated_halfWidth*(10**precision_factor)), origin='lower', interpolation='nearest')
-            matplotlib.pyplot.gca().contour(numpy.linspace(0, 2*truncated_halfWidth*(10**precision_factor)-1, 2*truncated_halfWidth*(10**precision_factor)), numpy.linspace(0, 2*truncated_halfWidth*(10**precision_factor)-1, 2*truncated_halfWidth*(10**precision_factor)), data_fitted.reshape(2*truncated_halfWidth*(10**precision_factor), 2*truncated_halfWidth*(10**precision_factor)), 4, colors='w')
-            matplotlib.pyplot.title('Orbit: %d %d Gauss integral: %.1f counts\nSig_x %.2f Sig_y %.2f'%(h_label, k_label, gauss_integral, refined_sigma_x, refined_sigma_y))
+            myAxesImageObject = matplotlib.pyplot.imshow(data.reshape(2*truncated_halfWidth*(10**precision_factor), 2*truncated_halfWidth*(10**precision_factor)), 
+                                                         origin='lower', interpolation='nearest')
+            matplotlib.pyplot.gca().contour(numpy.linspace(0, 2*truncated_halfWidth*(10**precision_factor)-1, 2*truncated_halfWidth*(10**precision_factor)), 
+                                            numpy.linspace(0, 2*truncated_halfWidth*(10**precision_factor)-1, 2*truncated_halfWidth*(10**precision_factor)), 
+                                            data_fitted.reshape(2*truncated_halfWidth*(10**precision_factor), 2*truncated_halfWidth*(10**precision_factor)), 4, colors='w')
+            matplotlib.pyplot.title('Orbit: %d %d Gauss integral: %.1f counts\nSig_x %.2f Sig_y %.2f'
+                                     %(h_label, k_label, gauss_integral, refined_sigma_x, refined_sigma_y))
             myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)
             
             if orbit.resolution > 7.0:
-                matplotlib.pyplot.savefig('%s/low_res/gauss_module_sum_%d_%d_nUsed_%d_nTot_%d.png'%(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
+                matplotlib.pyplot.savefig('%s/low_res/gauss_module_sum_%d_%d_nUsed_%d_nTot_%d.png'
+                                           %(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
             if 6.0 < orbit.resolution <= 7.0:
-                matplotlib.pyplot.savefig('%s/high_res_7_6/gauss_module_sum_%d_%d_nUsed_%d_nTot_%d.png'%(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
+                matplotlib.pyplot.savefig('%s/high_res_7_6/gauss_module_sum_%d_%d_nUsed_%d_nTot_%d.png'
+                                           %(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
             if 5.0 < orbit.resolution <= 6.0:
-                matplotlib.pyplot.savefig('%s/high_res_6_5/gauss_module_sum_%d_%d_nUsed_%d_nTot_%d.png'%(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
+                matplotlib.pyplot.savefig('%s/high_res_6_5/gauss_module_sum_%d_%d_nUsed_%d_nTot_%d.png'
+                                           %(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
             if 4.0 < orbit.resolution <= 5.0:
-                matplotlib.pyplot.savefig('%s/high_res_5_4/gauss_module_sum_%d_%d_nUsed_%d_nTot_%d.png'%(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
+                matplotlib.pyplot.savefig('%s/high_res_5_4/gauss_module_sum_%d_%d_nUsed_%d_nTot_%d.png'
+                                           %(outputFolder, h_label, k_label, nUsed_orbit, nTot_orbit), dpi = 2*96)
             matplotlib.pyplot.close()  
                             
         
         # SAVE RESULTS FOR SINGLE h, k
         results = numpy.asarray(results)   # module top, module right, sigma_x, sigma_y, x0, y0, N, gauss_I  ### ONLY THOSE MODULES THAT ENTER THE SUM
-        results_file = open('%s/module_results_%d_%d_nUsed_%d_nTot_%d.pkl'%(outputFolder, h_selected, k_selected, nUsed_orbit, nTot_orbit), 'wb')
+        results_file = open('%s/module_results_%d_%d_nUsed_%d_nTot_%d.pkl'
+                             %(outputFolder, h_selected, k_selected, nUsed_orbit, nTot_orbit), 'wb')
         pickle.dump(results, results_file)
         results_file.close()    
 
     fOpen.close()
 
 if __name__ == "__main__":
-    print "\n**** CALLING imageSums ****"
+    print "\n**** CALLING imageSums_with_modules_recenter_precise ****"
     imageSums()

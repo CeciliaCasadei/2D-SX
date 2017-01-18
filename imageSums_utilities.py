@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy
 import scipy
+import scipy.interpolate
+import scipy.optimize
 import os
 import matplotlib
 matplotlib.use('Agg')
@@ -271,3 +273,130 @@ def calculateBackground_noImg(imageSector):
     backGround = C[0]*myX + C[1]*myY + C[2]         
                                
     return backGround
+    
+    
+
+def calculate_detectorAzimuth(xGeometry_np, yGeometry_np, i, j):   
+    xDetector = xGeometry_np[i, j]
+    yDetector = yGeometry_np[i, j]
+    if xDetector != 0:
+        detectorAzimuth = numpy.arctan(yDetector/xDetector)
+        if xDetector < 0 and yDetector > 0:
+            detectorAzimuth = detectorAzimuth + numpy.pi
+        if xDetector < 0 and yDetector < 0:
+            detectorAzimuth = detectorAzimuth - numpy.pi
+    else:
+        if yDetector > 0:
+            detectorAzimuth = + numpy.pi /2
+        else:
+            detectorAzimuth = - numpy.pi /2
+    return detectorAzimuth
+
+
+    
+def calculate_moduleRotation(xGeometry_np, yGeometry_np, i, j):
+    deltaXgeo = float(xGeometry_np[i, j+1] - xGeometry_np[i, j])
+    deltaYgeo = float(yGeometry_np[i, j+1] - yGeometry_np[i, j])
+
+    if deltaXgeo != 0:
+        moduleRotation = numpy.arctan(deltaYgeo/deltaXgeo) # From module to lab frame
+        if deltaXgeo < 0 and deltaYgeo > 0:
+            moduleRotation = moduleRotation + numpy.pi
+        elif deltaXgeo < 0 and deltaYgeo < 0:
+            moduleRotation = moduleRotation - numpy.pi
+    else:
+        if deltaYgeo > 0:
+            moduleRotation = numpy.pi / 2
+        else:
+            moduleRotation = -numpy.pi / 2
+    return moduleRotation
+
+
+    
+def clockWiseRotation(spotMatrix, rotationAngle):
+    x_windows_pix = range(-spotMatrix.shape[1]/2, +spotMatrix.shape[1]/2)  # -18, -17, ..., +17
+    y_windows_pix = range(-spotMatrix.shape[0]/2, +spotMatrix.shape[0]/2)  # -18, -17, ..., +17
+
+    [X_windows_pix, Y_windows_pix] = numpy.meshgrid(x_windows_pix, y_windows_pix)
+    X_windows_pix = numpy.asarray(X_windows_pix, dtype=numpy.float32)
+    Y_windows_pix = numpy.asarray(Y_windows_pix, dtype=numpy.float32)
+    
+    X_windows_pix_rotated = numpy.cos(rotationAngle)*X_windows_pix - numpy.sin(rotationAngle)*Y_windows_pix
+    Y_windows_pix_rotated = numpy.sin(rotationAngle)*X_windows_pix + numpy.cos(rotationAngle)*Y_windows_pix
+    
+    f = scipy.interpolate.interp2d(x_windows_pix, y_windows_pix, spotMatrix, kind='linear')
+    spotMatrix_rotated = numpy.zeros(spotMatrix.shape)
+    
+    for columnIndex in range(0, spotMatrix_rotated.shape[1]):
+        for rowIndex in range(0, spotMatrix_rotated.shape[0]):
+            rotated_x = X_windows_pix_rotated[rowIndex, columnIndex]
+            rotated_y = Y_windows_pix_rotated[rowIndex, columnIndex]
+            rotated_f = f(rotated_x, rotated_y)
+            spotMatrix_rotated[rowIndex, columnIndex] = rotated_f   
+            
+    return spotMatrix_rotated
+
+
+
+def do_gaussFit(sector):
+    try:                    
+        n_x = sector.shape[1]
+        n_y = sector.shape[0]
+        x = numpy.linspace(0, n_x-1, n_x)
+        y = numpy.linspace(0, n_y-1, n_y)
+        x, y = numpy.meshgrid(x, y)                      # column_index, row_index
+        
+        data = sector.ravel()           
+        data = data.T
+        data = numpy.asarray(data)
+        data = data.flatten()
+        
+        initial_x = float(n_x)/2
+        initial_y = float(n_y)/2
+        initial_guess = (numpy.amax(sector), initial_x, initial_y, 2.0, 2.0)
+        
+        popt, pcov = scipy.optimize.curve_fit(twoD_Gaussian_simple, (x, y), data, p0=initial_guess)
+        data_fitted = twoD_Gaussian_simple((x, y), *popt)       
+        
+        refined_amplitude = popt[0]
+        refined_x0 = popt[1]
+        refined_y0 = popt[2]
+        refined_sigma_x = popt[3]
+        refined_sigma_y = popt[4]
+              
+        ### ANALYTICAL GAUSSIAN INTEGRAL ###
+        gauss_integral = 2 * numpy.pi * refined_amplitude * refined_sigma_x * refined_sigma_y
+        
+    except:
+        print 'Gaussian fit not possible'
+        gauss_integral = numpy.nan
+        refined_amplitude = numpy.nan
+        refined_x0 = numpy.nan
+        refined_y0 = numpy.nan
+        refined_sigma_x = numpy.nan
+        refined_sigma_y = numpy.nan
+        data = numpy.nan
+        data_fitted = numpy.nan
+        
+    return refined_sigma_x, refined_sigma_y, refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted
+
+
+        
+def recenter(sector, x0, y0, precision_factor, truncated_halfWidth):
+    
+    precision_factor = 10**precision_factor
+    truncated_halfWidth = precision_factor*truncated_halfWidth   
+    
+    expanded_sector = numpy.zeros((precision_factor*sector.shape[0], precision_factor*sector.shape[1]))
+    x0 = precision_factor*x0
+    y0 = precision_factor*y0
+    x0 = int(round(x0))
+    y0 = int(round(y0))
+    for i in range(0, sector.shape[0]):
+        for j in range(0, sector.shape[1]):
+            element = sector[i, j]
+            for m in range(i*precision_factor, i*precision_factor+precision_factor):
+                for n in range(j*precision_factor, j*precision_factor+precision_factor):
+                    expanded_sector[m, n] = element
+    recentered_sum = expanded_sector[y0-truncated_halfWidth:y0+truncated_halfWidth, x0-truncated_halfWidth:x0+truncated_halfWidth] 
+    return recentered_sum # 300x300
