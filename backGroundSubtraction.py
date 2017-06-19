@@ -86,7 +86,6 @@ def backGroundSubtractionFunction(boxMatrix, maskBoxMatrix, bgSubtractionMethod,
         A = numpy.c_[myData[:,0], myData[:,1], numpy.ones(myData.shape[0])]
         C,_,_,_ = scipy.linalg.lstsq(A, myData[:,2]) 
         
-        #colIdx, rowIdx = numpy.meshgrid(numpy.arange(nColumns), numpy.arange(nRows))
         myX, myY = numpy.meshgrid(numpy.arange(0, boxMatrix.shape[1], 1), numpy.arange(0, boxMatrix.shape[0], 1))
         backGround = C[0]*myX + C[1]*myY + C[2]          
         if plotFlag == 1:

@@ -16,7 +16,7 @@ if not os.path.exists(outFolder):
 
 
 # LOG CURRENT SETTINGS
-os.system('cp ./runSetup_r0127.py ./Output_r%s/runSetup.log'%runNumber)
+os.system('cp ./runSetup_nonTilted.py ./Output_r%s/runSetup_nonTilted.log'%runNumber)
 
 
 
@@ -26,6 +26,7 @@ os.system('cp ./runSetup_r0127.py ./Output_r%s/runSetup.log'%runNumber)
 
 # MAKE IMAGE LIST
 imagesDirectoryName = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_@_LCLS/r%s-images/data1'%runNumber
+#imagesDirectoryName = '/mnt/das-gpfs/home/casadei_c/work/casadei/UNIX_@_LCLS/r%s-images/data1'%runNumber
 
 flag = 0
 if flag == 1:
@@ -59,7 +60,9 @@ if flag == 1:
 # EXTRACT INFO FROM CHEETAH peaks.txt
 selectedImageList = '%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(outFolder, runNumber)
 peaksFile         = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-9/peaks.txt'%runNumber
+#peaksFile = '/mnt/das-gpfs/home/casadei_c/work/casadei/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
 geometryFile      = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
+#geometryFile = '/mnt/das-gpfs/home/casadei_c/work/casadei/Geometry/geometry.h5' # same for all runs
 pixelSize         = 0.000110 # m
 
 flag = 0
@@ -146,7 +149,7 @@ nCountsPerPhoton          = 26
 integrationRadius         = 5         # pxls
 fractionDetectedThreshold = 0.28
 
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python processingAndIntegration.py --runNumber %s --bgSubtractionMethod %s --minimizationMethod %s --lowResLimit %f --highResLimit %f --nCountsPerPhoton %d --integrationRadius %d --geometryFile %s --imageFolder %s --fractionDetectedThreshold %f'
                %(runNumber, bgSubtractionMethod, minimizationMethod, lowResLimit, highResLimit, nCountsPerPhoton, integrationRadius, geometryFile, imagesDirectoryName, fractionDetectedThreshold))
@@ -237,7 +240,7 @@ if flag == 1:
 # PLOT RODS AND ORBIT HISTOGRAMS
 flag = 0
 if flag == 1:
-    os.system('python plotRods_r0127.py --runNumber %s'%runNumber)
+    os.system('python plotRods_zero_tilt.py --runNumber %s'%runNumber)
         
     
     
@@ -246,7 +249,9 @@ flag = 0
 if flag == 1:
     os.system('python plotSelectedMergingHistograms.py --runNumber %s'%runNumber)
 
-
+flag = 0
+if flag == 1:
+    os.system('python plotSelectedMergingHistograms_scalingEffect.py --runNumber %s'%runNumber)
 
 # PLOT MERGING EFFICIENCY
 flag = 0
@@ -256,6 +261,7 @@ if flag == 1:
 
 
 ### ************************************ IMAGE SUMS ************************************ ###
+### ****************************** NO MODULE TRANSLATION ******************************* ###
     
 # IMAGE SUMS
 flag = 0
@@ -265,99 +271,105 @@ if flag == 1:
     
     
 ####### ALTERNATIVE #######
-# IMAGE SUMS - FIRST BG SUBTRACTION AND THEN SUM
+#IMAGE SUMS - FIRST BG SUBTRACTION AND THEN SUM
 #flag = 0
 #if flag == 1:
 #    os.system('python imageSums_bgSubAndSum.py')
-    
+### REALIZE THAT MANY GAUSS FITS ARE BAD -> THIS WAY OF BG SUBTRACTING IS NOT ADEQUATE
     
 
 # IMAGE SUMS - PAPER PLOTS
 flag = 0
 if flag == 1:
-    os.system('python imageSums_plots.py')
+    os.system('python imageSums_singleOrbitPlots.py')
     
     
     
-# IMAGE SUMS - SIGMAS vs Q PLOTS
+# IMAGE SUMS - SIGMAS vs Q BEHAVIOUR
 flag = 0
 if flag == 1:
     os.system('python imageSums_sigmaVsQ.py')
+### REALIZE THAT THERE IS A PROBLEM IN CALIBRATION OF MODULE POSITIONS -> NEED TO INTRO TRANSLATION CORRECTIONS
     
     
     
-# IMAGE SUMS - PAPER PLOTS
+### ************************************ IMAGE SUMS ************************************ ###
+### ******************************** MODULE TRANSLATION ******************************** ###
 flag = 0
 if flag == 1:
-    os.system('python imageSums_sigmaVsQ_paperFigure.py')
+    os.system('python calculate_moduleDisplacements.py')
     
     
-    
-# IMAGE SUMS - PAPER PLOTS
 flag = 0
 if flag == 1:
-    os.system('python imageSums_ellipse_Gauss_comparison.py')
-    
-    
-    
-# ELLIPTICAL INTEGRATION ON SINGLE IMAGES
-flag = 0
-if flag == 1:
-    os.system('python singleImage_ellipse_integration.py')
+    os.system('python calculate_moduleDisplacements_extract.py')
     
 
-    
-# SCALE ELLIPTICAL INTEGRATED IMAGES
-ellipticalIntegrationFolder = './Output_elliptical_integration'
 flag = 0
 if flag == 1:
-    os.system('python scaling.py --runNumber %s --dQrod %f --outputFolder %s'%(runNumber, deltaQrodThreshold, ellipticalIntegrationFolder))
+    os.system('python imageSums_displaced_modules.py')
         
 
-
-# SCALING - SEEDS COMPARISON
 flag = 0
 if flag == 1:
-    os.system('python scaling_seedComparison.py --runNumber %s --outputFolder %s'%(runNumber, ellipticalIntegrationFolder))
-        
-        
-        
-# SCALING - APPLY SCALES
+    os.system('python imageSums_displaced_modules_sigmaVsQ.py')
+    
+    
+### Data quality evaluation ###   
+N_lattices = 10
 flag = 0
 if flag == 1:
-    os.system('python scaling_applyScales.py --runNumber %s --outputFolder %s'%(runNumber, ellipticalIntegrationFolder))
-    
-    
-    
-# PLOT RODS AND ORBIT HISTOGRAMS
-flag = 0
-if flag == 1:
-    os.system('python plotRods_r0127.py --runNumber %s --outputFolder %s'%(runNumber, ellipticalIntegrationFolder))
-    
-    
-    
-# PLOT PAPER FIGURE (4 MERGING HISTOGRAMS)
-flag = 0
-if flag == 1:
-    os.system('python plotSelectedMergingHistograms.py --runNumber %s --outputFolder %s'%(runNumber, ellipticalIntegrationFolder))
-    
+    os.system('python imageSums_displaced_modules_N_lattices.py --N_lattices %d'%N_lattices)
 
 
-# COMPARE METHODS: MERGING AFTER ELLIPTICAL INTEGRATION OF SINGLE IMAGES - GAUSS INTEGRAL OF IMAGE SUMS    
+    
+N_lattices = 100
 flag = 0
 if flag == 1:
-    os.system('python compare_I_no_sum_ellipse_I_sum_gauss.py')
+    os.system('python imageSums_displaced_modules_N_lattices.py --N_lattices %d'%N_lattices)
     
-    
-    
-# CALCULATE RESOLUTION CUTOFF USING SINGLE IMAGE METHOD
+ 
+   
 flag = 0
 if flag == 1:
-    os.system('python resolutionCutoff_singleImage_ellipseIntegration.py')
+    os.system('python signal_to_noise.py')
     
     
-    
-# PLOT RESOLUTION CUTOFF USING SINGLE IMAGE METHOD AND IMAGE SUMS METHOD
+
 flag = 0
 if flag == 1:
-    os.system('python resolutionCutoff_plots.py')
+    os.system('python signal_to_noise_compare.py')
+
+
+
+N_lattices = 10
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_CChalf.py --N_lattices %d'%N_lattices)
+  
+  
+    
+N_lattices = 100
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_CChalf.py --N_lattices %d'%N_lattices)
+    
+    
+
+N_lattices = 586
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_CChalf.py --N_lattices %d'%N_lattices)
+
+
+ 
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_calculateCC.py')
+    
+    
+    
+# PAPER FIGURE WITH IMG SUMS
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displacedModules_plots.py')

@@ -28,7 +28,7 @@ def imageSums():
     nCountsPerPhoton = 26
     
     # FOLDERS
-    outputFolder = './Output_imageSums'    
+    outputFolder = './Output_r%s/Output_imageSums_bgSubAndSum'%selectedRun    
     if not os.path.exists('%s'%outputFolder):
         os.mkdir('%s'%outputFolder)
     if not os.path.exists('%s/high_res_7_6'%outputFolder):

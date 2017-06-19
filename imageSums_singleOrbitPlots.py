@@ -9,8 +9,8 @@ import scipy.optimize
 import imageSums_utilities
 
 
-
-outputFolder = './Output_imageSums'
+runNumber = '0127'
+outputFolder = './Output_r%s/Output_imageSums'%runNumber
 
 # DEFINE ORBIT INDICES 
 orbitIndices = [[2, 11], [11, 2], [-2, -11], [-11, -2]]       
@@ -45,7 +45,7 @@ for idx, ax in enumerate(a):
             ax.imshow(bgSubtractedOrbitSumMatrix_rotated, origin='lower', interpolation='nearest', vmin=0, vmax=3)
             ax.axis('off')
               
-matplotlib.pyplot.savefig('%s/paper_x4_bgsub_rotatetd_orbit_2_11_b.png'%(outputFolder), dpi = 2*96 )       
+matplotlib.pyplot.savefig('%s/bgsub_rotatetd_orbit_%d_%d.png'%(outputFolder, orbitIndices[0][0], orbitIndices[0][1]), dpi = 4*96 )       
 matplotlib.pyplot.close()  
 
 
@@ -96,5 +96,5 @@ for idx, ax in enumerate(a):
             refined_sigma_y = popt[4]
             print 'Sigma_x: %.2f, Sigma_y: %.2f'%(refined_sigma_x, refined_sigma_y)
                 
-matplotlib.pyplot.savefig('%s/paper_x4_gauss_bgsub_rotatetd_orbit_2_11_b.png'%(outputFolder), dpi = 2*96 )       
+matplotlib.pyplot.savefig('%s/bgsub_rotatetd_gaussFit_orbit_%d_%d.png'%(outputFolder, orbitIndices[0][0], orbitIndices[0][1]), dpi = 4*96 )       
 matplotlib.pyplot.close()  

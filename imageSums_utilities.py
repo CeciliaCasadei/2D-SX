@@ -19,10 +19,10 @@ def twoD_Gaussian_simple((x, y), amplitude, xo, yo, sigma_x, sigma_y):
     
 
     
-def integrate(spotMatrix):
+def integrate(spotMatrix, expansion_factor=0):
     
     # PARAMETERS
-    integrationRadius = 5
+    integrationRadius = 5*(10**expansion_factor)
     nCountsPerPhoton = 26
     
     # N COUNTS TO N PHOTONS CONVERSION
@@ -43,11 +43,10 @@ def integrate(spotMatrix):
     
 
     
-def integrate_ellipse(spotMatrix, sigma_x, sigma_y, multiplicative_factor):
+def integrate_ellipse(spotMatrix, sigma_x, sigma_y, multiplicative_factor, expansion_factor=0):
     
     # PARAMETERS
     nCountsPerPhoton = 26
-    #multiplicative_factor = 4.0 #2.5
     
     # N COUNTS TO N PHOTONS CONVERSION
     spotMatrix =  spotMatrix/nCountsPerPhoton
@@ -55,8 +54,8 @@ def integrate_ellipse(spotMatrix, sigma_x, sigma_y, multiplicative_factor):
     # PREPARE INTEGRATION MASK (ELLIPSE)
     integrationMask = numpy.zeros((spotMatrix.shape))   
     colIdx, rowIdx = numpy.meshgrid(numpy.arange(integrationMask.shape[1]), numpy.arange(integrationMask.shape[0]))
-    x_axis = multiplicative_factor * sigma_x
-    y_axis = multiplicative_factor * sigma_y
+    x_axis = multiplicative_factor * sigma_x * (10**expansion_factor)
+    y_axis = multiplicative_factor * sigma_y * (10**expansion_factor)
     centerX = integrationMask.shape[1] / 2
     centerY = integrationMask.shape[0] / 2
     distance = ((rowIdx-centerY)**2)/(y_axis**2) + ((colIdx-centerX)**2)/(x_axis**2)
@@ -88,6 +87,11 @@ def quadratic(x, offset, a, b):
 
 def quadratic_no_first_order(x, offset, a):
     y = offset + a*x**2
+    return y
+    
+
+def poly_4(x, offset, a, b):
+    y = offset + a*x**2 + b*x**4
     return y
     
 
@@ -274,6 +278,78 @@ def calculateBackground_noImg(imageSector):
                                
     return backGround
     
+def calculateBackground_nBg(imageSector):
+        
+    # PARAMETERS
+    gridStep = 3
+    subBoxWidth = 3
+    lowFluctuationThreshold = 2 # 2.5 in MATLAB
+    
+    # CALCULATE STD DEVIATIN AND MEAN INTENSITY ON A GRID, CALCULATE SECTOR LOCAL NOISE
+    xGrid = range(3, imageSector.shape[1], gridStep)     # 3 6 9 ... 27 (9 values) 
+    yGrid = range(3, imageSector.shape[0], gridStep)     # 3 6 9 ... 27 (9 values) 
+    stdDevMatrix = numpy.zeros((len(yGrid), len(xGrid))) # 9x9
+    avgsMatrix   = numpy.zeros((len(yGrid), len(xGrid)))   # 9x9
+    stdDevVector = []
+    sectorNrows = imageSector.shape[0]
+    sectorNcolumns = imageSector.shape[1]
+    xGridItemIdx = 0        
+    for xGridItem in xGrid:
+        yGridItemIdx = 0            
+        for yGridItem in yGrid:
+            
+            xLeft_subBox = max([xGridItem - subBoxWidth, 0])
+            xRight_subBox = min([xGridItem + subBoxWidth, sectorNcolumns])
+            yDown_subBox = max(yGridItem - subBoxWidth, 0)
+            yUp_subBox = min(yGridItem + subBoxWidth, sectorNrows)
+            
+            subBoxMatrix = imageSector[yDown_subBox:yUp_subBox, xLeft_subBox:xRight_subBox] # 6x6
+                                         
+            avg = numpy.sum(subBoxMatrix) / (subBoxMatrix.shape[0] * subBoxMatrix.shape[1])        
+            mySquare = numpy.square(subBoxMatrix)
+            mySum = numpy.sum(mySquare)                                                      
+            myVariance = (mySum / (subBoxMatrix.shape[0] * subBoxMatrix.shape[1])  ) - (avg ** 2)
+            if myVariance > 0:
+                stdDev = numpy.sqrt(myVariance)
+                stdDevVector.append(stdDev)
+                stdDevMatrix[yGridItemIdx, xGridItemIdx] = stdDev
+                avgsMatrix[yGridItemIdx, xGridItemIdx] = avg                    
+            else:
+                print "*************BG SUBTRACTION PROBLEM: VARIANCE %.18f**************"%myVariance                    
+            yGridItemIdx = yGridItemIdx + 1
+        xGridItemIdx = xGridItemIdx + 1
+    localNoise = numpy.percentile(stdDevVector, 15)
+    
+    # EXTRACT INTENSITIES OF LOW FLUCTUATION POINTS FOR SUBSEQUENT BG PLANE CALCULATION
+    xSample = []
+    ySample = []
+    intensitySample = []           
+    
+    lowFluctuationIndices = numpy.argwhere(stdDevMatrix <= lowFluctuationThreshold * localNoise)
+    for myIndices in lowFluctuationIndices:
+        myRowIdx = myIndices[0]
+        myColumnIdx = myIndices[1]
+        xSample.append(xGrid[myColumnIdx])
+        ySample.append(yGrid[myRowIdx])
+        intensitySample.append(avgsMatrix[myRowIdx, myColumnIdx])
+
+    # BACKGROUND PLANE FIT
+    myData = numpy.c_[xSample, ySample, intensitySample]       
+    A = numpy.c_[myData[:,0], myData[:,1], numpy.ones(myData.shape[0])]
+    C,_,_,_ = scipy.linalg.lstsq(A, myData[:,2]) 
+    
+    myX, myY = numpy.meshgrid(numpy.arange(0, imageSector.shape[1], 1), numpy.arange(0, imageSector.shape[0], 1))
+    backGround = C[0]*myX + C[1]*myY + C[2]   
+
+    sectorSize = imageSector.shape[0] * imageSector.shape[1]
+    n_gridPoints = len(xGrid) * len(yGrid)
+    n_fitPoints = len(intensitySample)
+    if n_fitPoints > n_gridPoints:
+        print 'PROBLEM!!!'
+    n_bgPixels = int(sectorSize * ( float(n_fitPoints) / n_gridPoints))      
+                               
+    return backGround, n_bgPixels
+    
     
 
 def calculate_detectorAzimuth(xGeometry_np, yGeometry_np, i, j):   
@@ -379,6 +455,52 @@ def do_gaussFit(sector):
         data_fitted = numpy.nan
         
     return refined_sigma_x, refined_sigma_y, refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted
+    
+    
+    
+def do_gaussFit_fixed_sigmas(sector, sigX, sigY):
+    try:                    
+        n_x = sector.shape[1]
+        n_y = sector.shape[0]
+        x = numpy.linspace(0, n_x-1, n_x)
+        y = numpy.linspace(0, n_y-1, n_y)
+        x, y = numpy.meshgrid(x, y)                      # column_index, row_index
+        
+        data = sector.ravel()           
+        data = data.T
+        data = numpy.asarray(data)
+        data = data.flatten()
+        
+        initial_x = float(n_x)/2
+        initial_y = float(n_y)/2
+        initial_guess = (numpy.amax(sector), initial_x, initial_y)
+                      
+        popt, pcov = scipy.optimize.curve_fit(lambda (x, y), amplitude, xo, yo: twoD_Gaussian_simple((x, y), amplitude, xo, yo, sigX, sigY), (x, y), data, p0=initial_guess)   
+        
+        #popt, pcov = scipy.optimize.curve_fit(twoD_Gaussian_simple, (x, y), data, p0=initial_guess)
+        #data_fitted = twoD_Gaussian_simple((x, y), *popt)       
+        
+        refined_amplitude = popt[0]
+        refined_x0 = popt[1]
+        refined_y0 = popt[2]
+#        refined_sigma_x = popt[3]
+#        refined_sigma_y = popt[4]
+        
+        data_fitted = twoD_Gaussian_simple((x, y), refined_amplitude, refined_x0, refined_y0, sigX, sigY)
+              
+        ### ANALYTICAL GAUSSIAN INTEGRAL ###
+        gauss_integral = 2 * numpy.pi * refined_amplitude * sigX * sigY
+        
+    except:
+        print 'Gaussian fit not possible'
+        gauss_integral = numpy.nan
+        refined_amplitude = numpy.nan
+        refined_x0 = numpy.nan
+        refined_y0 = numpy.nan
+        data = numpy.nan
+        data_fitted = numpy.nan
+        
+    return refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted
 
 
         

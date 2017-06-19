@@ -1,13 +1,21 @@
 # -*- coding: utf-8 -*-
+# NON-ZERO l-VALUE
+# INTRODUCE FRIEDEL MATE
+
 import joblib
 import numpy
-selectedRun = '0127'
+selectedRun = '0201'
 
 resolutionLimit = 7.0 # A
 
 cellSize = 62.45
 directCell = cellSize * numpy.matrix([[1, numpy.cos(2*numpy.pi/3)],[0, numpy.sin(2*numpy.pi/3)]]) # A
-reciprocalCellRows = 2 * numpy.pi * directCell.I    
+reciprocalCellRows = 2 * numpy.pi * directCell.I   
+ 
+c = 100.9
+c_long = 5*c
+c_long_star = 2*numpy.pi/c_long
+    
 
 lattices = joblib.load('./Output_r%s/transformAndScale/spotsMatricesList-r%s/r%s_spotsMatricesList.jbl'
                            %(selectedRun, selectedRun, selectedRun))
@@ -20,8 +28,8 @@ print len(lattices_names)
 images_names = open('./Output_r%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(selectedRun, selectedRun))
 images_names = list(images_names)
 
-fOpen = open('./Output_r%s/r%s_dataToEMC.txt'%(selectedRun, selectedRun), 'w')
-
+fOpen = open('./Output_r%s/r%s_dataToEMC_non_zero_l_sym.txt'%(selectedRun, selectedRun), 'w')
+fOpen.write('CrystFEL stream format 2.1\n')
 n = 0
 for index in range(0, len(lattices_names)):
     n = n+1
@@ -36,8 +44,7 @@ for index in range(0, len(lattices_names)):
     print runNumber, imageNumber, latticeNumber
     print image_name
     fOpen.write('----- Begin chunk -----\n')
-    fOpen.write('Image filename: \n')
-    fOpen.write('%s\n'%image_name)
+    fOpen.write('Image filename: %s\n'%image_name)
     fOpen.write('--- Begin crystal\n')
     fOpen.write('Crystal label: %s'%lattice_name)
     fOpen.write('Reflections measured after indexing\n')
@@ -45,6 +52,8 @@ for index in range(0, len(lattices_names)):
     for spot in latticeMatrix:
         h = int(spot[0])
         k = int(spot[1])
+        qRod = float(spot[2])
+        l = int(round(qRod/c_long_star))
         I = float(spot[[3]])
         if numpy.isnan(I):
             continue
@@ -57,7 +66,8 @@ for index in range(0, len(lattices_names)):
         if resolution < resolutionLimit:
             continue
         
-        fOpen.write('%3d%4d   0%11.2f        -          0       1      0      0\n'%(h, k, I))   
+        fOpen.write('%3d%4d%4d%11.2f        -          0       1      0      0\n'%(h, k, l, I))   
+        fOpen.write('%3d%4d%4d%11.2f        -          0       1      0      0\n'%(-h, -k, -l, I))
     fOpen.write('End of reflections\n')
     fOpen.write('--- End crystal\n')
     fOpen.write('----- End chunk -----\n')

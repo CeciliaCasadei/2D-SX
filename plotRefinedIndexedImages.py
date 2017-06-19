@@ -161,7 +161,7 @@ def plotRefinedIndexedImagesFunction_imageOverlap(self, resolutionRadii):
             matplotlib.pyplot.figure(figsize=(40,40), dpi=4*96, facecolor='w',frameon=True)
             matplotlib.pyplot.title('%s'%self.fileName, y=1.05)
             matplotlib.pyplot.imshow(assembledData, origin='lower', interpolation='nearest', vmin = 0, vmax = 100, cmap='Greys')
-    
+            matplotlib.pyplot.scatter(center_x, center_y, s=3600, marker='+', color='m')
             predicted_X = []
             predicted_Y = []
             matched_X = []
@@ -212,14 +212,13 @@ def plotRefinedIndexedImagesFunction_imageOverlap(self, resolutionRadii):
             for i in resolutionRadii:
                 i = float(i)
                 myRadius = detectorDistance/pixelSize*math.tan(2*math.asin(self.wavelength/(2*i)))
-                circle = matplotlib.pyplot.Circle((center_x, center_y),myRadius,linewidth=1.0, color='b',fill=False)
+                circle = matplotlib.pyplot.Circle((center_x, center_y),myRadius, linestyle='dashed', linewidth=2.0, color='b', fill=False)
                 matplotlib.pyplot.gca().add_artist(circle)
                 myRadii.append(myRadius)
     
-            matplotlib.pyplot.axhline(y=center_y, xmin=-870, xmax=870, linewidth=1.0, color = 'b')
-            matplotlib.pyplot.axvline(x=center_x, ymin=-870, ymax=870, linewidth=1.0, color = 'b')
             matplotlib.pyplot.gca().set_title("Image %s: %s\nResolution circles: %.1f A, %.1f A, %.1f A"%(self.imageNumber, self.fileName, resolutionRadii[0], resolutionRadii[1], resolutionRadii[2]), y=1.02, fontsize = 20)
-
+            
+            
             matplotlib.pyplot.gca().set_xticklabels([])
             matplotlib.pyplot.gca().set_yticklabels([])
             
@@ -228,6 +227,6 @@ def plotRefinedIndexedImagesFunction_imageOverlap(self, resolutionRadii):
             
             matplotlib.pyplot.gca().set_aspect('equal', adjustable='box')
                       
-            matplotlib.pyplot.savefig("./Output_r%s/OrientationAndCellRefinement/Figures_imageOverlap/Overlap_IndexedExperimentalPeaks_Refined_r%s_Image_%s_Lattice_%d.png"%(self.runNumber, self.runNumber, self.imageNumber, latticeNumberInImage), fontsize = 20, dpi=myDPI*4)
+            matplotlib.pyplot.savefig("./Output_r%s/OrientationAndCellRefinement/Figures_imageOverlap/Overlap_IndexedExperimentalPeaks_Refined_r%s_Image_%s_Lattice_%d.png"%(self.runNumber, self.runNumber, self.imageNumber, latticeNumberInImage), fontsize = 20, dpi=myDPI*3)
             matplotlib.pyplot.close()
             print 'Image %s - N %s - Lattice %s - N matched %d'%(self.fileName, self.imageNumber, latticeNumberInImage, len(matched_X))

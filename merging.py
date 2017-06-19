@@ -9,9 +9,11 @@ import matplotlib.pyplot
 import numpy
 from numpy.polynomial import polynomial as P
 
+
 import braggRodClass
 import makeOrbits
 from model_poly_order import poly_order
+
 
 def mergingFunction(myArguments):
     

@@ -86,7 +86,7 @@ def calculateScaleFactorFunction(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, f
         I2 = numpy.asarray(I2)
         I1 = I1[:,numpy.newaxis]
 
-        scale, _, _, _ = numpy.linalg.lstsq(I1, I2) # I2 = scale*I1    Lattice2 = scale*Lattice1   scale = scale_L1toL2
+        scale, _, _, _ = numpy.linalg.lstsq(I1, I2) # I2 = scale*I1    Lattice2 = scale*Lattice1   scale = scale_L1toL2   NO INTERCEPT!!!
     else:
         scale = numpy.nan
     

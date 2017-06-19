@@ -45,7 +45,7 @@ def verify_browseAssembledImagesFunction(myArguments):
                     curses.noecho()
                     curses.curs_set(0)
                     screen.keypad(1)
-                    screen.addstr("\nPress a right/up arrows to go forth, left/down arrows to go back or any key to quit.")
+                    screen.addstr("\nPress the right arrow to go forth, left arrow to go back or any key to quit.")
                     event = screen.getch()
                 finally:
                     curses.endwin()

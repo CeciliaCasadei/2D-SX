@@ -28,7 +28,7 @@ def calculate_moduleDisplacements_Function():
     halfWidth = 25
 
     # FOLDERS
-    outputFolder = './Output_imageSums_moduleDisplacements_optimize'    
+    outputFolder = './Output_r%s/Output_imageSums_moduleDisplacements'%selectedRun    
     if not os.path.exists('%s'%outputFolder):
         os.mkdir('%s'%outputFolder)
             
@@ -74,8 +74,6 @@ def calculate_moduleDisplacements_Function():
     # MAKE ORBIT OBJECTS LIST
     orbits = makeOrbits.makeOrbitsFunction(resolutionLimit)                    # 220 orbits to 4 A
     print '%d orbits'%len(orbits)
-    for orbit in orbits:
-        print orbit.label
         
     # CALCULATE STANDARD PATTERN    
     nominalCell = 62.45
@@ -91,15 +89,13 @@ def calculate_moduleDisplacements_Function():
     standardPattern = calculatePredictedPattern.calculatePredictedPatternFunction(reciprocalLattice, trialInPlaneRotation, wavevector, tiltAngle, detectorDistance, pixelSize)
         
     # EXTRACT APPROXIMATE ORBIT INTENSITIES
-    rough_intensities = open('./Output_imageSums/h_k_Isum_Igauss_sigX_sigY.txt', 'r')
+    rough_intensities = open('./Output_r%s/Output_imageSums/h_k_Isum_Igauss_sigX_sigY.txt'%selectedRun, 'r')
     rough_intensities_table = []
     for rough_intensity in rough_intensities:
         line = [int(rough_intensity.split()[0]), int(rough_intensity.split()[1]), float(rough_intensity.split()[3])] # h, k, I_gauss
         rough_intensities_table.append(line)
     rough_intensities_table = numpy.asarray(rough_intensities_table)
     rough_intensities.close()
-    print rough_intensities_table.shape
-    print rough_intensities_table
 
     # LOOP ON MODULES
     for module_row in range(0, len(row_interface)-1):
@@ -108,35 +104,39 @@ def calculate_moduleDisplacements_Function():
             top_bound = row_interface[module_row+1]
             left_bound = column_interface[module_column]
             right_bound = column_interface[module_column+1]
-            print 'MODULE: ', bottom_bound, top_bound, '---', left_bound, right_bound
+            print '\n*** MODULE: ', bottom_bound, top_bound, '---', left_bound, right_bound
             
             # CALCULATE MODULE RESOLUTION RANGE (speed up X4)
-            x_left_bottom = xGeometry_np[bottom_bound, left_bound]   
-            y_left_bottom = yGeometry_np[bottom_bound, left_bound]
+            border = 5
+            bottom = bottom_bound + border
+            top = top_bound - border
+            left = left_bound + border
+            right = right_bound - border
+            
+            x_left_bottom = xGeometry_np[bottom, left]   
+            y_left_bottom = yGeometry_np[bottom, left]
             d_left_bottom = numpy.sqrt(x_left_bottom**2 + y_left_bottom**2)    # m
             
-            x_right_bottom = xGeometry_np[bottom_bound, right_bound]   
-            y_right_bottom = yGeometry_np[bottom_bound, right_bound]
+            x_right_bottom = xGeometry_np[bottom, right]   
+            y_right_bottom = yGeometry_np[bottom, right]
             d_right_bottom = numpy.sqrt(x_right_bottom**2 + y_right_bottom**2) # m
             
-            x_left_top = xGeometry_np[top_bound, left_bound]   
-            y_left_top = yGeometry_np[top_bound, left_bound]
+            x_left_top = xGeometry_np[top, left]   
+            y_left_top = yGeometry_np[top, left]
             d_left_top = numpy.sqrt(x_left_top**2 + y_left_top**2)             # m
             
-            x_right_top = xGeometry_np[top_bound, right_bound]   
-            y_right_top = yGeometry_np[top_bound, right_bound]
+            x_right_top = xGeometry_np[top, right]   
+            y_right_top = yGeometry_np[top, right]
             d_right_top = numpy.sqrt(x_right_top**2 + y_right_top**2)          # m
             
-            minDistance = min([d_left_bottom, d_left_top, d_right_bottom, d_right_top])    # m
-            maxDistance = max([d_left_bottom, d_left_top, d_right_bottom, d_right_top])    # m
-            print '[%f, %f]'%(minDistance, maxDistance)
+            # RELAXED DISTANCES
+            minDistance = min([d_left_bottom, d_left_top, d_right_bottom, d_right_top]) - 0.01   # m
+            maxDistance = max([d_left_bottom, d_left_top, d_right_bottom, d_right_top]) + 0.01   # m
+            print 'MODULE DISTANCE FROM DIRECT BEAM RANGE: [%f, %f]'%(minDistance, maxDistance)
             
             moduleFolder = '%s/Module_%d_%d'%(outputFolder, top_bound, right_bound)
             if not os.path.exists(moduleFolder):
                 os.mkdir(moduleFolder)
-            
-            # SELECT SINGLE MODULE
-            #if top_bound == 1294 and right_bound == 969:
                 
             module_x0s = []
             module_y0s = []
@@ -157,23 +157,43 @@ def calculate_moduleDisplacements_Function():
                 # EXTRACT ORBIT LABEL:
                 label = orbit.label
                 h_label = label[0]
-                k_label = label[1]   
+                k_label = label[1]  
+                
+                print '\nOrbit %d, %d'%(h_label, k_label)       
                 
                 # CHECK ORBIT INTENSITY AND DETECTOR DISTANCE
                 orbit_use_flag = 0
+                orbit_use_flag_I = 0
+                orbit_use_flag_D = 0
+                
+                I = numpy.nan
+                spotDistance = numpy.nan
+                
                 for rough_intensity in rough_intensities_table:
                     if h_label == rough_intensity[0] and k_label == rough_intensity[1]:
-                        if float(rough_intensity[2] >= intensity_threshold*nCountsPerPhoton):
-                            # CHECK DETECTOR DISTANCE
-                            for predictedSpot in standardPattern:
-                                if predictedSpot[0] == h_label and predictedSpot[1] == k_label:
-                                    spotDistance = float(predictedSpot[10]) * pixelSize # m
-                                    print spotDistance
-                                    if minDistance <= spotDistance <= maxDistance:
-                                        orbit_use_flag = 1
-                
-                if orbit_use_flag == 1:
-                    print 'Use orbit %d, %d'%(h_label, k_label)
+                        I = float(rough_intensity[2])
+                        if I >= intensity_threshold*nCountsPerPhoton:
+                            orbit_use_flag_I = 1
+                            
+                for predictedSpot in standardPattern:
+                    if predictedSpot[0] == h_label and predictedSpot[1] == k_label:
+                        spotDistance = float(predictedSpot[10]) * pixelSize # m
+                        if minDistance <= spotDistance <= maxDistance:
+                            orbit_use_flag_D = 1
+                            
+                if orbit_use_flag_I == 1 and orbit_use_flag_D == 1:
+                    orbit_use_flag = 1
+                    
+                ###
+                if orbit_use_flag == 0:
+                    print 'NOT using orbit %d, %d'%(h_label, k_label) 
+                    print 'I = ', I
+                    print minDistance, spotDistance, maxDistance
+                ###
+                    
+                else:
+                    print 'Using orbit %d, %d'%(h_label, k_label)
+                    print 'I = ', I
                     print minDistance, spotDistance, maxDistance
                     
                     # USE THIS ORBIT TO CALCULATE MODULE DISPLACEMENT
@@ -268,7 +288,9 @@ def calculate_moduleDisplacements_Function():
                     ### TRY GAUSSIAN FIT OF BG SUBTRACTED, ROTATED SUM ON SINGLE MODULE ###
                     refined_sigma_x, refined_sigma_y, refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted = imageSums_utilities.do_gaussFit(bgSubtracted_module_sum_normalized)
                     
-                    if not numpy.isnan(gauss_integral):
+                    if numpy.isnan(gauss_integral):
+                        print "Gauss integral isnan"
+                    else:
                         # SELECT GOOD FIT         
                         if nTerms_module_sum >= 50 and abs(gauss_integral) > intensity_threshold*nCountsPerPhoton and refined_amplitude > 0 and \
                         refined_sigma_x < 4 and refined_sigma_y < 4:

@@ -13,7 +13,7 @@ def mergingEfficiencyFunction(myArguments):
     
     # DEFAULTS
     outputFolder = ''
-    resolutionLimit = 4.0
+    resolutionLimit = 7.0
     
     # READ INPUTS    
     try:
@@ -49,10 +49,11 @@ def mergingEfficiencyFunction(myArguments):
     
     cellSize = 62.45
     directCell = cellSize * numpy.matrix([[1, numpy.cos(2*numpy.pi/3)],[0, numpy.sin(2*numpy.pi/3)]]) # A
-    reciprocalCellRows = 2 * numpy.pi * directCell.I    
-    
+    reciprocalCellRows = 2 * numpy.pi * directCell.I       
+
     ratios = []
     qs = []
+    
     #FOR EACH ORBIT, COLLECT P3-RELATED POINTS
     for indices in orbitIndices:
         hOrbit = indices[0]
@@ -97,33 +98,49 @@ def mergingEfficiencyFunction(myArguments):
         I_unscaled_cleaned = [I_unscaled[i] for i in range(0, len(I_unscaled)) if not numpy.isnan(I_unscaled[i])]
         I_scaled_cleaned   = [I_scaled[i]   for i in range(0, len(I_scaled))   if not numpy.isnan(I_scaled[i])] 
         
+        avg_Intensity_unscaled = numpy.average(I_unscaled_cleaned)
+        avg_Intensity_scaled   = numpy.average(I_scaled_cleaned)
         std_Intensity_unscaled = numpy.std(I_unscaled_cleaned)
         std_Intensity_scaled   = numpy.std(I_scaled_cleaned)
-        ratio = std_Intensity_scaled/std_Intensity_unscaled
+        ratio = (avg_Intensity_unscaled/std_Intensity_unscaled)  /  (avg_Intensity_scaled/std_Intensity_scaled)
         
         ratios.append(ratio)
         qs.append(q_2D)
     
     qs_plot = []
     ratios_plot = []   
-    bins = numpy.linspace(min(qs), max(qs), 20)
+    x_errors = []
+    y_errors = []
+    n_bins = 11
+    bins = numpy.linspace(min(qs), max(qs), n_bins)
+    print bins
     for i in range(0, len(bins)-1):
         left_q = bins[i]
         right_q = bins[i+1]
-        q_bin     = [qs[i]     for i in range(0, len(qs)) if left_q <= qs[i] <= right_q]    
+        x_error = right_q - left_q
+        #q_bin     = [qs[i]     for i in range(0, len(qs)) if left_q <= qs[i] <= right_q]    
         ratio_bin = [ratios[i] for i in range(0, len(qs)) if left_q <= qs[i] <= right_q]
-        q_avg_bin = numpy.average(q_bin)
+        q_mid_bin = (right_q+left_q)/2
         ratio_avg_bin = numpy.average(ratio_bin)
-        qs_plot.append(q_avg_bin)
+        qs_plot.append(q_mid_bin)
         ratios_plot.append(ratio_avg_bin)
+        x_errors.append(x_error/2)
+        y_errors.append(numpy.std(ratio_bin))
+    print x_errors
+    print y_errors
         
     matplotlib.pyplot.figure()
+    matplotlib.pyplot.gca().tick_params(axis='both', which='major', labelsize=18, length=5, pad=7)    
     matplotlib.pyplot.scatter(qs, ratios, s=3)
-    matplotlib.pyplot.scatter(qs_plot, ratios_plot, s=130, facecolors='r', edgecolors='r', alpha = 0.25)
-    matplotlib.pyplot.gca().set_xlabel(r"q ($\AA^{-1}$)", fontsize = 12, rotation = 'horizontal')
-    matplotlib.pyplot.gca().set_ylabel(r"$\frac{\sigma({\rm I}_{\rm scaled})}{\sigma({\rm I}_{\rm unscaled})} $", fontsize = 18, rotation = 'horizontal', labelpad=30)
+    matplotlib.pyplot.scatter(qs_plot, ratios_plot, s=130, facecolors='m', edgecolors='m', alpha = 0.25)
+    matplotlib.pyplot.errorbar(qs_plot, ratios_plot, xerr=x_errors, yerr=y_errors, capsize=0, ls='none', color='m', elinewidth=1)
+    matplotlib.pyplot.gca().axhline(y=1, color='k')
+    matplotlib.pyplot.gca().set_xlabel(r"q ($\AA^{-1}$)", fontsize = 24, rotation = 'horizontal')
+    matplotlib.pyplot.gca().set_ylabel(r"$\frac{ \delta(I^{\rm resc}) / \left < I^{\rm resc} \right > }{ \delta(I) / \left < I \right > } $", fontsize = 24, rotation = 'vertical', labelpad=20)
+    matplotlib.pyplot.gca().set_ylim([0, +1.1*max(ratios)])    
     matplotlib.pyplot.tight_layout()
-    matplotlib.pyplot.savefig('./scaling_efficiency_20bins.png')
+    matplotlib.pyplot.savefig('%s/scaling_efficiency_%d_bins_IoverSig_ratios.png'%(outputFolder, n_bins))
+    matplotlib.pyplot.savefig('%s/scaling_efficiency_%d_bins_IoverSig_ratios.pdf'%(outputFolder, n_bins))
         
         
                      

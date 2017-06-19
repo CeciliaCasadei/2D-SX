@@ -11,10 +11,11 @@ import imageSums_utilities
 
 
 # PARAMETERS
+runNumber = '0127'
 photonThreshold = 2.0
 filter_distanceThreshold = 2.0
 nCountsPerPhoton = 26
-ellipse_multiplicative_factor = 2.5 # was 2.5
+ellipse_multiplicative_factor = 2.5
 
 # TO BE FITTED
 qs = []
@@ -24,9 +25,13 @@ sigYs= []
 Is = []
 
 # FOLDERS
-outputFolder = './Output_imageSums_sigmaFits'
+inputFolder = './Output_r%s/Output_imageSums'%runNumber
+outputFolder = './Output_r%s/Output_imageSums_sigmaFits'%runNumber
+outputFigures = '%s/Figures'%outputFolder
 if not os.path.exists('%s'%outputFolder):
     os.mkdir('%s'%outputFolder)
+if not os.path.exists('%s'%outputFigures):
+    os.mkdir('%s'%outputFigures)
 if not os.path.exists('%s/high_res_7_6'%outputFolder):
         os.mkdir('%s/high_res_7_6'%outputFolder)
 if not os.path.exists('%s/high_res_6_5'%outputFolder):
@@ -42,7 +47,7 @@ directCell = cellSize * numpy.matrix([[1, numpy.cos(2*numpy.pi/3)],[0, numpy.sin
 reciprocalCellRows = 2 * numpy.pi * directCell.I                                                  # A^(-1)
 
 # LOOP ON SPOTS WITH GAUSS INTENSITY ABOVE 1 PHOTON AND GOOD GAUSSIAN FIT
-fOpen = open('./Output_imageSums/h_k_Isum_Igauss_sigX_sigY.txt', 'r')
+fOpen = open('%s/h_k_Isum_Igauss_sigX_sigY.txt'%inputFolder, 'r')
 for hk_line in fOpen:
     splittedLine = hk_line.split()
     h      = int(splittedLine[0])
@@ -60,7 +65,7 @@ for hk_line in fOpen:
     if Igauss < photonThreshold*nCountsPerPhoton:
         print '(%4d, %4d) DISCARDED: I < %f photons'%(h, k, photonThreshold)
         continue
-    if sigX > 7 or sigY > 7:
+    if sigX > 6 or sigY > 6:
         print '(%4d, %4d) DISCARDED: Gauss width is too large.'%(h, k)
         continue
 
@@ -75,11 +80,10 @@ for hk_line in fOpen:
 popt_sigX, pcov = scipy.optimize.curve_fit(imageSums_utilities.quadratic, qs, sigXs)
 x = numpy.linspace(0.1, 1.6, 100)
 y_quadratic = imageSums_utilities.quadratic(x, *popt_sigX)
-
 matplotlib.pyplot.figure(figsize = (20, 5))
 matplotlib.pyplot.scatter(qs, sigXs, color='b', label='data', alpha=0.5)
 matplotlib.pyplot.plot(x, y_quadratic, label='fit')
-matplotlib.pyplot.savefig('%s/sigXvsQ_quadraticFit.png'%outputFolder)
+matplotlib.pyplot.savefig('%s/sigXvsQ_quadraticFit.png'%outputFigures)
 matplotlib.pyplot.close()
 
 # FIT sigY VS q WITH A LINE AT LOW q
@@ -92,7 +96,7 @@ y_line = imageSums_utilities.line(x, *popt_sigY_line)
 matplotlib.pyplot.figure(figsize = (20, 5))
 matplotlib.pyplot.scatter(qs, sigYs, color='b', label='data', alpha=0.5)
 matplotlib.pyplot.plot(x, y_line, label='fit')
-matplotlib.pyplot.savefig('%s/sigYvsQ_lineFit.png'%outputFolder)
+matplotlib.pyplot.savefig('%s/sigYvsQ_lineFit.png'%outputFigures)
 matplotlib.pyplot.close()
 
 offset = popt_sigY_line[0]
@@ -106,7 +110,7 @@ matplotlib.pyplot.figure(figsize = (20, 5))
 matplotlib.pyplot.scatter(qs, sigYs, color='b', label='data', alpha=0.5)
 matplotlib.pyplot.plot(x, y_line_plus_sigmoid, label='fit')
 matplotlib.pyplot.plot(x, y_line)
-matplotlib.pyplot.savefig('%s/sigYvsQ_linePlusSigmidFit.png'%outputFolder)
+matplotlib.pyplot.savefig('%s/sigYvsQ_linePlusSigmidFit.png'%outputFigures)
 matplotlib.pyplot.close()
 
 ### SUMMARY PLOT ###
@@ -125,11 +129,11 @@ ax2.tick_params(axis='both', which='major', labelsize=6)
 ax2.plot(x, y_line, label='fit', color='m', linestyle=':')
 ax2.plot(x, y_line_plus_sigmoid, label='fit', color='m')
                         
-matplotlib.pyplot.savefig('%s/fits_threshold_%f_ph.png'%(outputFolder, photonThreshold), dpi=4*96)
+matplotlib.pyplot.savefig('%s/fits_threshold_%f_ph.png'%(outputFigures, photonThreshold), dpi=4*96)
 matplotlib.pyplot.close()
 
 ### REPEAT GAUSS FIT OF IMAGE SUMS USING FIXED SIGMAS ###
-fileToOpen = './Output_imageSums/orbits.pkl'
+fileToOpen = '%s/orbits.pkl'%inputFolder
 fRead = open(fileToOpen, 'rb')
 orbitsDictionary = pickle.load(fRead)                                               
 fRead.close()
@@ -246,7 +250,7 @@ matplotlib.pyplot.title('n pairs = %d - CC = %.8f'%(len(Is_gauss_fixed_sigmas_py
 matplotlib.pyplot.scatter(Is_sum_circle_python, Is_gauss_fixed_sigmas_python)
 matplotlib.pyplot.gca().set_xlabel('photon counts - image sum - integral on circle')
 matplotlib.pyplot.gca().set_ylabel('photon counts - image sum - gauss integral - fixed sigmas', rotation = 'vertical')
-matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_circle_python_4A.png'%outputFolder)
+matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_circle_python_4A.png'%outputFigures)
 matplotlib.pyplot.close()
 
 CC = imageSums_utilities.Correlate(Is_sum_ellipse_python, Is_gauss_fixed_sigmas_python)
@@ -256,7 +260,7 @@ matplotlib.pyplot.title('n pairs = %d - CC = %.8f'%(len(Is_sum_ellipse_python), 
 matplotlib.pyplot.scatter(Is_sum_ellipse_python, Is_gauss_fixed_sigmas_python)
 matplotlib.pyplot.gca().set_xlabel('photon counts - image sum - integral on ellipse')
 matplotlib.pyplot.gca().set_ylabel('photon counts - image sum - gauss integral - fixed sigmas', rotation = 'vertical')
-matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_ellipse_python_4A.png'%outputFolder)
+matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_ellipse_python_4A.png'%outputFigures)
 matplotlib.pyplot.close()
 
 matplotlib.pyplot.figure()
@@ -264,12 +268,12 @@ matplotlib.pyplot.title('n pairs = %d - CC = %.8f'%(len(Is_sum_ellipse_python), 
 matplotlib.pyplot.scatter(Is_sum_ellipse_python, Is_gauss_fixed_sigmas_python)
 matplotlib.pyplot.gca().set_xscale('log')
 matplotlib.pyplot.gca().set_yscale('log')
-matplotlib.pyplot.gca().set_xlim([0.01,1000])
-matplotlib.pyplot.gca().set_ylim([0.01,1000])
+#matplotlib.pyplot.gca().set_xlim([0.01,1000])
+#matplotlib.pyplot.gca().set_ylim([0.01,1000])
 matplotlib.pyplot.axes().set_aspect('equal')
 matplotlib.pyplot.gca().set_xlabel('photon counts - image sum - integral on ellipse')
 matplotlib.pyplot.gca().set_ylabel('photon counts - image sum - gauss integral - fixed sigmas', rotation = 'vertical')
-matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_ellipse_python_4A_logscale.png'%outputFolder)
+matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_ellipse_python_4A_logscale.png'%outputFigures)
 matplotlib.pyplot.close()
 
 # COMPARE: I_SUM_PY, I_GAUSS_FIXED_SIGMAS_PY in RESOLUTION RANGE 55 - 4 A (AFTER FILTERING OUT BAD GAUSS FITS + EXCLUDE PH COUNTS < 1 PH)
@@ -286,7 +290,7 @@ matplotlib.pyplot.title('n pairs = %d - CC = %.8f'%(len(Is_gauss_fixed_sigmas_py
 matplotlib.pyplot.scatter(Is_sum_circle_python_filtered, Is_gauss_fixed_sigmas_python_filtered)
 matplotlib.pyplot.gca().set_xlabel('photon counts - image sum - integral on circle')
 matplotlib.pyplot.gca().set_ylabel('photon counts - image sum - gauss integral - fixed sigmas', rotation = 'vertical')
-matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_circle_python_4A_phCountsAboveOne.png'%outputFolder)
+matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_circle_python_4A_phCountsAboveOne.png'%outputFigures)
 matplotlib.pyplot.close()
 
 CC = imageSums_utilities.Correlate(Is_sum_ellipse_python_filtered, Is_gauss_fixed_sigmas_python_filtered)
@@ -296,18 +300,18 @@ matplotlib.pyplot.title('n pairs = %d - CC = %.8f'%(len(Is_sum_ellipse_python_fi
 matplotlib.pyplot.scatter(Is_sum_ellipse_python_filtered, Is_gauss_fixed_sigmas_python_filtered)
 matplotlib.pyplot.gca().set_xlabel('photon counts - image sum - integral on ellipse')
 matplotlib.pyplot.gca().set_ylabel('photon counts - image sum - gauss integral - fixed sigmas', rotation = 'vertical')
-matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_ellipse_python_4A_phCountsAboveOne.png'%outputFolder)
+matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_ellipse_python_4A_phCountsAboveOne.png'%outputFigures)
 matplotlib.pyplot.close()
 
 matplotlib.pyplot.figure()
 matplotlib.pyplot.title('n pairs = %d - CC = %.8f'%(len(Is_sum_ellipse_python_filtered), CC))
 matplotlib.pyplot.scatter(Is_sum_ellipse_python_filtered, Is_gauss_fixed_sigmas_python_filtered)
-matplotlib.pyplot.gca().set_xlim([0.1, 1000])
+#matplotlib.pyplot.gca().set_xlim([0.1, 1000])
 matplotlib.pyplot.gca().set_xscale('log')
 matplotlib.pyplot.gca().set_yscale('log')
 matplotlib.pyplot.gca().set_xlabel('photon counts - image sum - integral on ellipse')
 matplotlib.pyplot.gca().set_ylabel('photon counts - image sum - gauss integral - fixed sigmas', rotation = 'vertical')
-matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_ellipse_python_4A_logscale_phCountsAboveOne.png'%outputFolder)
+matplotlib.pyplot.savefig('%s/Is_gauss_fixed_sigmas_python_VS_Is_sum_ellipse_python_4A_logscale_phCountsAboveOne.png'%outputFigures)
 matplotlib.pyplot.close()
 
 # SAVE SIGMA FIT PARAMETERS

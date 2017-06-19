@@ -5,6 +5,10 @@ import pickle
 
 import detectorModules
 
+# SELECT FOLDER
+runNumber = '0127'
+foldername = './Output_r%s/Output_imageSums_moduleDisplacements'%runNumber
+
 # EXTRACT GEOMETRY
 geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5'     # same for all runs
 geometryData = h5py.File(geometryFile, 'r')
@@ -45,11 +49,11 @@ for module_row in range(0, len(row_interface)-1):
         right_bound = column_interface[module_column+1]
         print '\nMODULE: ', bottom_bound, top_bound, '---', left_bound, right_bound
         
-        x0s_file = open('./Output_imageSums_moduleDisplacements_optimize/module_%d_%d_x0s.pkl'%(top_bound, right_bound), 'rb')
+        x0s_file = open('%s/module_%d_%d_x0s.pkl'%(foldername, top_bound, right_bound), 'rb')
         x0s = pickle.load(x0s_file)
         x0s_file.close()
         
-        y0s_file = open('./Output_imageSums_moduleDisplacements_optimize/module_%d_%d_y0s.pkl'%(top_bound, right_bound), 'rb')
+        y0s_file = open('%s/module_%d_%d_y0s.pkl'%(foldername, top_bound, right_bound), 'rb')
         y0s = pickle.load(y0s_file)
         y0s_file.close()
         
@@ -73,3 +77,7 @@ for module_row in range(0, len(row_interface)-1):
 summary = numpy.asarray(summary)
 print summary
 print summary.shape
+
+summary_file = open('%s/module_displacements.pkl'%foldername, 'wb')
+pickle.dump(summary, summary_file)
+summary_file.close()

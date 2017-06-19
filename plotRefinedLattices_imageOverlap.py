@@ -11,7 +11,7 @@ import pickle
 import time
 import joblib
 
-imageToPlot = '74'
+imageToPlot = '892'
 def myParallelFunction(myObject, runNumber, resolutionRadii):
     if myObject.selectionFlag == 1 and myObject.runNumber == runNumber and myObject.nPeaks > 0:
         if myObject.imageNumber == imageToPlot:

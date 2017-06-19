@@ -29,7 +29,7 @@ def imageSums():
     nCountsPerPhoton = 26
     
     # FOLDERS
-    outputFolder = './Output_imageSums'    
+    outputFolder = './Output_r%s/Output_imageSums'%selectedRun    
     if not os.path.exists('%s'%outputFolder):
         os.mkdir('%s'%outputFolder)
     if not os.path.exists('%s/high_res_7_6'%outputFolder):
@@ -93,9 +93,6 @@ def imageSums():
         label = orbit.label
         h_label = label[0]
         k_label = label[1]
-        
-#        if not (label == [11, 2] or label == [2, 11] or label == [-11, -2] or label == [-2, -11]):
-#            continue
         
         # LOOP ON ALL PROCESSED LATTICES 
         for index in range(0, len(lattices_names)):
@@ -324,6 +321,7 @@ def imageSums():
         matplotlib.pyplot.close()  
         
         ### GENERATE ORBIT ATTRIBUTES ###
+        orbit.nTerms = nTerms
         orbit.orbitSumMatrix_rotated = orbitSumMatrix_rotated
         orbit.orbitSumMatrix_nonRotated = orbitSumMatrix_nonRotated
         orbit.bgSubtractedOrbitSumMatrix_rotated = bgSubtractedOrbitSumMatrix_rotated
