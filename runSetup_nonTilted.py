@@ -315,6 +315,13 @@ if flag == 1:
     os.system('python imageSums_displaced_modules_sigmaVsQ.py')
     
     
+
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_finalIntegration.py')
+
+
+
 ### Data quality evaluation ###   
 N_lattices = 10
 flag = 0
