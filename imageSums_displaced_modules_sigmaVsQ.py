@@ -189,29 +189,35 @@ matplotlib.pyplot.plot(x, y_poly_4_sigY, label='fit')
 matplotlib.pyplot.savefig('%s/sigYvsQ_poly_4_%.1fph_fixed_offset.png'%(outputFolder, photonThreshold))
 matplotlib.pyplot.close()
 
-
-
-### SUMMARY PLOT ###
+### SUMMARY PLOT ### 
 myFigure, (ax1, ax2) = matplotlib.pyplot.subplots(2, 1)    
-ax1.scatter(qs, sigXs  , color='b', label='data', alpha=0.5, s=3)
-#ax1.set_title('Radial width (%s)'%popt_sigX, fontsize=8)
-ax1.set_ylabel(r'$\sigma_{\rm radial}$ (pixels)')
-ax1.set_ylim([0.5, 4.0])
-ax1.tick_params(axis='both', which='major', labelsize=6)
-ax1.plot(x, y_poly_4_sigX, label='fit', color='m')
+ax1.scatter(qs, sigXs  , color='b', label='data', alpha=0.5, s=3) 
+ax1.set_ylabel(r'$\sigma_{\rm rad}$ (pix)', fontsize = 17) 
+ax1.set_ylim([0.5, 4.0]) 
+ax1.text(0.02, 0.96, '(a)', 
+         horizontalalignment='left', verticalalignment='top', fontsize=25, transform = ax1.transAxes) 
+ax1.text(0.96, 0.94, r'$\sigma_{\rm rad} = %.2f + %.2f q^2 + %.2f q^4$'%(avg_offset, popt_sigX[0], popt_sigX[1]), 
+         horizontalalignment='right', verticalalignment='top', fontsize=17, transform = ax1.transAxes) 
+ax1.tick_params(axis='both', which='major', labelsize=12, length=6)
+ax1.plot(x, y_poly_4_sigX, label='fit', color='m') 
 
-ax2.scatter(qs, sigYs, color='b', label='data', alpha=0.5, s=3)
-#ax2.set_title('Azimuthal width (%s)'%popt_sigY, fontsize=8)
-ax2.set_xlabel(r'q ($\AA^{-1}$)')
-ax2.set_ylabel(r'$\sigma_{\rm azimuth}$ (pixels)')
-ax2.set_ylim([0.5, 4.0])
-ax2.tick_params(axis='both', which='major', labelsize=6)
-ax2.plot(x, y_poly_4_sigY, label='fit', color='m')
+ax2.scatter(qs, sigYs, color='b', label='data', alpha=0.5, s=3) 
+ax2.set_xlabel(r'$q$ ($\AA^{-1}$)', fontsize = 17) 
+ax2.set_ylabel(r'$\sigma_{\rm azi}$ (pix)', fontsize = 17) 
+ax2.set_ylim([0.5, 4.0]) 
+ax2.text(0.02, 0.96, '(b)', 
+         horizontalalignment='left', verticalalignment='top', fontsize=25, transform = ax2.transAxes) 
+ax2.text(0.96, 0.94, r'$\sigma_{\rm azi} = %.2f + %.2f q^2 + %.2f q^4$'%(avg_offset, popt_sigY[0], popt_sigY[1]), 
+         horizontalalignment='right', verticalalignment='top', fontsize=17, transform = ax2.transAxes) 
+ax2.tick_params(axis='both', which='major', labelsize=12, length=6) 
+ax2.plot(x, y_poly_4_sigY, label='fit', color='m') 
 
 matplotlib.pyplot.tight_layout()                        
-matplotlib.pyplot.savefig('%s/fits_poly_4_fixed_offset_threshold_%.1f_ph_paper.png'%(outputFolder, photonThreshold), dpi=4*96)
-matplotlib.pyplot.savefig('%s/fits_poly_4_fixed_offset_threshold_%.1f_ph_paper.pdf'%(outputFolder, photonThreshold), dpi=4*96)
+matplotlib.pyplot.savefig('%s/fits_poly_4_fixed_offset_threshold_%.1f_ph.png'%(outputFolder, photonThreshold), dpi=4*96) 
+matplotlib.pyplot.savefig('%s/fits_poly_4_fixed_offset_threshold_%.1f_ph.pdf'%(outputFolder, photonThreshold), dpi=4*96) 
 matplotlib.pyplot.close()
+
+
 
 ### REPEAT GAUSS FIT OF IMAGE SUMS USING FIXED SIGMAS ###
 fileToOpen = './Output_r%s/Output_imageSums_moduleDisplacements/orbits.pkl'%runNumber

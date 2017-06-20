@@ -149,7 +149,7 @@ nCountsPerPhoton          = 26
 integrationRadius         = 5         # pxls
 fractionDetectedThreshold = 0.28
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python processingAndIntegration.py --runNumber %s --bgSubtractionMethod %s --minimizationMethod %s --lowResLimit %f --highResLimit %f --nCountsPerPhoton %d --integrationRadius %d --geometryFile %s --imageFolder %s --fractionDetectedThreshold %f'
                %(runNumber, bgSubtractionMethod, minimizationMethod, lowResLimit, highResLimit, nCountsPerPhoton, integrationRadius, geometryFile, imagesDirectoryName, fractionDetectedThreshold))
@@ -330,7 +330,7 @@ if flag == 1:
     
  
    
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python signal_to_noise.py')
     

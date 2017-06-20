@@ -22,7 +22,7 @@ fRead.close()
 
 
 orbitIndices = [[-2, -11], [11, 2], [-11, -2], [2, 11]]       
-alpha_label = ['(f)', '(g)', '(h)', '(i)', '(j)', '(k)', '(l)', '(m)'] 
+alpha_label = ['(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)'] 
 
     
 fileToOpen = '%s/orbits.pkl'%outputFolder
@@ -85,6 +85,116 @@ for idx, ax in enumerate(a):
             
                 print 'Sigma_x: %.2f, Sigma_y: %.2f'%(sigma_x, sigma_y)
 
-matplotlib.pyplot.savefig('%s/Figure_bgsub_rotatetd_orbit_2_11_f_to_m.png'%(outputFolder), dpi = 4*96 )       
-matplotlib.pyplot.savefig('%s/Figure_bgsub_rotatetd_orbit_2_11_f_to_m.pdf'%(outputFolder), dpi = 4*96 )      
+matplotlib.pyplot.savefig('%s/Figure_bgsub_rotatetd_orbit_2_11.png'%(outputFolder), dpi = 4*96 )       
+matplotlib.pyplot.savefig('%s/Figure_bgsub_rotatetd_orbit_2_11.pdf'%(outputFolder), dpi = 4*96 )      
 matplotlib.pyplot.close()  
+
+
+
+###
+
+
+
+orbit_label = [2, 11]
+h = orbit_label[0]
+k = orbit_label[1]
+
+for key, orbit in orbitsDictionary.items():
+        
+    label = orbit.label
+    h_label = label[0]
+    k_label = label[1]
+    
+    if h_label == h and k_label == k:
+        
+        bgSubtracted_total_sum = orbit.bgSubtracted_total_sum[10**precision_factor*5 : 10**precision_factor*25, 10**precision_factor*5 : 10**precision_factor*25]
+        print orbit.bgSubtracted_total_sum.shape
+        print bgSubtracted_total_sum.shape    
+        
+        q = 2 * numpy.pi / orbit.resolution        
+        sigma_x = imageSums_utilities.poly_4(q, sigmaXCurveParameters[0], sigmaXCurveParameters[1], sigmaXCurveParameters[2])
+        sigma_y = imageSums_utilities.poly_4(q, sigmaYCurveParameters[0], sigmaYCurveParameters[1], sigmaYCurveParameters[2]) 
+        
+        refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted = imageSums_utilities.do_gaussFit_fixed_sigmas(bgSubtracted_total_sum, 
+                                                                                                                            sigma_x*10**precision_factor, 
+                                                                                                                            sigma_y*10**precision_factor)
+        
+        data_toFit = data.reshape(bgSubtracted_total_sum.shape[0], bgSubtracted_total_sum.shape[1])
+        gaussFit   = data_fitted.reshape(bgSubtracted_total_sum.shape[0], bgSubtracted_total_sum.shape[1])
+        
+        # SUMMED IMAGE WITH GAUSS FIT AND ELLIPTICAL INTEGRATION AREA
+        matplotlib.pyplot.figure()
+        ax = matplotlib.pyplot.gca()        
+        ax.imshow(data_toFit, origin='lower', interpolation='nearest', vmin=0, vmax=3)
+        ax.contour(numpy.linspace(0, bgSubtracted_total_sum.shape[0]-1, bgSubtracted_total_sum.shape[0]), 
+                                    numpy.linspace(0, bgSubtracted_total_sum.shape[1]-1, bgSubtracted_total_sum.shape[1]), 
+                                    gaussFit, 4, linestyles='dashed', colors='w', linewidth=3)
+        ax.axis('off')
+        matplotlib.pyplot.plot((refined_x0, refined_x0), (0, bgSubtracted_total_sum.shape[0]), color='red', linestyle='dashed', linewidth=2)
+        matplotlib.pyplot.plot((0, bgSubtracted_total_sum.shape[1]), (refined_y0, refined_y0), color='red', linestyle='dashed', linewidth=2)
+        
+        mean    = [bgSubtracted_total_sum.shape[1]/2 ,  bgSubtracted_total_sum.shape[0]/2]
+        width   = 2* (2.5*sigma_x*10**precision_factor)
+        height  = 2* (2.5*sigma_y*10**precision_factor)
+        angle   = 0
+        ellipse = matplotlib.patches.Ellipse(xy=mean, width=width, height=height, angle=angle, ec='m', fc='none', linewidth=3)
+        ax.add_patch(ellipse)
+    
+        matplotlib.pyplot.savefig('%s/Gauss_Fit_%d_%d.png'%(outputFolder, h, k), dpi = 4*96 )       
+        matplotlib.pyplot.savefig('%s/Gauss_Fit_%d_%d.pdf'%(outputFolder, h, k), dpi = 4*96 )      
+        matplotlib.pyplot.close()  
+        print 'Gaussian center: ', refined_x0, refined_y0
+        
+        # HORIZONTAL EXTRACT (DATA AND FIT)        
+        horizontal_extract = data_toFit[refined_y0, :]
+        intervals = numpy.linspace(0, len(horizontal_extract), 21)
+        avgs = []
+        ns = []
+        for i in range(0, len(intervals)-1):
+            n1 = intervals[i]
+            n2 = intervals[i+1]
+            ptsToAvg = horizontal_extract[n1:n2]
+            avg = numpy.average(ptsToAvg)
+            avgs.append(avg)
+            n = (n1+n2)/2
+            ns.append(n)
+            print len(ptsToAvg), avg, n
+            
+        matplotlib.pyplot.figure()
+        matplotlib.pyplot.scatter(ns, avgs, edgecolor='none')
+        horizontal_extract_fit = gaussFit[refined_y0, :]
+        matplotlib.pyplot.plot(horizontal_extract_fit, 'c', linewidth=2)
+        matplotlib.pyplot.gca().set_xlim([0, 200])
+        matplotlib.pyplot.gca().set_xticklabels(['0', '5', '10', '15', '20'])
+        matplotlib.pyplot.gca().set_ylabel(r"$I$ (photons)", fontsize = 22, rotation = 'vertical')
+        matplotlib.pyplot.gca().tick_params(axis='both', which='major', labelsize=22)    
+        matplotlib.pyplot.savefig('%s/Gauss_Fit_horizontalExtract_%d_%d.png'%(outputFolder, h, k), dpi = 4*96 )       
+        matplotlib.pyplot.savefig('%s/Gauss_Fit_horizontalExtract_%d_%d.pdf'%(outputFolder, h, k), dpi = 4*96 )      
+        matplotlib.pyplot.close()  
+        
+        # VERTICAL EXTRACT (DATA AND FIT)
+        vertical_extract = data_toFit[:, refined_x0]
+        intervals = numpy.linspace(0, len(vertical_extract), 21)
+        avgs = []
+        ns = []
+        for i in range(0, len(intervals)-1):
+            n1 = intervals[i]
+            n2 = intervals[i+1]
+            ptsToAvg = vertical_extract[n1:n2]
+            avg = numpy.average(ptsToAvg)
+            avgs.append(avg)
+            n = (n1+n2)/2
+            ns.append(n)
+            print len(ptsToAvg), avg, n
+            
+        matplotlib.pyplot.figure()
+        matplotlib.pyplot.scatter(ns, avgs, edgecolor='none')
+        vertical_extract_fit = gaussFit[:, refined_x0]
+        matplotlib.pyplot.plot(vertical_extract_fit, 'c', linewidth=2)
+        matplotlib.pyplot.gca().set_xlim([0, 200])
+        matplotlib.pyplot.gca().set_xticklabels(['0', '5', '10', '15', '20'])
+        matplotlib.pyplot.gca().set_ylabel(r"$I$ (photons)", fontsize = 22, rotation = 'vertical')
+        matplotlib.pyplot.gca().tick_params(axis='both', which='major', labelsize=22)    
+        matplotlib.pyplot.savefig('%s/Gauss_Fit_verticalExtract_%d_%d.png'%(outputFolder, h, k), dpi = 4*96 )       
+        matplotlib.pyplot.savefig('%s/Gauss_Fit_verticalExtract_%d_%d.pdf'%(outputFolder, h, k), dpi = 4*96 )      
+        matplotlib.pyplot.close()

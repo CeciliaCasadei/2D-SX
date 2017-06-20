@@ -569,7 +569,9 @@ def signalToNoise_module_displace():
 # BINNING    
     q_plot = []
     signal_to_noise_plot = [] 
+    signal_to_noise_std_plot = [] 
     min_n_terms_plot = []
+    min_n_terms_std_plot = []
 
     bins = numpy.linspace(min(q_list), max(q_list), 25)
     for i in range(0, len(bins)-1):
@@ -580,32 +582,39 @@ def signalToNoise_module_displace():
         min_n_terms_bin     = [min_n_terms_list[i]     for i in range(0, len(q_list)) if left_q <= q_list[i] <= right_q]
         
         print len(q_bin)
-        q_avg_bin = numpy.average(q_bin)
+        #q_avg_bin = numpy.average(q_bin)
+        q_mid_bin = (left_q+right_q)/2
         signal_to_noise_avg_bin = numpy.average(signal_to_noise_bin)
+        signal_to_noise_std_bin = numpy.std(signal_to_noise_bin)
         min_n_terms_avg_bin = numpy.average(min_n_terms_bin)
+        min_n_terms_std_bin = numpy.std(min_n_terms_bin)
 
-        q_plot.append(q_avg_bin)
+        q_plot.append(q_mid_bin)
         signal_to_noise_plot.append(signal_to_noise_avg_bin)
+        signal_to_noise_std_plot.append(signal_to_noise_std_bin)
         min_n_terms_plot.append(min_n_terms_avg_bin)
+        min_n_terms_std_plot.append(min_n_terms_std_bin)
 
     matplotlib.pyplot.figure()     
     matplotlib.pyplot.scatter(q_list, signal_to_noise_list, s=2)
-    matplotlib.pyplot.scatter(q_plot, signal_to_noise_plot, s=100, color='r', alpha = 0.25)
-    matplotlib.pyplot.gca().set_ylim([0.1, 1000])
+    matplotlib.pyplot.scatter(q_plot, signal_to_noise_plot, s=100, color='c', alpha = 0.25)
+    matplotlib.pyplot.errorbar(q_plot, signal_to_noise_plot, yerr=signal_to_noise_std_plot, capsize=0, ls='none', color='c', elinewidth=1)
+    matplotlib.pyplot.gca().set_ylim([0.5, 1000])
     matplotlib.pyplot.gca().set_yscale('log')    
-    matplotlib.pyplot.gca().set_xlabel(r"q ($\AA^{-1}$)", fontsize = 12, rotation = 'horizontal')
-    matplotlib.pyplot.gca().set_ylabel(r"Signal/Noise", fontsize = 12, rotation = 'vertical')
+    matplotlib.pyplot.gca().set_xlabel(r"$q$ ($\AA^{-1}$)", fontsize = 12, rotation = 'horizontal')
+    matplotlib.pyplot.gca().set_ylabel(r"$S/N$", fontsize = 12, rotation = 'vertical')
     matplotlib.pyplot.savefig('%s/signal_to_noise_module_displace.png'%(outputFolder), dpi=4*96)
     matplotlib.pyplot.savefig('%s/signal_to_noise_module_displace.pdf'%(outputFolder), dpi=4*96)
     matplotlib.pyplot.close()
     
     matplotlib.pyplot.figure()     
     matplotlib.pyplot.scatter(q_list, min_n_terms_list, s=2)
-    matplotlib.pyplot.scatter(q_plot, min_n_terms_plot, s=100, color='r', alpha = 0.25)
+    matplotlib.pyplot.scatter(q_plot, min_n_terms_plot, s=100, color='c', alpha = 0.25)
+    matplotlib.pyplot.errorbar(q_plot, min_n_terms_plot, yerr=min_n_terms_std_plot, capsize=0, ls='none', color='c', elinewidth=1)
     matplotlib.pyplot.gca().set_ylim([0.001, 10000])
     matplotlib.pyplot.gca().set_yscale('log')    
     matplotlib.pyplot.gca().set_xlabel(r"q ($\AA^{-1}$)", fontsize = 12, rotation = 'horizontal')
-    matplotlib.pyplot.gca().set_ylabel(r"Minimum number of terms", fontsize = 12, rotation = 'vertical')
+    matplotlib.pyplot.gca().set_ylabel(r"N_{S/N=1}", fontsize = 12, rotation = 'vertical')
     matplotlib.pyplot.savefig('%s/min_n_terms_module_displace.png'%(outputFolder), dpi=4*96)
     matplotlib.pyplot.savefig('%s/min_n_terms_module_displace.pdf'%(outputFolder), dpi=4*96)
     matplotlib.pyplot.close()
