@@ -15,7 +15,7 @@ cellSize = 62.45
 directCell = cellSize * numpy.matrix([[1, numpy.cos(2*numpy.pi/3)],[0, numpy.sin(2*numpy.pi/3)]]) # A
 reciprocalCellRows = 2 * numpy.pi * directCell.I                                                  # A^(-1)
 
-matplotlib.pyplot.figure(figsize=(9, 11))   
+matplotlib.pyplot.figure()   
 
 
 colors = ['b', 'm', 'c']
@@ -119,9 +119,10 @@ for index in range(0, len(N_lattices_list)):
     matplotlib.pyplot.plot(bin_avg_qs, bin_avg_CCs, '-o', color=colors[index], mew=0)
     
 matplotlib.pyplot.gca().set_ylim([0, 1.1])
-matplotlib.pyplot.gca().tick_params(axis='both', which='major', labelsize=22, length=6, pad=6) 
-matplotlib.pyplot.gca().set_xlabel(r"$q$ ($\AA^{-1}$)", fontsize = 27, rotation = 'horizontal')
-matplotlib.pyplot.gca().set_ylabel(r"CC$_{1/2}$",       fontsize = 25, rotation = 'vertical')
+matplotlib.pyplot.gca().tick_params(axis='both', which='major', labelsize=13, length=6, pad=6) 
+matplotlib.pyplot.gca().set_xlabel(r"$q$ ($\AA^{-1}$)", fontsize = 20, rotation = 'horizontal')
+matplotlib.pyplot.gca().set_ylabel(r"CC$_{1/2}$",       fontsize = 20, rotation = 'vertical')
+matplotlib.pyplot.tight_layout()
 matplotlib.pyplot.savefig('./Output_r%s/Output_imageSums_moduleDisplacements_CChalf/CChalf_imageSums_displaced_modules_%d_%d_%d_lattices_%d_%d_%d_samplings_avg.png'
                           %(runNumber, N_lattices_list[0], N_lattices_list[1], N_lattices_list[2], N_sampling_list[0], N_sampling_list[1], N_sampling_list[2]), dpi=4*96)
 matplotlib.pyplot.savefig('./Output_r%s/Output_imageSums_moduleDisplacements_CChalf/CChalf_imageSums_displaced_modules_%d_%d_%d_lattices_%d_%d_%d_samplings_avg.pdf'

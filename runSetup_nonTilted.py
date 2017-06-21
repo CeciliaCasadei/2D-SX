@@ -319,6 +319,12 @@ if flag == 1:
 flag = 0
 if flag == 1:
     os.system('python imageSums_displaced_modules_finalIntegration.py')
+    
+    
+    
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_integrationPlots.py')
 
 
 
@@ -337,9 +343,15 @@ if flag == 1:
     
  
    
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python signal_to_noise.py')
+    
+    
+    
+flag = 1
+if flag == 1:
+    os.system('python signal_to_noise_plot.py')
     
     
 
