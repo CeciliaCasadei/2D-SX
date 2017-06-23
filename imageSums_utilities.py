@@ -99,6 +99,7 @@ def quadratic_plus_sigmoid(x, offset, a, x0, k, scale):
     y = offset + a*x**2 + scale / (1 + numpy.exp(-k*(x-x0)))
     return y
 
+
     
 def Correlate(x1, x2):
     x1Avg = numpy.average(x1)
