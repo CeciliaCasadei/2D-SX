@@ -53,13 +53,12 @@ printf ("%lf", possiblePredictedPattern[nPredictedSpots-1][12]);
 }
 
 } /* END FOR i */
-
-/* printf ("%d", nMatches); */
+/* printf ("nMatches=%d\n", nMatches); */
 return nMatches;
 
 }
 
 /*
-gcc -O3 -std=gnu99 -c calculate_nMatches_C.c
+gcc -O3 -fPIC -std=gnu99 -c calculate_nMatches_C.c            
 gcc -shared -o calculate_nMatches_C.so calculate_nMatches_C.o
 */

@@ -47,8 +47,8 @@ class diffractionImage:
                          minNofPeaksPerLattice, maxNofPeaksPerImage, 
                          referenceCellSize):
         if self.nPeaks <= maxNofPeaksPerImage:
-            import indexing_C_F
-            indexing_C_F.indexingFunction(self, detectorDistance, pixelSize,
+            import indexing_C_F2
+            indexing_C_F2.indexingFunction(self, detectorDistance, pixelSize,
                                       radialTolerance, pixelTolerance, azimuthTolerance,
                                       minNofPeaksPerLattice, 
                                       referenceCellSize)

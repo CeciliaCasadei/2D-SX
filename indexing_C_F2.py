@@ -14,8 +14,9 @@ import ctypes
 import latticeClass
 
 
-# INCLUDE FORTRAN SUBROUTINE
+# INCLUDE FORTRAN SUBROUTINES
 import calculate_nMatches_F
+import generate_indexedPeaksTable_F
 
 
 # DEFINE C TYPES
@@ -142,40 +143,9 @@ def indexingFunction(self, detectorDistance, pixelSize,
             
             # Store all matches in indexedPeaksTable
             indexedPeaksTable = numpy.zeros((nMatches, 11))
-            indexedPeaksTableRow = 0
-            for i in range(0, self.nPeaks):
-                if self.orderedPeaksMatrix[i,5] == 1:
-                    expRadius  = self.orderedPeaksMatrix[i,3]                  # Radius, pxls
-                    expAzimuth = self.orderedPeaksMatrix[i,4]                  # Azimuth in [0, 2pi]
-                    for j in range(0, nPredictedSpots):
-                        predictedRadius  = possiblePredictedPattern[j,10]
-                        predictedAzimuth = possiblePredictedPattern[j,8]
-                        if numpy.abs(predictedRadius-expRadius) <= radialTolerance and indexedPeaksTableRow < nMatches:
-                            phiTolerance = min([float(azimuthTolerance)/180*numpy.pi, float(pixelTolerance)/predictedRadius])
-                            indexedPeaksTable[indexedPeaksTableRow,0] = possiblePredictedPattern[j,0]                     # h
-                            indexedPeaksTable[indexedPeaksTableRow,1] = possiblePredictedPattern[j,1]                     # k
-                            indexedPeaksTable[indexedPeaksTableRow,2] = expRadius                                         # experimental radius
-                            indexedPeaksTable[indexedPeaksTableRow,3] = expAzimuth                                        # experimental azimuth
-                            indexedPeaksTable[indexedPeaksTableRow,4] = self.orderedPeaksMatrix[i,2]                      # experimental intensity
-                            indexedPeaksTable[indexedPeaksTableRow,5] = abs(expRadius - predictedRadius)                  # radial difference
-                            indexedPeaksTable[indexedPeaksTableRow,7] = i                                                 # experimental peak n                                               
-                            indexedPeaksTable[indexedPeaksTableRow,8] = j                                                 # predicted peak n
-                            indexedPeaksTable[indexedPeaksTableRow,9]  = predictedRadius                                  # predicted radius
-                            indexedPeaksTable[indexedPeaksTableRow,10] = predictedAzimuth                                 # predicted azimuth
-                            if numpy.abs(predictedAzimuth-expAzimuth) <= phiTolerance:                              
-                                self.orderedPeaksMatrix[i,5] = 0
-                                indexedPeaksTable[indexedPeaksTableRow,6] = abs(expAzimuth - predictedAzimuth)            # azimuth difference
-                                indexedPeaksTableRow = indexedPeaksTableRow + 1
-                            elif predictedAzimuth <= phiTolerance/2 and expAzimuth >= 2*numpy.pi - phiTolerance/2:
-                                self.orderedPeaksMatrix[i,5] = 0
-                                indexedPeaksTable[indexedPeaksTableRow,6] = predictedAzimuth + 2*numpy.pi - expAzimuth
-                                indexedPeaksTableRow = indexedPeaksTableRow + 1
-                            elif expAzimuth <= phiTolerance/2 and predictedAzimuth >= 2*numpy.pi - phiTolerance/2:    
-                                self.orderedPeaksMatrix[i,5] = 0
-                                indexedPeaksTable[indexedPeaksTableRow,6] = expAzimuth + 2*numpy.pi - predictedAzimuth
-                                indexedPeaksTableRow = indexedPeaksTableRow + 1
-                            else:
-                                continue
+            generate_indexedPeaksTable_F.generate(radialTolerance, azimuthTolerance, pixelTolerance, 
+                                                  indexedPeaksTable, self.orderedPeaksMatrix, possiblePredictedPattern, 
+                                                  nMatches, self.nPeaks, nPredictedSpots)
                                 
             # GENERATE Lattice OBJECT, STORE IN DICTIONARY 
             latticeObject = latticeClass.Lattice(self.fileName, self.imageNumber, self.runNumber, self.tiltAngle, 

@@ -23,14 +23,13 @@ INTEGER :: nPeaks, nPredictedSpots
 
 ! Local variables
 INTEGER :: i, j
-REAL(8) :: expRadius, expAzimuth, predictedRadius, predictedAzimuth, &
-            deltaRadius, deltaAzimuth, phiTolerance
+REAL(8) :: expRadius, expAzimuth, &
+           predictedRadius, predictedAzimuth, &
+           deltaRadius, deltaAzimuth, phiTolerance
 REAL(8), PARAMETER :: M_PI = 3.141592654D0
 
 ! Initializations
 nMatches(1) = 0
-
-!PRINT *, orderedPeaksMatrix(2,3)
 
 
 LOOP_i : DO i=0, nPeaks-1
