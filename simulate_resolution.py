@@ -5,7 +5,7 @@ directCell = cellSize * numpy.matrix([[1, numpy.cos(2*numpy.pi/3)],[0, numpy.sin
 reciprocalCellRows = 2* numpy.pi * directCell.I                                                   # A^(-1)
 
 h = 3
-k = 4
+k = 0
 qRod = 0 #0.2991 # A^(-1)   
 reciprocalVector = [h, k]*reciprocalCellRows
 q_x = reciprocalVector[0,0]         # A^(-1)

@@ -106,10 +106,10 @@ azimuthTolerance      = 3         # degrees
 minNofPeaksPerLattice = 20        # int
 maxNofPeaksPerImage   = 250       # int
         
-flag = 0
+flag = 1
 if flag == 1:
-    os.system('python latticeIndexing.py --referenceCellSize %f --runNumber %s --detectorDistance %f --pixelSize %f --radialTolerance %f --pixelTolerance %f --azimuthTolerance %f --minNofPeaksPerLattice %d --maxNofPeaksPerImage %d --geometryFile %s'
-    %(referenceCellSize, runNumber, detectorDistance, pixelSize, radialTolerance, pixelTolerance, azimuthTolerance, minNofPeaksPerLattice, maxNofPeaksPerImage, geometryFile))
+    os.system('python latticeIndexing.py --referenceCellSize %f --runNumber %s --detectorDistance %f --pixelSize %f --radialTolerance %f --pixelTolerance %f --azimuthTolerance %f --minNofPeaksPerLattice %d --maxNofPeaksPerImage %d'
+    %(referenceCellSize, runNumber, detectorDistance, pixelSize, radialTolerance, pixelTolerance, azimuthTolerance, minNofPeaksPerLattice, maxNofPeaksPerImage))
     
     
     
@@ -349,7 +349,7 @@ if flag == 1:
     
     
     
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python signal_to_noise_plot.py')
     

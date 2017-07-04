@@ -45,15 +45,13 @@ class diffractionImage:
     def indexingFunction(self, detectorDistance, pixelSize, 
                          radialTolerance, pixelTolerance, azimuthTolerance,
                          minNofPeaksPerLattice, maxNofPeaksPerImage, 
-                         referenceCellSize,
-                         geometryFile):
+                         referenceCellSize):
         if self.nPeaks <= maxNofPeaksPerImage:
-            import indexing
-            indexing.indexingFunction(self, detectorDistance, pixelSize,
+            import indexing_C_F
+            indexing_C_F.indexingFunction(self, detectorDistance, pixelSize,
                                       radialTolerance, pixelTolerance, azimuthTolerance,
                                       minNofPeaksPerLattice, 
-                                      referenceCellSize,
-                                      geometryFile)
+                                      referenceCellSize)
         else:
             print 'Image %s - %s:\tnumber of peaks above threshold.'%(self.imageNumber.zfill(5), self.fileName)
         # Identify and index multiple lattices in one image.

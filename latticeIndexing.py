@@ -16,14 +16,12 @@ import joblib
 def myParallelFunction(myObject, runNumber, detectorDistance, pixelSize, 
                        radialTolerance, pixelTolerance, azimuthTolerance, 
                        minNofPeaksPerLattice, maxNofPeaksPerImage, 
-                       referenceCellSize,
-                       geometryFile):
+                       referenceCellSize):
     if myObject.selectionFlag == 1 and myObject.runNumber == runNumber and myObject.nPeaks > 0:
         myObject.indexingFunction(detectorDistance, pixelSize, 
                                   radialTolerance, pixelTolerance, azimuthTolerance,
                                   minNofPeaksPerLattice, maxNofPeaksPerImage, 
-                                  referenceCellSize,
-                                  geometryFile)
+                                  referenceCellSize)
 
 def latticeIndexingFunction(myArguments):
     
@@ -36,13 +34,12 @@ def latticeIndexingFunction(myArguments):
     # READ INPUTS
     string1 = 'Usage: python latticeIndexing.py --referenceCellSize <referenceCellSize> --runNumber <runNumber> --detectorDistance <detectorDistance>'
     string2 = ' --pixelSize <pixelSize> --radialTolerance <radialTolerance> --pixelTolerance <pixelTolerance> --azimuthTolerance <azimuthTolerance>' 
-    string3 = ' --minNofPeaksPerLattice <minNofPeaksPerLattice> --maxNofPeaksPerImage <maxNofPeaksPerImage> --geometryFile <geometryFile>'    
+    string3 = ' --minNofPeaksPerLattice <minNofPeaksPerLattice> --maxNofPeaksPerImage <maxNofPeaksPerImage> '  
     try:
         optionPairs, leftOver = getopt.getopt(myArguments, "h", ["referenceCellSize=",
                                                                  "runNumber=", "detectorDistance=", "pixelSize=", 
                                                                  "radialTolerance=", "pixelTolerance=", "azimuthTolerance=", 
-                                                                 "minNofPeaksPerLattice=", "maxNofPeaksPerImage=",
-                                                                 "geometryFile="])
+                                                                 "minNofPeaksPerLattice=", "maxNofPeaksPerImage="])
     except getopt.GetoptError:
         print string1 + string2 + string3
         sys.exit(2)   
@@ -68,8 +65,7 @@ def latticeIndexingFunction(myArguments):
             minNofPeaksPerLattice = int(value)
         elif option == "--maxNofPeaksPerImage":
             maxNofPeaksPerImage = int(value)
-        elif option == "--geometryFile":
-            geometryFile = value
+        
     
     
     if os.path.exists('./Output_r%s/ExtractExperimentalInfo/r%s_imagesDictionary.pkl'%(runNumber, runNumber)):
@@ -87,8 +83,7 @@ def latticeIndexingFunction(myArguments):
                        (imageObjects['%s'%i], runNumber, detectorDistance, pixelSize, 
                         radialTolerance, pixelTolerance, azimuthTolerance, 
                         minNofPeaksPerLattice, maxNofPeaksPerImage, 
-                        referenceCellSize,
-                        geometryFile) 
+                        referenceCellSize) 
                         for i,j in imageObjects.items())
         
         # MERGE LATTICE DICTIONARIES TO ONE DICTIONARY

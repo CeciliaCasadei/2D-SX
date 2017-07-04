@@ -9,8 +9,102 @@ OBJECTS OF THE CLASS Lattice ARE GENERATED
 import os
 import numpy
 import pickle
+import ctypes
 
 import latticeClass
+
+
+
+# DEFINE C TYPES
+TYPE_INT = ctypes.c_int
+TYPE_DOUBLE = ctypes.c_double
+TYPE_DOUBLE_SS = ctypes.POINTER(ctypes.POINTER(ctypes.c_double))
+
+
+
+# INCLUDE C FUNCTION
+_fill_deltaAzimuthMatrix_C = ctypes.CDLL("./fill_deltaAzimuthMatrix_C.so")
+_calculate_nMatches_C = ctypes.CDLL("./calculate_nMatches_C.so")
+
+
+
+# DEFINE TYPES FOR C FUNCTION
+_fill_deltaAzimuthMatrix_C.filling.argtypes = [
+TYPE_INT,
+TYPE_INT,
+TYPE_DOUBLE,
+TYPE_DOUBLE,
+TYPE_DOUBLE,
+TYPE_DOUBLE,
+TYPE_DOUBLE,
+TYPE_DOUBLE_SS,
+TYPE_DOUBLE_SS
+]
+_fill_deltaAzimuthMatrix_C.filling.restype = None
+
+_calculate_nMatches_C.calculate.argtypes=[
+TYPE_INT,
+TYPE_INT,
+TYPE_DOUBLE,
+TYPE_DOUBLE,
+TYPE_DOUBLE,
+TYPE_DOUBLE_SS,
+TYPE_DOUBLE_SS
+]             
+_calculate_nMatches_C.calculate.restype = TYPE_INT
+
+
+
+
+# FUNCTION TO INCLUDE C FUNCTION
+def fill_deltaAzimuthMatrix(inPlaneAngle, nPredictedSpots, 
+                            intenseExpPeakRadius, intenseExpPeakAzimuth, 
+                            radialTolerance, azimuthTolerance, pixelTolerance, 
+                            predictionInOneOrientation, deltaAzimuthMatrix):
+                                
+    # CONVERT ALL ARGUMENTS TO C TYPES
+    c_inPlaneAngle = TYPE_INT(inPlaneAngle)
+    c_nPredictedSpots = TYPE_INT(nPredictedSpots)
+    c_intenseExpPeakRadius = TYPE_DOUBLE(intenseExpPeakRadius)
+    c_intenseExpPeakAzimuth = TYPE_DOUBLE(intenseExpPeakAzimuth)
+    c_radialTolerance = TYPE_DOUBLE(radialTolerance)
+    c_azimuthTolerance = TYPE_DOUBLE(azimuthTolerance)
+    c_pixelTolerance = TYPE_DOUBLE(pixelTolerance)
+    pointer_predictionInOneOrientation = predictionInOneOrientation.ctypes.data_as(TYPE_DOUBLE_SS)
+    pointer_deltaAzimuthMatrix = deltaAzimuthMatrix.ctypes.data_as(TYPE_DOUBLE_SS)
+    
+                                
+    # CALL C FUNCTION
+    _fill_deltaAzimuthMatrix_C.filling(c_inPlaneAngle, c_nPredictedSpots,
+                                       c_intenseExpPeakRadius, c_intenseExpPeakAzimuth,
+                                       c_radialTolerance, c_azimuthTolerance, c_pixelTolerance,
+                                       pointer_predictionInOneOrientation, pointer_deltaAzimuthMatrix) 
+                                       
+                                       
+
+# FUNCTION TO INCLUDE C FUNCTION
+def calculate_nMatches(nPeaks, nPredictedSpots,
+                       radialTolerance, azimuthTolerance, pixelTolerance,
+                       orderedPeaksMatrix,
+                       possiblePredictedPattern):
+    # CONVERT ALL ARGUMENTS TO C TYPE
+    c_nPeaks = TYPE_INT(nPeaks)
+    c_nPredictedSpots = TYPE_INT(nPredictedSpots)
+    c_radialTolerance = TYPE_DOUBLE(radialTolerance)
+    c_azimuthTolerance = TYPE_DOUBLE(azimuthTolerance)
+    c_pixelTolerance = TYPE_DOUBLE(pixelTolerance)
+    pointer_orderedPeaksMatrix = orderedPeaksMatrix.ctypes.data_as(TYPE_DOUBLE_SS)
+    pointer_possiblePredictedPattern = possiblePredictedPattern.ctypes.data_as(TYPE_DOUBLE_SS)
+
+    # CALL C FUNCTION
+    nMatches = _calculate_nMatches_C.calculate(c_nPeaks, c_nPredictedSpots,
+                                               c_radialTolerance, c_azimuthTolerance, c_pixelTolerance,
+                                               pointer_orderedPeaksMatrix,
+                                               pointer_possiblePredictedPattern)
+    return nMatches
+                  
+ 
+
 
 def indexingFunction(self, detectorDistance, pixelSize, 
                      radialTolerance, pixelTolerance, azimuthTolerance, 
@@ -25,15 +119,10 @@ def indexingFunction(self, detectorDistance, pixelSize,
                                                                                                    # [h k qx qy dMin q azimuth rotatedAzimuth detectorAzimuth 
                                                                                                    # diffractionAngle detectorRadius qRod LPfactor]
                                                                                                    # NB: azimuth on detector in [0, 2pi]    
-    nValidPeaks = 0
-    for i in range(0, self.nPeaks):
-        if self.orderedPeaksMatrix[i,5] == 1:
-            nValidPeaks = nValidPeaks + 1
+    nValidPeaks = self.nPeaks
        
-    nPredictedSpots = 0
-    for i in self.referencePredictedPattern['1']:
-        nPredictedSpots = nPredictedSpots + 1                                  # 432
-    
+    nPredictedSpots = self.referencePredictedPattern['1'].shape[0]
+   
     latticeDictionaryFromOneImage = {}
     nLatticesInImage = 0
     startIdx = 0
@@ -41,7 +130,7 @@ def indexingFunction(self, detectorDistance, pixelSize,
         
         # Look for most intense, valid experimental peak.
         for i in range(startIdx, self.nPeaks):
-            startIdx = startIdx +1
+            startIdx = startIdx + 1
             if self.orderedPeaksMatrix[i,5] == 1:
                 intenseExpPeakIdx = i
                 break
@@ -52,53 +141,27 @@ def indexingFunction(self, detectorDistance, pixelSize,
         
         # For every trial orientation, for every predicted spot radially close to intense peak, 
         # report value of azimuth difference to intense peak in deltaAzimuthMatrix.
-        deltaAzimuthMatrix = numpy.zeros((nPredictedSpots, nInPlaneAngles))    # 432 x 256 
-        for i in range(0,nPredictedSpots):
-            for j in range(0, nInPlaneAngles):
-                deltaAzimuthMatrix[i,j] = 500
-        
-        for inPlaneAngle in range(1, nInPlaneAngles+1):                                        # 1 to 256 included
-            predictionInOneOrientation = self.referencePredictedPattern['%s'%inPlaneAngle]     # 432 x 12
-            for predictedSpot in range(0, nPredictedSpots):                                    # 0 to 431 included              
-                predictedRadius  = predictionInOneOrientation[predictedSpot,10]                # Radius, pxls
-                predictedAzimuth = predictionInOneOrientation[predictedSpot,8]                 # Between 0 and 2pi
-                if numpy.abs(predictedRadius-intenseExpPeakRadius) <= radialTolerance:   
-                    phiTolerance = min([float(azimuthTolerance)/180*numpy.pi, float(pixelTolerance)/predictedRadius])
-                    if numpy.abs(predictedAzimuth-intenseExpPeakAzimuth) <= phiTolerance:
-                        deltaAzimuthMatrix[predictedSpot, inPlaneAngle-1] = numpy.abs(predictedAzimuth - intenseExpPeakAzimuth)
-                    elif predictedAzimuth <= phiTolerance/2 and intenseExpPeakAzimuth >= 2*numpy.pi - phiTolerance/2:
-                        deltaAzimuthMatrix[predictedSpot, inPlaneAngle-1] = predictedAzimuth + 2*numpy.pi - intenseExpPeakAzimuth
-                    elif intenseExpPeakAzimuth <= phiTolerance/2 and predictedAzimuth >= 2*numpy.pi - phiTolerance/2:
-                        deltaAzimuthMatrix[predictedSpot, inPlaneAngle-1] = intenseExpPeakAzimuth + 2*numpy.pi - predictedAzimuth
-                    else:
-                        continue
-        
+        deltaAzimuthMatrix = numpy.zeros((nPredictedSpots, nInPlaneAngles)) + 500          # 432spots x 256orientations         
+        for inPlaneAngle in range(1, nInPlaneAngles+1):                                    # 1 to 256 included
+            predictionInOneOrientation = self.referencePredictedPattern['%s'%inPlaneAngle] # 432 x 12
+            fill_deltaAzimuthMatrix(inPlaneAngle, nPredictedSpots, 
+                                    intenseExpPeakRadius, intenseExpPeakAzimuth, 
+                                    radialTolerance, azimuthTolerance, pixelTolerance, 
+                                    predictionInOneOrientation, deltaAzimuthMatrix)
+                                   
         # Find minimum of deltaAzimuthMatrix -> possibleRotationAngle            
         i,j = numpy.unravel_index(deltaAzimuthMatrix.argmin(),deltaAzimuthMatrix.shape)
         possibleRotationAngleIndex = j                                                          # From 0
         possibleRotationAngle = trialInPlaneAngles[j]
         
         # Count n of experimental peaks matching predicted peaks in the selected possibleRotationAngle
-        nMatches = 0
         myKey = possibleRotationAngleIndex + 1
         possiblePredictedPattern = self.referencePredictedPattern['%s'%myKey]
-        for i in range(0, self.nPeaks):
-            if self.orderedPeaksMatrix[i,5] == 1:
-                expRadius  = self.orderedPeaksMatrix[i,3]                      # Radius, pxls
-                expAzimuth = self.orderedPeaksMatrix[i,4]                      # Azimuth in [0, 2pi]
-                for j in range(0, nPredictedSpots):
-                    predictedRadius  = possiblePredictedPattern[j,10]          # Radius, pxls
-                    predictedAzimuth = possiblePredictedPattern[j,8]           # Azimuth in [0, 2pi]
-                    if numpy.abs(predictedRadius-expRadius) <= radialTolerance:
-                        phiTolerance = min([float(azimuthTolerance)/180*numpy.pi, float(pixelTolerance)/predictedRadius])
-                        if numpy.abs(predictedAzimuth-expAzimuth) <= phiTolerance:
-                            nMatches = nMatches + 1
-                        elif predictedAzimuth <= phiTolerance/2 and expAzimuth >= 2*numpy.pi - phiTolerance/2:
-                            nMatches = nMatches + 1
-                        elif expAzimuth <= phiTolerance/2 and predictedAzimuth >= 2*numpy.pi - phiTolerance/2:
-                            nMatches = nMatches + 1
-                    else:
-                        continue
+        
+        nMatches = calculate_nMatches(self.nPeaks, nPredictedSpots,
+                                      radialTolerance, azimuthTolerance, pixelTolerance,
+                                      self.orderedPeaksMatrix,
+                                      possiblePredictedPattern)
         
         # If the number of matches is big enough, possibleRotationangle defines a Lattice orientation
         if nMatches >= minNofPeaksPerLattice:
