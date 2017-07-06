@@ -48,7 +48,7 @@ def imageSums():
                            %(selectedRun, selectedRun, selectedRun)) # 629 lattices  
     lattices_names = open('./Output_r%s/transformAndScale/spotsMatricesList-r%s/list-r%s.txt'%(selectedRun, selectedRun, selectedRun), 'r')
     lattices_names = list(lattices_names)    
-    images_names = open('./Output_r%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(selectedRun, selectedRun))
+    images_names = open('./Output_r%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(selectedRun, selectedRun), 'r')
     images_names = list(images_names)
     
     # EXTRACT GEOMETRY

@@ -139,14 +139,14 @@ def latticeIndexingFunction(myArguments):
                         j.indexedPeaksTable[z,8], j.indexedPeaksTable[z,9], j.indexedPeaksTable[z,10]))
         f.close()
         
-        # PLOT INDEXING RESULTS
-        startPlotTime = time.time()
-        print 'Plotting indexed experimental peaks.'
-        for i, j in sorted(imageObjects.items()):
-            if imageObjects['%s' %i].selectionFlag == 1 and imageObjects['%s' %i].runNumber == runNumber and imageObjects['%s' %i].nPeaks > 0: 
-                imageObjects['%s' %i].plotIndexedExperimentalPeaks(detectorDistance, pixelSize, resolutionRadii)
-        plotRunTime = time.time() - startPlotTime
-        print 'Plotting took %.1f s'%plotRunTime 
+#        # PLOT INDEXING RESULTS
+#        startPlotTime = time.time()
+#        print 'Plotting indexed experimental peaks.'
+#        for i, j in sorted(imageObjects.items()):
+#            if imageObjects['%s' %i].selectionFlag == 1 and imageObjects['%s' %i].runNumber == runNumber and imageObjects['%s' %i].nPeaks > 0: 
+#                imageObjects['%s' %i].plotIndexedExperimentalPeaks(detectorDistance, pixelSize, resolutionRadii)
+#        plotRunTime = time.time() - startPlotTime
+#        print 'Plotting took %.1f s'%plotRunTime 
         
         # REMOVE INDIVIDUAL LATTICE DICTIONARIES
         os.system('rm ./Output_r%s/LatticeIndexing/latticeDictionary*.pkl'%runNumber)

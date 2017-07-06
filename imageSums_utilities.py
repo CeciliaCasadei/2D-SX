@@ -507,10 +507,10 @@ def do_gaussFit_fixed_sigmas(sector, sigX, sigY):
         
 def recenter(sector, x0, y0, precision_factor, truncated_halfWidth):
     
-    precision_factor = 10**precision_factor
-    truncated_halfWidth = precision_factor*truncated_halfWidth   
+    precision_factor = 10**precision_factor                      # 10
+    truncated_halfWidth = precision_factor*truncated_halfWidth   # 250
     
-    expanded_sector = numpy.zeros((precision_factor*sector.shape[0], precision_factor*sector.shape[1]))
+    expanded_sector = numpy.zeros((precision_factor*sector.shape[0], precision_factor*sector.shape[1])) # 500x500
     x0 = precision_factor*x0
     y0 = precision_factor*y0
     x0 = int(round(x0))
