@@ -15,19 +15,21 @@ import imageSums_utilities
 
             
 def imageSums(myArguments):
+
     
     # READ INPUTS    
     try:
         optionPairs, leftOver = getopt.getopt(myArguments, "h", ["selectedRun=", 
                                                                  "resolutionLimit=", 
                                                                  "halfWidth=",
-                                                                 "lowFluctuationThreshold="])
+                                                                 "lowFluctuationThreshold=",
+                                                                 "precisionFactor="])
     except getopt.GetoptError:
-        print 'Usage: python imageSums_displaced_modules.py --selectedRun <selectedRun> --resolutionLimit <resolutionLimit> --halfWidth <halfWidth> --lowFluctuationThreshold <lowFluctuationThreshold>'
+        print 'Usage: python imageSums_displaced_modules.py --selectedRun <selectedRun> --resolutionLimit <resolutionLimit> --halfWidth <halfWidth> --lowFluctuationThreshold <lowFluctuationThreshold> --precisionFactor <precisionFactor>'
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python imageSums_displaced_modules.py --selectedRun <selectedRun> --resolutionLimit <resolutionLimit> --halfWidth <halfWidth> --lowFluctuationThreshold <lowFluctuationThreshold>'
+            print 'Usage: python imageSums_displaced_modules.py --selectedRun <selectedRun> --resolutionLimit <resolutionLimit> --halfWidth <halfWidth> --lowFluctuationThreshold <lowFluctuationThreshold> --precisionFactor <precisionFactor>'
             sys.exit()
         elif option == "--selectedRun":
             selectedRun = value.zfill(4)
@@ -37,8 +39,11 @@ def imageSums(myArguments):
             halfWidth = int(value)
         elif option == "--lowFluctuationThreshold":
             bg_lowFluctuationThreshold = float(value)
+        elif option == "--precisionFactor":
+            precisionFactor = int(value)
             
-            
+    truncated_halfWidth = halfWidth - 10
+        
     # FOLDERS
     outputFolder = './Output_r%s/Output_imageSums_moduleDisplacements'%selectedRun    
     if not os.path.exists('%s'%outputFolder):
@@ -54,7 +59,7 @@ def imageSums(myArguments):
             
     # LOGGING
     fOpen = open('%s/imageSums_displaced_modules.txt'%outputFolder, 'w')
-    fOpen.write('h k Gauss_amplitude Dx0 Dy0 sigma_x sigma_y I_Gauss I_sum\n')
+    fOpen.write('h k Gauss_amplitude x0 y0 sigma_x sigma_y I_Gauss I_sum\n')
    
     # EXTRACT MODULE DISPLACEMENTS
     module_displacements_file = open('./Output_r%s/ModuleDisplacements/module_displacements.pkl'%selectedRun, 'rb')
@@ -94,7 +99,7 @@ def imageSums(myArguments):
                      
         # ONE ORBIT
         nTot_orbit = 0
-        total_sum = numpy.zeros((2*halfWidth, 2*halfWidth))
+        total_sum = numpy.zeros(( 2*truncated_halfWidth*(10**precisionFactor), 2*truncated_halfWidth*(10**precisionFactor) ))
         
         # LOOP ON PARTIAL SUMS
         for i in range(0, len(partialSums_list)):                       
@@ -106,9 +111,9 @@ def imageSums(myArguments):
                 nTerms = partialSum.nTerms   
                 
                 bottomBound = partialSum.module_bottomBound
-                topBound = partialSum.module_topBound
-                leftBound = partialSum.module_leftBound 
-                rightBound = partialSum.module_rightBound 
+                topBound    = partialSum.module_topBound
+                leftBound   = partialSum.module_leftBound 
+                rightBound  = partialSum.module_rightBound 
                     
                 module_Dx0 = numpy.nan
                 module_Dy0 = numpy.nan
@@ -124,9 +129,14 @@ def imageSums(myArguments):
                 if (numpy.isnan(module_Dx0) or numpy.isnan(module_Dy0)):
                     print 'PROBLEM'
                     
-                recentered_partialSum_sector = imageSums_utilities.translate(partialSum_sector, 
-                                                                             module_Dx0, 
-                                                                             module_Dy0) # NO BG SUB, NO NORMALIZATION, DETECTOR COUNTS
+                module_x0 = halfWidth + module_Dx0
+                module_y0 = halfWidth + module_Dy0
+                    
+                recentered_partialSum_sector = imageSums_utilities.recenter(partialSum_sector, 
+                                                                             module_x0, 
+                                                                             module_y0,
+                                                                             precisionFactor,
+                                                                             truncated_halfWidth) # 50x50 -> 300x300, NO BG SUB, NO NORMALIZATION, DETECTOR COUNTS
                 total_sum = total_sum + recentered_partialSum_sector
                 nTot_orbit = nTot_orbit + nTerms                                                        
                                                         
@@ -134,7 +144,6 @@ def imageSums(myArguments):
         total_sum = total_sum / nTot_orbit 
         
         # BG SUBTRACTION
-        print total_sum.shape
         bg, n_bgPixels = imageSums_utilities.calculateBackground_nBg(total_sum, lowFluctuationThreshold=bg_lowFluctuationThreshold)
         bgSubtracted_total_sum = total_sum - bg
         
@@ -154,7 +163,8 @@ def imageSums(myArguments):
         matplotlib.pyplot.close()  
         
         ### SUM INTEGRATION ###
-        integratedIntensity = imageSums_utilities.integrate(bgSubtracted_total_sum)     
+        integratedIntensity = imageSums_utilities.integrate(bgSubtracted_total_sum, expansion_factor=precisionFactor)  
+        integratedIntensity = integratedIntensity/((10**precisionFactor)**2)
         
         ### GAUSS FIT ###
         refined_sigma_x, refined_sigma_y, \
@@ -162,17 +172,24 @@ def imageSums(myArguments):
         refined_amplitude, gauss_integral, \
         data, data_fitted = imageSums_utilities.do_gaussFit(bgSubtracted_total_sum)
         
+        if not numpy.isnan(gauss_integral):
+            refined_sigma_x = refined_sigma_x/(10**precisionFactor) # Can be negative at this stage.
+            refined_sigma_y = refined_sigma_y/(10**precisionFactor)
+            gauss_integral  = gauss_integral/((10**precisionFactor)**2)
+            
         print integratedIntensity, gauss_integral
         
         ### PLOT GAUSS FIT ###
         if not numpy.isnan(gauss_integral):
+            
             myFigureObject = matplotlib.pyplot.figure()
-            myAxesImageObject = matplotlib.pyplot.imshow(data.reshape(2*halfWidth, 2*halfWidth), 
+            myAxesImageObject = matplotlib.pyplot.imshow(data.reshape(2*truncated_halfWidth*(10**precisionFactor), 2*truncated_halfWidth*(10**precisionFactor)), 
                                                          origin='lower', interpolation='nearest')
             try:
-                matplotlib.pyplot.gca().contour(numpy.linspace(0, 2*halfWidth-1, 2*halfWidth), 
-                                                numpy.linspace(0, 2*halfWidth-1, 2*halfWidth), 
-                                                data_fitted.reshape(2*halfWidth, 2*halfWidth), 4, colors='w')
+                matplotlib.pyplot.gca().contour(numpy.linspace(0, 2*truncated_halfWidth*(10**precisionFactor)-1, 2*truncated_halfWidth*(10**precisionFactor)), 
+                                                numpy.linspace(0, 2*truncated_halfWidth*(10**precisionFactor)-1, 2*truncated_halfWidth*(10**precisionFactor)), 
+                                                data_fitted.reshape(2*truncated_halfWidth*(10**precisionFactor), 2*truncated_halfWidth*(10**precisionFactor)), 4, colors='w')
+   
             except:
                 print 'PROBLEM DRAWING CONTOURS'
                 
@@ -184,7 +201,7 @@ def imageSums(myArguments):
             matplotlib.pyplot.close()  
             
         fOpen.write('%4d%4d%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f%10.2f\n'%(orbit_h_label, orbit_k_label, 
-                                                                   refined_amplitude, (refined_x0-halfWidth), (refined_y0-halfWidth),
+                                                                   refined_amplitude, refined_x0, refined_y0,
                                                                    refined_sigma_x, refined_sigma_y,
                                                                    gauss_integral, integratedIntensity))
     fOpen.close()

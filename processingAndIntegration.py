@@ -175,9 +175,9 @@ def processing(myArguments):
                 os.mkdir(processingFiguresFolder)
             if myLattice.runNumber == runNumber and myLattice.imageNumber == imageSelection and myLattice.latticeNumberInImage == latticeSelection:
                 processFlag = 1
-                bgPlanePlotFlag = 0 #1
-                singleSpotFigureFlag = 0 #1
-                integratedPeaksFigureFlag = 1
+                bgPlanePlotFlag = 1 #1
+                singleSpotFigureFlag = 1 #1
+                integratedPeaksFigureFlag = 0
         else:
             if myLattice.runNumber == runNumber:
                 processFlag = 1

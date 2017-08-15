@@ -23,7 +23,7 @@ def scalingFunction(myArguments):
     
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "dQrod=", "outputFolder="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "dQrod=", "outputFolder=", "productThreshold="])
     except getopt.GetoptError:
         print 'Usage: python scaling.py --runNumber <runNumber>  --dQrod <dQrod> --outputFolder <outputFolder>'
         sys.exit(2)   
@@ -37,6 +37,8 @@ def scalingFunction(myArguments):
             deltaQrodThreshold = float(value)
         elif option == "--outputFolder": #'./Output_Test_elliptical_integration'    
             outputFolder = value
+        elif option == "--productThreshold":
+            productThreshold = float(value)
                         
     if outputFolder == '':
         outputFolder = './Output_r%s/transformAndScale'%runNumber

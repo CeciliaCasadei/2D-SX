@@ -68,7 +68,7 @@ def calculate_moduleDisplacements_Function(myArguments):
     
     # LOG
     logFile = open('%s/calculate_moduleDisplacements.log'%outputFolder, 'w')
-    logFile.write('module_top module_right h k x0 y0 sigmaX sigmaY gsussI gaussA nTerms\n')
+    logFile.write('module_top module_right h k x0 y0 sigmaX sigmaY gaussI gaussA nTerms\n')
             
     # EXTRACT GEOMETRY
     geometryData = h5py.File(geometryFile, 'r')
@@ -109,6 +109,15 @@ def calculate_moduleDisplacements_Function(myArguments):
     partialSums_list = pickle.load(partialSums_file)
     partialSums_file.close()
     print '%d partial sums'%len(partialSums_list)
+    
+    # EXTRACT APPROXIMATE ORBIT INTENSITIES
+    rough_intensities = open('./Output_r%s/Output_imageSums/h_k_Isum_Igauss_sigX_sigY.txt'%selectedRun, 'r')
+    rough_intensities_table = []
+    for rough_intensity in rough_intensities:
+        line = [int(rough_intensity.split()[0]), int(rough_intensity.split()[1]), float(rough_intensity.split()[3])] # h, k, I_gauss
+        rough_intensities_table.append(line)
+    rough_intensities_table = numpy.asarray(rough_intensities_table)
+    rough_intensities.close()
         
     # LOOP ON MODULES
     for module_row in range(0, len(row_interface)-1):
@@ -135,45 +144,53 @@ def calculate_moduleDisplacements_Function(myArguments):
                 orbit_h_label = label[0]
                 orbit_k_label = label[1]  
                 
-                #print label
-            
-                # LOOP ON PARTIAL SUMS
-                for i in range(0, len(partialSums_list)):                       
-                    partialSum = partialSums_list[i]
-                    if (partialSum.h_label == orbit_h_label and 
-                        partialSum.k_label == orbit_k_label and
-                        partialSum.module_bottomBound == bottom_bound and
-                        partialSum.module_topBound == top_bound and
-                        partialSum.module_leftBound == left_bound and
-                        partialSum.module_rightBound == right_bound):
+                print label
+                
+                orbitFlag = 0
+                for rough_intensity in rough_intensities_table:
+                    if orbit_h_label == rough_intensity[0] and orbit_k_label == rough_intensity[1]:
+                        I = float(rough_intensity[2])
+                        if I >= intensity_threshold*nCountsPerPhoton:
+                            # USE THIS ORBIT 
+                            orbitFlag = 1
                             
-                            #print 'Matched - i=%d'%i
-                            
-                            partialSum_sector = partialSum.partialSum # NOT BG SUBTRACTED, NOT NORMALIZED ON N OF TERMS, EXPRESSED IN COUNTS
-                            halfWidth = int(partialSum_sector.shape[0]/2)
-                            nTerms = partialSum.nTerms
-                            
-                            ### CALCULATE BACKGROUND ###
-                            background = imageSums_utilities.calculateBackground_noImg(partialSum_sector)
-                                      
-                            ### BG SUBTRACTION ###
-                            bgSubtracted_partial_sum = partialSum_sector - background
-                            
-                            ### NORMALIZATION ###
-                            bgSubtracted_partial_sum_normalized = bgSubtracted_partial_sum / nTerms
-                    
-                            ### SINGLE MODULE PLOT ###
-                            single_module_plot_flag = 0
-                            if single_module_plot_flag == 1:
-                                myFigureObject = matplotlib.pyplot.figure()
-                                myAxesImageObject = matplotlib.pyplot.imshow(bgSubtracted_partial_sum_normalized, origin='lower', interpolation='nearest')
-                                matplotlib.pyplot.title('Orbit: %d %d \nResolution: %.2f'%(orbit_h_label, orbit_k_label, orbit.resolution))
-                                myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)                    
-                                matplotlib.pyplot.savefig('%s/partialSum_module_top_%d_right_%d_n_%d_orbit_%d_%d.png'
-                                                           %(moduleFolder, top_bound, right_bound, nTerms, orbit_h_label, orbit_k_label), dpi = 2*96 )                    
-                                matplotlib.pyplot.close()  
-                            
+                if orbitFlag == 1:
+                    # LOOP ON PARTIAL SUMS
+                    for i in range(0, len(partialSums_list)):                       
+                        partialSum = partialSums_list[i]
+                        if (partialSum.h_label == orbit_h_label and 
+                            partialSum.k_label == orbit_k_label and
+                            partialSum.module_bottomBound == bottom_bound and
+                            partialSum.module_topBound == top_bound and
+                            partialSum.module_leftBound == left_bound and
+                            partialSum.module_rightBound == right_bound):
+                                
+                            nTerms = partialSum.nTerms                                        
                             if nTerms >= nTerms_threshold:
+                                partialSum_sector = partialSum.partialSum # NOT BG SUBTRACTED, NOT NORMALIZED ON N OF TERMS, EXPRESSED IN COUNTS
+                                halfWidth = int(partialSum_sector.shape[0]/2)
+                                
+                                ### CALCULATE BACKGROUND ###
+                                background = imageSums_utilities.calculateBackground_noImg(partialSum_sector)
+                                          
+                                ### BG SUBTRACTION ###
+                                bgSubtracted_partial_sum = partialSum_sector - background
+                                
+                                ### NORMALIZATION ###
+                                bgSubtracted_partial_sum_normalized = bgSubtracted_partial_sum / nTerms
+                        
+                                ### SINGLE MODULE PLOT ###
+                                single_module_plot_flag = 0
+                                if single_module_plot_flag == 1:
+                                    myFigureObject = matplotlib.pyplot.figure()
+                                    myAxesImageObject = matplotlib.pyplot.imshow(bgSubtracted_partial_sum_normalized, origin='lower', interpolation='nearest')
+                                    matplotlib.pyplot.title('Orbit: %d %d \nResolution: %.2f'%(orbit_h_label, orbit_k_label, orbit.resolution))
+                                    myFigureObject.colorbar(myAxesImageObject, pad=0.01, fraction=0.0471, shrink=1.00, aspect=20)                    
+                                    matplotlib.pyplot.savefig('%s/partialSum_module_top_%d_right_%d_n_%d_orbit_%d_%d.png'
+                                                               %(moduleFolder, top_bound, right_bound, nTerms, orbit_h_label, orbit_k_label), dpi = 2*96 )                    
+                                    matplotlib.pyplot.close()  
+                            
+                           
                                 ### TRY GAUSSIAN FIT OF BG SUBTRACTED, ROTATED SUM ON SINGLE MODULE ###
                                 refined_sigma_x, refined_sigma_y, \
                                 refined_x0, refined_y0, \

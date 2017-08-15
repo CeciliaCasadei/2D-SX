@@ -279,14 +279,13 @@ def calculateBackground_noImg(imageSector):
                                
     return backGround
     
-def calculateBackground_nBg(imageSector):
+def calculateBackground_nBg(imageSector, lowFluctuationThreshold=2):
         
     # PARAMETERS
     gridStep = 3
     subBoxWidth = 3
-    lowFluctuationThreshold = 2 # 2.5 in MATLAB
     
-    # CALCULATE STD DEVIATIN AND MEAN INTENSITY ON A GRID, CALCULATE SECTOR LOCAL NOISE
+    # CALCULATE STD DEVIATION AND MEAN INTENSITY ON A GRID, CALCULATE SECTOR LOCAL NOISE
     xGrid = range(3, imageSector.shape[1], gridStep)     # 3 6 9 ... 27 (9 values) 
     yGrid = range(3, imageSector.shape[0], gridStep)     # 3 6 9 ... 27 (9 values) 
     stdDevMatrix = numpy.zeros((len(yGrid), len(xGrid))) # 9x9
@@ -324,9 +323,11 @@ def calculateBackground_nBg(imageSector):
     # EXTRACT INTENSITIES OF LOW FLUCTUATION POINTS FOR SUBSEQUENT BG PLANE CALCULATION
     xSample = []
     ySample = []
-    intensitySample = []           
+    intensitySample = []   
+        
     
     lowFluctuationIndices = numpy.argwhere(stdDevMatrix <= lowFluctuationThreshold * localNoise)
+    
     for myIndices in lowFluctuationIndices:
         myRowIdx = myIndices[0]
         myColumnIdx = myIndices[1]
@@ -430,7 +431,7 @@ def do_gaussFit(sector):
         
         initial_x = float(n_x)/2
         initial_y = float(n_y)/2
-        initial_guess = (numpy.amax(sector), initial_x, initial_y, 2.0, 2.0)
+        initial_guess = (numpy.amax(sector), initial_x, initial_y, 1.0, 1.0)
         
         popt, pcov = scipy.optimize.curve_fit(twoD_Gaussian_simple, (x, y), data, p0=initial_guess)
         data_fitted = twoD_Gaussian_simple((x, y), *popt)       
@@ -478,14 +479,9 @@ def do_gaussFit_fixed_sigmas(sector, sigX, sigY):
                       
         popt, pcov = scipy.optimize.curve_fit(lambda (x, y), amplitude, xo, yo: twoD_Gaussian_simple((x, y), amplitude, xo, yo, sigX, sigY), (x, y), data, p0=initial_guess)   
         
-        #popt, pcov = scipy.optimize.curve_fit(twoD_Gaussian_simple, (x, y), data, p0=initial_guess)
-        #data_fitted = twoD_Gaussian_simple((x, y), *popt)       
-        
         refined_amplitude = popt[0]
         refined_x0 = popt[1]
         refined_y0 = popt[2]
-#        refined_sigma_x = popt[3]
-#        refined_sigma_y = popt[4]
         
         data_fitted = twoD_Gaussian_simple((x, y), refined_amplitude, refined_x0, refined_y0, sigX, sigY)
               
@@ -504,15 +500,15 @@ def do_gaussFit_fixed_sigmas(sector, sigX, sigY):
     return refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted
 
 
-        
+
 def recenter(sector, x0, y0, precision_factor, truncated_halfWidth):
     
     precision_factor = 10**precision_factor                      # 10
-    truncated_halfWidth = precision_factor*truncated_halfWidth   # 250
+    truncated_halfWidth = precision_factor*truncated_halfWidth   # 150
     
     expanded_sector = numpy.zeros((precision_factor*sector.shape[0], precision_factor*sector.shape[1])) # 500x500
-    x0 = precision_factor*x0
-    y0 = precision_factor*y0
+    x0 = (precision_factor*x0)+(precision_factor/2) # NOT: x0 = precision_factor*x0
+    y0 = (precision_factor*y0)+(precision_factor/2) # NOT: y0 = precision_factor*y0
     x0 = int(round(x0))
     y0 = int(round(y0))
     for i in range(0, sector.shape[0]):
@@ -523,3 +519,50 @@ def recenter(sector, x0, y0, precision_factor, truncated_halfWidth):
                     expanded_sector[m, n] = element
     recentered_sum = expanded_sector[y0-truncated_halfWidth:y0+truncated_halfWidth, x0-truncated_halfWidth:x0+truncated_halfWidth] 
     return recentered_sum # 300x300
+    
+    
+    
+def translate(spotMatrix, dX, dY):
+    # Positive dX is a translation to the left
+
+    x_windows_pix = range(0, +spotMatrix.shape[1])  # -18, -17, ..., +17
+    y_windows_pix = range(0, +spotMatrix.shape[0])  # -18, -17, ..., +17
+    
+    [X_windows_pix, Y_windows_pix] = numpy.meshgrid(x_windows_pix, y_windows_pix) # [columnIdx, rowIdx]
+    X_windows_pix = numpy.asarray(X_windows_pix, dtype=numpy.float32)
+    Y_windows_pix = numpy.asarray(Y_windows_pix, dtype=numpy.float32)
+    
+    X_windows_pix_translated = X_windows_pix+dX
+    Y_windows_pix_translated = Y_windows_pix+dY
+   
+    f = scipy.interpolate.interp2d(x_windows_pix, y_windows_pix, spotMatrix, kind='linear')
+    spotMatrix_translated = numpy.zeros(spotMatrix.shape)
+    
+    for columnIndex in range(0, spotMatrix_translated.shape[1]):
+        for rowIndex in range(0, spotMatrix_translated.shape[0]):
+            translated_x = X_windows_pix_translated[rowIndex, columnIndex]
+            translated_y = Y_windows_pix_translated[rowIndex, columnIndex]
+            translated_f = f(translated_x, translated_y)
+            spotMatrix_translated[rowIndex, columnIndex] = translated_f
+            
+    return spotMatrix_translated
+    
+    
+
+def buildMasks(sector, precision_factor, multiplicative_factor, sigma_x, sigma_y):
+    # PREPARE INTEGRATION MASK (ELLIPSE) AND RING MASK (ELLIPTICAL RING)
+    integrationMask = numpy.zeros((sector.shape))   
+    ringMask        = numpy.zeros((sector.shape)) 
+    
+    colIdx, rowIdx = numpy.meshgrid(numpy.arange(integrationMask.shape[1]), numpy.arange(integrationMask.shape[0]))
+    x_axis = 10**precision_factor * multiplicative_factor * sigma_x
+    y_axis = 10**precision_factor * multiplicative_factor * sigma_y
+    centerX = integrationMask.shape[1] / 2
+    centerY = integrationMask.shape[0] / 2
+    distance = ((rowIdx-centerY)**2)/(y_axis**2) + ((colIdx-centerX)**2)/(x_axis**2)
+    
+    integrationMask[numpy.where(distance < 1)] = 1
+    ringMask[numpy.where(distance > 1.5)] = 1
+    ringMask[numpy.where(distance > 3.5)] = 0 #was 2.1
+    
+    return integrationMask, ringMask

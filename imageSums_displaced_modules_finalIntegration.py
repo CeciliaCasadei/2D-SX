@@ -17,7 +17,6 @@ import imageSums_utilities
 runNumber = '0127'
 nCountsPerPhoton = 26
 ellipse_multiplicative_factor = 2.5 
-precision_factor = 1
 
 
 
@@ -56,8 +55,6 @@ for key, orbit in orbitsDictionary.items():
     nOrbits = nOrbits + 1    
 print nOrbits, ' ORBITS'
 
-
-
 fLog = open('%s/h_k_I_sum_circle_I_gauss_fixed_sigmas_I_sum_ellipse_x0_y0.txt'%outputFolder, 'w')
 
 for key, orbit in orbitsDictionary.items():
@@ -72,22 +69,16 @@ for key, orbit in orbitsDictionary.items():
     print q, sigma_x, sigma_y
     
     ### SUM INTEGRATION ON FIXED RADIUS CIRCLE ###
-    integratedIntensity_circle = imageSums_utilities.integrate(bgSubtracted_total_sum, expansion_factor=precision_factor)     
-    integratedIntensity_circle = integratedIntensity_circle/((10**precision_factor)**2)
+    integratedIntensity_circle = imageSums_utilities.integrate(bgSubtracted_total_sum)     
     
     ### SUM INTEGRATION ON VARIABLE ELLIPSE ###
     integratedIntensity_ellipse = imageSums_utilities.integrate_ellipse(bgSubtracted_total_sum, sigma_x, sigma_y, 
-                                                                        ellipse_multiplicative_factor, expansion_factor=precision_factor)
-    integratedIntensity_ellipse = integratedIntensity_ellipse/((10**precision_factor)**2)
+                                                                        ellipse_multiplicative_factor)
     
     ### GAUSS FIT AND INTEGRAL ###    
     refined_x0, refined_y0, refined_amplitude, gauss_integral, data, data_fitted = imageSums_utilities.do_gaussFit_fixed_sigmas(bgSubtracted_total_sum, 
-                                                                                                                                sigma_x*10**precision_factor, 
-                                                                                                                                sigma_y*10**precision_factor)
-    if not numpy.isnan(gauss_integral):
-        gauss_integral = gauss_integral/((10**precision_factor)**2)
-        refined_x0 = refined_x0/(10**precision_factor)
-        refined_y0 = refined_y0/(10**precision_factor)
+                                                                                                                                sigma_x, 
+                                                                                                                                sigma_y)
     
     print h_label, k_label, integratedIntensity_circle, integratedIntensity_ellipse, gauss_integral/nCountsPerPhoton 
 

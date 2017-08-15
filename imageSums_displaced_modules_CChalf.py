@@ -23,32 +23,94 @@ def imageSums_CChalf(myArguments):
     # PARAMETERS
     selectedRun = '0127'
     resolutionLimit = 4.0
-    halfWidth = 25
-    truncated_halfWidth = 15
+    
+    halfWidth = 25    
+    imagesDirectoryName = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_@_LCLS/r%s-images/data1'%selectedRun 
+    geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5'     # same for all runs
+    
+    nominalCell = 62.45
+    hmax = 100
+    kmax = 100
+    
+    tiltAngle = 0
+    wavelength = 1.485 # A
+    detectorDistance = 0.235 # m
+    pixelSize = 0.000110 # m
+    
     precision_factor = 1
     ellipse_multiplicative_factor = 2.5
-        
+    
+    str1 = '--selectedRun <selectedRun> --resolutionLimit <resolutionLimit>'
+    str2 = '--halfWidth <halfWidth> --imagesDirectoryName <imagesDirectoryName> --geometryFile <geometryFile>'
+    str3 = '--nominalCell <nominalCell> --hmax <hmax> --kmax <kmax>'
+    str4 = '--tiltAngle <tiltAngle> --wavelength <wavelength> --detectorDistance  <detectorDistance> --pixelSize <pixelSize>'
+    str5 = '--precision_factor <precision_factor> --ellipse_multiplicative_factor <ellipse_multiplicative_factor> --N_lattices <N_lattices>'
+    
+    # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["N_lattices="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["selectedRun=", 
+                                                                 "resolutionLimit=", 
+                                                                 "halfWidth=", 
+                                                                 "imagesDirectoryName=",
+                                                                 "geometryFile=",
+                                                                 "nominalCell=",
+                                                                 "hmax=", "kmax=",
+                                                                 "tiltAngle=",
+                                                                 "wavelength=",
+                                                                 "detectorDistance=",
+                                                                 "pixelSize=",
+                                                                 "precision_factor=",
+                                                                 "ellipse_multiplicative_factor=",
+                                                                 "N_lattices="])
     except getopt.GetoptError:
-        print 'python imageSums_displaced_modules_CChalf.py --N_lattices <N_lattices>'
-        sys.exit(2)   
+        print 'Usage: python imageSums_displaced_modules_CChalf.py %s %s %s %s %s'%(str1, str2, str3, str4, str5)
+        sys.exit(2) 
     for option, value in optionPairs:
-        if option == '-h':            
-            print 'python imageSums_displaced_modules_CChalf.py --N_lattices <N_lattices>'
+        if option == '-h':
+            print 'Usage: python imageSums_displaced_modules_CChalf.py %s %s %s %s %s'%(str1, str2, str3, str4, str5)
             sys.exit()
+        elif option == "--selectedRun":
+            selectedRun = value.zfill(4)
+        elif option == "--resolutionLimit":
+            resolutionLimit = float(value)
+        elif option == "--halfWidth":
+            halfWidth = int(value)
+        elif option == "--imagesDirectoryName":
+            imagesDirectoryName = value
+        elif option == "--geometryFile":
+            geometryFile = value
+        elif option == "--nominalCell":
+            nominalCell = float(value)
+        elif option == "--hmax":
+            hmax = int(value)
+        elif option == "--kmax":
+            kmax = int(value)
+        elif option == "--tiltAngle":
+            tiltAngle = float(value)
+        elif option == "--wavelength":
+            wavelength = float(value)
+        elif option == "--detectorDistance":
+            detectorDistance = float(value)
+        elif option == "--pixelSize":
+            pixelSize = float(value)
+        elif option == "--precision_factor":
+            precision_factor = int(value)
+        elif option == "--ellipse_multiplicative_factor":
+            ellipse_multiplicative_factor = float(value)
         elif option == "--N_lattices":
             N_lattices = int(value)
+        
             
     print 'N_lattices = ', N_lattices
+    
+    truncated_halfWidth = halfWidth - 10
     
     # FOLDERS
     outputFolder = './Output_r%s/Output_imageSums_moduleDisplacements_CChalf'%selectedRun
     if not os.path.exists('%s'%outputFolder):
         os.mkdir('%s'%outputFolder)
 
-    # PREPARE LATTICES TO IMAGES MATCHING
-    imagesDirectoryName = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_@_LCLS/r%s-images/data1'%selectedRun    
+    # PREPARE LATTICES TO IMAGES MATCHING   
     lattices = joblib.load('./Output_r%s/transformAndScale/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'
                            %(selectedRun, selectedRun, selectedRun)) # 629 lattices  
     lattices_names = open('./Output_r%s/transformAndScale/spotsMatricesList-r%s/list-r%s.txt'%(selectedRun, selectedRun, selectedRun), 'r')
@@ -57,7 +119,6 @@ def imageSums_CChalf(myArguments):
     images_names = list(images_names)
     
     # EXTRACT GEOMETRY
-    geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5'     # same for all runs
     geometryData = h5py.File(geometryFile, 'r')
     xGeometry = geometryData['/x']   ### float32 ###
     xGeometry_np = numpy.asarray(xGeometry, dtype=numpy.float32)
@@ -65,8 +126,8 @@ def imageSums_CChalf(myArguments):
     yGeometry_np = numpy.asarray(yGeometry, dtype=numpy.float32)
     
     # EXTRACT MODULE DISPLACEMENTS
-    module_displacements_file = open('./Output_r%s/Output_imageSums_moduleDisplacements/module_displacements.pkl'%selectedRun, 'rb')
-    modules = pickle.load(module_displacements_file) # bottom, top, left, right, N, <x0>, sig_x0, <y0>, sig_y0
+    module_displacements_file = open('./Output_r%s/ModuleDisplacements/module_displacements.pkl'%selectedRun, 'rb')
+    modules = pickle.load(module_displacements_file) # bottom, top, left, right, N, <Dx0>, sig_x0, <Dy0>, sig_y0
     module_displacements_file.close()
     
     # ADD MODULE LIMITS
@@ -79,7 +140,7 @@ def imageSums_CChalf(myArguments):
         print '\n*** MODULE: ', bottom_bound, top_bound, '---', left_bound, right_bound
         
         # CALCULATE MODULE RESOLUTION RANGE 
-        border = 5
+        border = 5 # Safety
         bottom = bottom_bound + border
         top = top_bound - border
         left = left_bound + border
@@ -119,16 +180,10 @@ def imageSums_CChalf(myArguments):
     fRead.close()  
     
     # CALCULATE STANDARD PATTERN    
-    nominalCell = 62.45
-    hmax = 100
-    kmax = 100
+    
     reciprocalLattice = buildReciprocalLattice.buildReciprocalLatticeFunction(nominalCell, hmax, kmax, resolutionLimit)
-    tiltAngle = 0
-    trialInPlaneRotation = 0
-    wavelength = 1.485 # A
-    wavevector = 2 * numpy.pi/wavelength
-    detectorDistance = 0.235 # m
-    pixelSize = 0.000110 # m
+    trialInPlaneRotation = 0    
+    wavevector = 2 * numpy.pi/wavelength    
     standardPattern = calculatePredictedPattern.calculatePredictedPatternFunction(reciprocalLattice, trialInPlaneRotation, wavevector, tiltAngle, detectorDistance, pixelSize)
     
     for sampling in range(0, 10): 
@@ -188,14 +243,11 @@ def imageSums_CChalf(myArguments):
                 top_bound = int(module[1])
                 left_bound = int(module[2])
                 right_bound = int(module[3])
-                x0 = float(module[5])
-                y0 = float(module[7])
-                if numpy.isnan(x0):
-                    x0 = float(halfWidth)
-                if numpy.isnan(y0):
-                    y0 = float(halfWidth)
+                x0 = halfWidth + float(module[5])
+                y0 = halfWidth + float(module[7])
+                
                 print 'MODULE: ', bottom_bound, top_bound, '---', left_bound, right_bound 
-                print '<x0> = %.2f, <y0> = %.2f'%(x0, y0)
+                print '<Dx0> = %.2f, <Dy0> = %.2f'%(float(module[5]), float(module[7]))
                 
                 # SKIP MODULES WITH RESOLUTION RANGE NOT INCLUDING THE CURRENT ORBIT
                 if spotDistance < min_distance or spotDistance > max_distance:

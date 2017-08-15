@@ -106,7 +106,7 @@ azimuthTolerance      = 3         # degrees
 minNofPeaksPerLattice = 20        # int
 maxNofPeaksPerImage   = 250       # int
         
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python latticeIndexing.py --referenceCellSize %f --runNumber %s --detectorDistance %f --pixelSize %f --radialTolerance %f --pixelTolerance %f --azimuthTolerance %f --minNofPeaksPerLattice %d --maxNofPeaksPerImage %d'
     %(referenceCellSize, runNumber, detectorDistance, pixelSize, radialTolerance, pixelTolerance, azimuthTolerance, minNofPeaksPerLattice, maxNofPeaksPerImage))
@@ -249,15 +249,21 @@ flag = 0
 if flag == 1:
     os.system('python plotSelectedMergingHistograms.py --runNumber %s'%runNumber)
 
+
+
 flag = 0
 if flag == 1:
     os.system('python plotSelectedMergingHistograms_scalingEffect.py --runNumber %s'%runNumber)
+
+
 
 # PLOT MERGING EFFICIENCY
 flag = 0
 if flag == 1:
     os.system('python mergingEfficiency.py --runNumber %s'%runNumber)
     
+
+
 
 
 ### ************************************ IMAGE SUMS ************************************ ###
@@ -292,27 +298,69 @@ if flag == 1:
 ### REALIZE THAT THERE IS A PROBLEM IN CALIBRATION OF MODULE POSITIONS -> NEED TO INTRO TRANSLATION CORRECTIONS
     
     
+
+
     
 ### ************************************ IMAGE SUMS ************************************ ###
-### ******************************** MODULE TRANSLATION ******************************** ###
-flag = 0
-if flag == 1:
-    os.system('python calculate_moduleDisplacements.py')
+### *********************** MODULE TRANSLATION BY INTERPOLATION ************************ ###
     
-    
-flag = 0
-if flag == 1:
-    os.system('python calculate_moduleDisplacements_extract.py')
-    
+halfwidth = 15
+approximateWavelength = 1.48 #A
 
 flag = 0
 if flag == 1:
-    os.system('python imageSums_displaced_modules.py')
+    os.system('python calculate_partialSums.py \
+               --selectedRun %s --resolutionLimit %f \
+               --halfWidth %d --imagesDirectoryName %s  \
+               --geometryFile %s --nominalCell %f --hmax %d --kmax %d         \
+               --tiltAngle %f --wavelength %f --detectorDistance %f --pixelSize %f'
+              %(runNumber, highResLimit, 
+                halfwidth, imagesDirectoryName, 
+                geometryFile, referenceCellSize, hmax, kmax, 
+                tiltAngle, approximateWavelength, detectorDistance, pixelSize))
+
+
+
+moduleDisplace_I_threshold = 2          # photons
+moduleDisplace_nTerms_threshold = 50
+moduleDisplace_sigma_threshold = 3.5    # pxls
+moduleDisplace_distance_threshold = 7.5 # pxls
+
+flag = 0
+if flag == 1:
+    os.system('python calculate_moduleDisplacements.py \
+               --selectedRun %s --resolutionLimit %f \
+               --intensity_threshold %f --nTerms_threshold %d --sigma_threshold %f --distance_threshold %f \
+               --nCountsPerPhoton %d --geometryFile %s'
+               %(runNumber, highResLimit,
+                 moduleDisplace_I_threshold, moduleDisplace_nTerms_threshold, moduleDisplace_sigma_threshold, moduleDisplace_distance_threshold,
+                 nCountsPerPhoton, geometryFile))
+
+    
+    
+flag = 0
+if flag == 1:
+    os.system('python calculate_moduleDisplacements_extract.py --selectedRun %s --halfWidth %d --geometryFile %s'
+              %(runNumber, halfwidth, geometryFile))
+
+
+    
+lowFluctuationThreshold = 1.5 # STANDARD IS 2.0
+
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules.py --selectedRun %s --resolutionLimit %f --halfWidth %d --lowFluctuationThreshold %f'
+              %(runNumber, highResLimit, halfwidth, lowFluctuationThreshold))
         
 
+
+sigmaVsQ_phThreshold = 1.0
+sigmaVsQ_dThreshold  = 10.0
+
 flag = 0
 if flag == 1:
-    os.system('python imageSums_displaced_modules_sigmaVsQ.py')
+    os.system('python imageSums_displaced_modules_sigmaVsQ.py --selectedRun %s --photonThreshold %f --dThreshold %f --nCountsPerPhoton %d --cellSize %f'
+              %(runNumber, sigmaVsQ_phThreshold, sigmaVsQ_dThreshold, nCountsPerPhoton, referenceCellSize))
     
     
 
@@ -320,29 +368,26 @@ flag = 0
 if flag == 1:
     os.system('python imageSums_displaced_modules_finalIntegration.py')
     
-    
-    
+
+
 flag = 0
 if flag == 1:
-    os.system('python imageSums_displaced_modules_integrationPlots.py')
+    os.system('python prepare_ellipseIntegralLatexTable.py --selectedRun %s'%runNumber)
 
 
 
-### Data quality evaluation ###   
-N_lattices = 10
+flag = 0  
+if flag == 1:
+    os.system('python imageSums_displaced_modules_plots.py')
+    
+    
+
 flag = 0
 if flag == 1:
-    os.system('python imageSums_displaced_modules_N_lattices.py --N_lattices %d'%N_lattices)
+    os.system('python plot_I_ellipse_vs_q.py --selectedRun %s --cellSize %f'%(runNumber, referenceCellSize))
 
 
     
-N_lattices = 100
-flag = 0
-if flag == 1:
-    os.system('python imageSums_displaced_modules_N_lattices.py --N_lattices %d'%N_lattices)
-    
- 
-   
 flag = 0
 if flag == 1:
     os.system('python signal_to_noise.py')
@@ -355,40 +400,253 @@ if flag == 1:
     
     
 
+
+    
+### ************************************ IMAGE SUMS ************************************ ###
+### ******************** MODULE TRANSLATION BY PIXEL CONVERSION ************************ ###
+
+halfwidth = 25
+approximateWavelength = 1.48 #A
+
 flag = 0
 if flag == 1:
-    os.system('python signal_to_noise_compare.py')
+    os.system('python calculate_partialSums.py \
+               --selectedRun %s --resolutionLimit %f \
+               --halfWidth %d --imagesDirectoryName %s  \
+               --geometryFile %s --nominalCell %f --hmax %d --kmax %d         \
+               --tiltAngle %f --wavelength %f --detectorDistance %f --pixelSize %f'
+              %(runNumber, highResLimit, 
+                halfwidth, imagesDirectoryName, 
+                geometryFile, referenceCellSize, hmax, kmax, 
+                tiltAngle, approximateWavelength, detectorDistance, pixelSize))
 
 
+
+moduleDisplace_I_threshold = 2          # photons
+moduleDisplace_nTerms_threshold = 50
+moduleDisplace_sigma_threshold = 4      # pxls
+moduleDisplace_distance_threshold = 15  # pxls
+
+flag = 0
+if flag == 1:
+    os.system('python calculate_moduleDisplacements_total_I_threshold.py \
+               --selectedRun %s --resolutionLimit %f \
+               --intensity_threshold %f --nTerms_threshold %d --sigma_threshold %f --distance_threshold %f \
+               --nCountsPerPhoton %d --geometryFile %s'
+               %(runNumber, highResLimit,
+                 moduleDisplace_I_threshold, moduleDisplace_nTerms_threshold, moduleDisplace_sigma_threshold, moduleDisplace_distance_threshold,
+                 nCountsPerPhoton, geometryFile))
+
+
+
+flag = 0
+if flag == 1:
+    os.system('python calculate_moduleDisplacements_extract.py --selectedRun %s --halfWidth %d --geometryFile %s'
+              %(runNumber, halfwidth, geometryFile))
+
+
+
+lowFluctuationThreshold = 2.0 # STANDARD IS 2.0
+precisionFactor = 1
+
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_pixelConversion.py --selectedRun %s --resolutionLimit %f --halfWidth %d --lowFluctuationThreshold %f --precisionFactor %d'
+              %(runNumber, highResLimit, halfwidth, lowFluctuationThreshold, precisionFactor))
+
+
+              
+sigmaVsQ_phThreshold = 1.0
+sigmaVsQ_dThreshold  = 1000000000
+
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_sigmaVsQ.py --selectedRun %s --photonThreshold %f --dThreshold %f --nCountsPerPhoton %d --cellSize %f'
+              %(runNumber, sigmaVsQ_phThreshold, sigmaVsQ_dThreshold, nCountsPerPhoton, referenceCellSize))
+
+
+
+ellipse_multiplicative_factor = 2.5
+
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_finalIntegration_pixelConversion.py --selectedRun %s --nCountsPerPhoton %d --ellipse_multiplicative_factor %f --precisionFactor %d'
+              %(runNumber, nCountsPerPhoton, ellipse_multiplicative_factor, precisionFactor))      
+
+
+
+flag = 0
+if flag == 1:
+    os.system('python prepare_ellipseIntegralLatexTable.py --selectedRun %s'%runNumber)
+    
+    
+    
+flag = 0
+if flag == 1:
+    os.system('python plot_I_ellipse_vs_q.py --selectedRun %s --cellSize %f'%(runNumber, referenceCellSize))
+    
+    
+    
+flag = 0 
+if flag == 1:
+    os.system('python imageSums_displaced_modules_plots_pixelConversion.py --selectedRun %s --ellipse_multiplicative_factor %f --precisionFactor %d'
+              %(runNumber, ellipse_multiplicative_factor, precisionFactor))
+
+
+
+d_threshold = 3.0 # pxls
+
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_integrationPlots.py --selectedRun %s --d_threshold %f --halfWidth %d'
+              %(runNumber, d_threshold, halfwidth))    
+    
+
+
+label = "!"    
+flag = 0
+if flag == 1:
+    os.system('python signal_to_noise_pixelConversion.py \
+              --selectedRun %s --nCountsPerPhoton %d \
+              --ellipse_multiplicative_factor %f --precisionFactor %d \
+              --halfWidth %d --label %s'
+              %(runNumber, nCountsPerPhoton, 
+                ellipse_multiplicative_factor, precisionFactor, 
+                halfwidth, label))
+
+
+
+
+nBins = 25
+
+flag = 0
+if flag == 1:
+    os.system('python signal_to_noise_plot_pixelConversion.py --selectedRun %s --nBins %d'
+    %(runNumber, nBins))
+
+
+    
+### SIGNAL TO NOISE vs Q, WITH DIFFERENT N LATTICES ###   
+    
+N_lattices = 10
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_N_lattices.py \
+               --selectedRun %s --resolutionLimit %f \
+               --halfWidth %d --imagesDirectoryName %s  \
+               --geometryFile %s --nominalCell %f --hmax %d --kmax %d         \
+               --tiltAngle %f --wavelength %f --detectorDistance %f --pixelSize %f \
+               --precision_factor %d --N_lattices %d'
+               %(runNumber, highResLimit,
+                 halfwidth, imagesDirectoryName,
+                 geometryFile, referenceCellSize, hmax, kmax,
+                 tiltAngle, approximateWavelength, detectorDistance, pixelSize,
+                 precisionFactor, N_lattices))
+
+
+
+N_lattices = 100
+flag = 0
+if flag == 1:
+    os.system('python imageSums_displaced_modules_N_lattices.py \
+               --selectedRun %s --resolutionLimit %f \
+               --halfWidth %d --imagesDirectoryName %s  \
+               --geometryFile %s --nominalCell %f --hmax %d --kmax %d         \
+               --tiltAngle %f --wavelength %f --detectorDistance %f --pixelSize %f \
+               --precision_factor %d --N_lattices %d'
+               %(runNumber, highResLimit,
+                 halfwidth, imagesDirectoryName,
+                 geometryFile, referenceCellSize, hmax, kmax,
+                 tiltAngle, approximateWavelength, detectorDistance, pixelSize,
+                 precisionFactor, N_lattices))
+    
+ 
+
+label = "_10_lattices"    
+flag = 0
+if flag == 1:
+    os.system('python signal_to_noise_pixelConversion.py \
+              --selectedRun %s --nCountsPerPhoton %d \
+              --ellipse_multiplicative_factor %f --precisionFactor %d \
+              --halfWidth %d --label %s'
+              %(runNumber, nCountsPerPhoton, 
+                ellipse_multiplicative_factor, precisionFactor, 
+                halfwidth, label))
+
+
+
+label = "_100_lattices"    
+flag = 0
+if flag == 1:
+    os.system('python signal_to_noise_pixelConversion.py \
+              --selectedRun %s --nCountsPerPhoton %d \
+              --ellipse_multiplicative_factor %f --precisionFactor %d \
+              --halfWidth %d --label %s'
+              %(runNumber, nCountsPerPhoton, 
+                ellipse_multiplicative_factor, precisionFactor, 
+                halfwidth, label))
+
+
+   
+flag = 1
+if flag == 1:
+    os.system('python signal_to_noise_pixelConversion_compare.py --selectedRun %s'%runNumber)
+
+
+
+### CC_HALF VS Q, WITH DIFFERENT N LATTICES ###
 
 N_lattices = 10
 flag = 0
 if flag == 1:
-    os.system('python imageSums_displaced_modules_CChalf.py --N_lattices %d'%N_lattices)
+    os.system('python imageSums_displaced_modules_CChalf.py \
+               --selectedRun %s --resolutionLimit %f \
+               --halfWidth %d --imagesDirectoryName %s  \
+               --geometryFile %s --nominalCell %f --hmax %d --kmax %d  \
+               --tiltAngle %f --wavelength %f --detectorDistance %f --pixelSize %f \
+               --precision_factor %d --ellipse_multiplicative_factor %f --N_lattices %d'
+               %(runNumber, highResLimit,
+                 halfwidth, imagesDirectoryName,
+                 geometryFile, referenceCellSize, hmax, kmax,
+                 tiltAngle, approximateWavelength, detectorDistance, pixelSize,
+                 precisionFactor, ellipse_multiplicative_factor, N_lattices))
+                
   
   
-    
 N_lattices = 100
 flag = 0
 if flag == 1:
-    os.system('python imageSums_displaced_modules_CChalf.py --N_lattices %d'%N_lattices)
+    os.system('python imageSums_displaced_modules_CChalf.py \
+               --selectedRun %s --resolutionLimit %f \
+               --halfWidth %d --imagesDirectoryName %s  \
+               --geometryFile %s --nominalCell %f --hmax %d --kmax %d  \
+               --tiltAngle %f --wavelength %f --detectorDistance %f --pixelSize %f \
+               --precision_factor %d --ellipse_multiplicative_factor %f --N_lattices %d'
+               %(runNumber, highResLimit,
+                 halfwidth, imagesDirectoryName,
+                 geometryFile, referenceCellSize, hmax, kmax,
+                 tiltAngle, approximateWavelength, detectorDistance, pixelSize,
+                 precisionFactor, ellipse_multiplicative_factor, N_lattices))
     
     
 
 N_lattices = 586
 flag = 0
 if flag == 1:
-    os.system('python imageSums_displaced_modules_CChalf.py --N_lattices %d'%N_lattices)
+    os.system('python imageSums_displaced_modules_CChalf.py \
+               --selectedRun %s --resolutionLimit %f \
+               --halfWidth %d --imagesDirectoryName %s  \
+               --geometryFile %s --nominalCell %f --hmax %d --kmax %d  \
+               --tiltAngle %f --wavelength %f --detectorDistance %f --pixelSize %f \
+               --precision_factor %d --ellipse_multiplicative_factor %f --N_lattices %d'
+               %(runNumber, highResLimit,
+                 halfwidth, imagesDirectoryName,
+                 geometryFile, referenceCellSize, hmax, kmax,
+                 tiltAngle, approximateWavelength, detectorDistance, pixelSize,
+                 precisionFactor, ellipse_multiplicative_factor, N_lattices))
 
 
  
 flag = 0
 if flag == 1:
-    os.system('python imageSums_displaced_modules_calculateCC.py')
-    
-    
-    
-# PAPER FIGURE WITH IMG SUMS
-flag = 0
-if flag == 1:
-    os.system('python imageSums_displacedModules_plots.py')
+    os.system('python imageSums_displaced_modules_calculateCC.py --selectedRun %s --cellSize %f'%(runNumber, referenceCellSize))
