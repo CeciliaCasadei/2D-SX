@@ -10,19 +10,28 @@ import makeOrbits
 
 
 def count_nObs(myArguments):
+    
+    str_1 = '--resolutionLimit <resolutionLimit> --cellSize <cellSize>'
+    str_2 = '--bin_spacing <bin_spacing> --folder <folder>'
+    
     # DEFAULTS
-    folder = './Output_runMergingVsModel'
     bin_spacing = 0.01
+    folder = './Output_runMergingVsModel'
         
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["resolutionLimit=", "cellSize=", "bin_spacing=", "folder="])
+        optionPairs, leftOver = getopt.getopt(myArguments, 
+                                              "h", 
+                                              ["resolutionLimit=", 
+                                               "cellSize=", 
+                                               "bin_spacing=", 
+                                               "folder="])
     except getopt.GetoptError:
-        print 'Usage: python nObs.py --resolutionLimit <resolutionLimit> --cellSize <cellSize> --bin_spacing <bin_spacing> --folder <folder>'
+        print 'Usage: python nObs.py %s %s'%(str_1, str_2)
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python nObs.py --resolutionLimit <resolutionLimit> --cellSize <cellSize> --bin_spacing <bin_spacing> --folder <folder>'
+            print 'Usage: python nObs.py %s %s'%(str_1, str_2)
             sys.exit()
         elif option == "--resolutionLimit":
             resolutionLimit = float(value)
@@ -34,7 +43,8 @@ def count_nObs(myArguments):
             folder = value  
     
     # RECIPROCAL BASIS VECTORS        
-    directCell = cellSize * numpy.matrix([[1, numpy.cos(2*numpy.pi/3)],[0, numpy.sin(2*numpy.pi/3)]]) # A
+    directCell = cellSize * numpy.matrix([[1, numpy.cos(2*numpy.pi/3)],
+                                          [0, numpy.sin(2*numpy.pi/3)]]) # A
     reciprocalCellRows = 2* numpy.pi * directCell.I     
     
     # DEFINE ROD INDICES 
@@ -57,11 +67,16 @@ def count_nObs(myArguments):
     for rod in rodIndices:
         
         # EXTRACT ROD DATA
-        rodObject = joblib.load('%s/braggRodObjects/braggRodObject_%d_%d.jbl'%(folder, rod[0], rod[1]))          
+        rodObject = joblib.load('%s/braggRodObjects/braggRodObject_%d_%d.jbl'
+                                 %(folder, rod[0], rod[1]))          
         experimental_q = rodObject.experimental_q
         experimental_I = rodObject.experimental_I
-        experimental_I_cleaned = [experimental_I[i] for i in range(0, len(experimental_I)) if not numpy.isnan(experimental_I[i])]
-        experimental_q_cleaned = [experimental_q[i] for i in range(0, len(experimental_I)) if not numpy.isnan(experimental_I[i])]
+        experimental_I_cleaned = [experimental_I[i] 
+                                  for i in range(0, len(experimental_I)) 
+                                  if not numpy.isnan(experimental_I[i])]
+        experimental_q_cleaned = [experimental_q[i] 
+                                  for i in range(0, len(experimental_I)) 
+                                  if not numpy.isnan(experimental_I[i])]
         qMin = rodObject.qMin
         qMax = rodObject.qMax
         
@@ -89,7 +104,9 @@ def count_nObs(myArguments):
         for bin_center in bin_centers:
             left  = bin_center - 1.5 * bin_spacing
             right = bin_center + 1.5 * bin_spacing
-            Is_bin = [experimental_I_cleaned[i] for i in range(0, len(experimental_I_cleaned)) if (left < experimental_q_cleaned[i] < right)]
+            Is_bin = [experimental_I_cleaned[i] 
+                      for i in range(0, len(experimental_I_cleaned)) 
+                      if (left < experimental_q_cleaned[i] < right)]
             N_bin = len(Is_bin)
             
             h = int(rod[0])
@@ -105,7 +122,8 @@ def count_nObs(myArguments):
             N_bins.append(N_bin)
             resolution_bins.append(q)
             
-            fOpen.write('%6d %6d %6.1f %6.1f %6.1f %8d \n'%(h, k, qRod, q, d_bin, N_bin))
+            fOpen.write('%6d %6d %6.1f %6.1f %6.1f %8d \n'
+                         %(h, k, qRod, q, d_bin, N_bin))
             
     fOpen.close()
     
@@ -118,7 +136,8 @@ def count_nObs(myArguments):
         left = plot_bins[i]
         right = plot_bins[i+1]
         q_bin = (left+right)/2
-        Ns_bin = [N_bins[j] for j in range(0, len(N_bins)) if (left < resolution_bins[j] < right)]
+        Ns_bin = [N_bins[j] for j in range(0, len(N_bins)) 
+                            if (left < resolution_bins[j] < right)]
         if len(Ns_bin) > 0:
             N_bin = numpy.average(Ns_bin)
             plot_bin_qs.append(q_bin)
@@ -126,10 +145,13 @@ def count_nObs(myArguments):
     
     # PLOT N OBS IN ONE BIN VS Q3D
     matplotlib.pyplot.figure()
-    matplotlib.pyplot.title(r'N_obs in overlapping q_3D bins with spacing %.2f $\AA^{-1}$ and width %.2f $\AA^{-1}$'
-                            %(bin_spacing, 3*bin_spacing), y=1.08)
+    title_str = 'N_obs in overlapping q_3D bins with spacing'
+    matplotlib.pyplot.title(r'%s %.2f $\AA^{-1}$ and width %.2f $\AA^{-1}$'
+                            %(title_str, bin_spacing, 3*bin_spacing), y=1.08)
     matplotlib.pyplot.scatter(resolution_bins, N_bins, color='c', alpha=0.1)
-    matplotlib.pyplot.scatter(plot_bin_qs, plot_bin_Ns, s=120, facecolors='none', edgecolors='m')
+    matplotlib.pyplot.scatter(plot_bin_qs, 
+                              plot_bin_Ns, 
+                              s=120, facecolors='none', edgecolors='m')
     matplotlib.pyplot.gca().set_yscale('log')
     matplotlib.pyplot.gca().set_ylabel(r'$N_{\rm obs}$', fontsize = 17)
     matplotlib.pyplot.gca().set_xlabel(r'$q$ (3D) [$\AA^{-1}$]', fontsize = 17)

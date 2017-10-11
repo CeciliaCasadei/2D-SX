@@ -127,8 +127,6 @@ def mergingFunction(myArguments):
                 Ys_means.append(Y_mean)
                 Y_median = numpy.median(binList_Irod)
                 Ys_medians.append(Y_median)
-                print ('\nN of points in the bin = %d, Mean = %.2f, Median = %.2f'
-                        %(len(binList_Irod), Y_mean, Y_median))
                       
         # POLYNOMIAL FIT ORDER
         n = int(poly_order['[%s, %s]'%(hRod, kRod)])

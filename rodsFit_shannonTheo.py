@@ -133,6 +133,13 @@ def shannonFit(myArguments):
         matplotlib.pyplot.savefig('%s/shannon_rod_%d_%d_nPts_%d.png'
                                    %(outputfolder, rod[0], rod[1], n), dpi=96*2)
         matplotlib.pyplot.close()
+        
+        # UPDATE BRAGG ROD WITH SHANNON MODEL COEFFICIENTS
+        rodObject.setModelCoefficients(popt)
+        if not os.path.exists("%s/braggRodObjects"%outputfolder):
+            os.mkdir("%s/braggRodObjects"%outputfolder)
+        joblib.dump(rodObject, '%s/braggRodObjects/braggRodObject_%d_%d.jbl'
+                                %(outputfolder, rod[0], rod[1]))   
      
     # SAVE MODEL
     if not os.path.exists("%s/model"%outputfolder):
