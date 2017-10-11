@@ -165,7 +165,7 @@ if flag == 1:
     
     
     
-# DETERMINE TRANSFORMATIONS
+# DETERMINE TRANSFORMATIONS (spots to 7.1 A 2D-resolution are used)
 deltaQrodThreshold = 0.005
 n_minThreshold     = 6
 nSeeds             = 6
@@ -197,9 +197,13 @@ if flag == 1:
     
     
 # SCALING
+resolution_3D = 6.5 # A
+n_minThreshold = 8
+
 flag = 0
 if flag == 1:
-    os.system('python scaling.py --runNumber %s'%runNumber)
+    os.system('python scaling.py --runNumber %s --resolution_3D %f --n_minThreshold %d'
+              %(runNumber, resolution_3D, n_minThreshold))
     
     
     
@@ -218,6 +222,6 @@ if flag == 1:
     
     
 # PLOT RODS
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python plotRods.py --runNumber %s --resolutionLimit %f'%(runNumber, highResLimit))

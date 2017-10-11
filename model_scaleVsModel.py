@@ -24,7 +24,9 @@ def Correlate(x1, x2):
     return CC
 
 def scalingFunction(myArguments):
-
+    
+    input_str = '--runNumber <runNumber> --resolution_3D <resolution_3D>'
+    
     # DEFAULTS
     runNumber = '' 
     deltaQrodThreshold = 0.001
@@ -33,16 +35,20 @@ def scalingFunction(myArguments):
     
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber="])
+        optionPairs, leftOver = getopt.getopt(myArguments, 
+                                              "h", 
+                                              ["runNumber=", "resolution_3D="])
     except getopt.GetoptError:
-        print 'Usage: python model_scaleVsModel.py --runNumber <runNumber>'
+        print 'Usage: python model_scaleVsModel.py %s'%input_str
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python model_scaleVsModel.py --runNumber <runNumber>'
+            print 'Usage: python model_scaleVsModel.py %s'%input_str
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
+        elif option == "--resolution_3D":
+            resolution_3D = float(value)
 
     outputFolder = './Output_runMergingVsModel/transformAndScaleToModel_r%s'%runNumber
     figuresFolder = '%s/scalingFigures'%outputFolder
@@ -50,7 +56,8 @@ def scalingFunction(myArguments):
         os.mkdir(figuresFolder)
     
     # LOAD LATTICES LIST OF MATRICES: h k qRod I flag i_unassembled j_unassembled
-    myList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))
+    myList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'
+                          %(outputFolder, runNumber, runNumber))
     nLattices = len(myList)
     print 'Total n of lattices: %d'%nLattices
     
@@ -78,12 +85,18 @@ def scalingFunction(myArguments):
         else:        
             print 'Lattice %d'%firstNeighbor                
 
-            n_pairs, scale_modelTo1stN, I1, I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(lattice_model, spots1stN, deltaQrodThreshold)
+            n_pairs, \
+            scale_modelTo1stN, \
+            I1, \
+            I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(lattice_model, 
+                                                                           spots1stN, 
+                                                                           deltaQrodThreshold,
+                                                                           resolution_3D)
             if n_pairs < n_minThreshold:
                 scale = numpy.nan
-                fOpen.write('Lattice %s: n_pairs model-lattice below threshold.\n'%firstNeighbor)
+                fOpen.write('Lattice %s: n_pairs model-lattice below threshold.\n'
+                             %firstNeighbor)
             else:               
-                ##########################################################################
                 I1 = numpy.asarray(I1)
                 I2 = numpy.asarray(I2)
                 I1 = I1.flatten()
@@ -91,21 +104,26 @@ def scalingFunction(myArguments):
                 CC = Correlate(I1, I2)
                 print 'N points: %d'%len(I1)
                 print 'CC: %.4f'%CC
-                
-                
+                                
                 matplotlib.pyplot.figure()
                 matplotlib.pyplot.plot(I1, I2, 'bo')
-                x = numpy.linspace(0, max(I1), num=float(max(I1))/0.001, endpoint = True)
+                x = numpy.linspace(0, 
+                                   max(I1), 
+                                   num=float(max(I1))/0.001, 
+                                   endpoint = True)
                 matplotlib.pyplot.plot(x, scale_modelTo1stN*x, 'r-')
                 matplotlib.pyplot.title('CC = %.5f'%CC)
-                matplotlib.pyplot.savefig('%s/scaleToModel_lattice%d.png'%(figuresFolder, firstNeighbor))
+                matplotlib.pyplot.savefig('%s/scaleToModel_lattice%d.png'
+                                           %(figuresFolder, firstNeighbor))
                 matplotlib.pyplot.close()                    
-                ##########################################################################
+                
                 if CC >= CC_threshold:
                     nScaled = nScaled + 1
                     scale = float(1)/scale_modelTo1stN
-                    fOpen.write('Lattice %s, Scale (lattice to model): %.3f\n'%(firstNeighbor, scale))
-                    print 'Lattice %s, Scale (lattice to model): %.3f\n'%(firstNeighbor, scale)
+                    fOpen.write('Lattice %s, Scale (lattice to model): %.3f\n'
+                                 %(firstNeighbor, scale))
+                    print ('Lattice %s, Scale (lattice to model): %.3f\n'
+                            %(firstNeighbor, scale))
                 else:
                     scale = numpy.nan
                     fOpen.write('Lattice %s, Scale: n/a\n'%firstNeighbor) 
@@ -123,7 +141,8 @@ def scalingFunction(myArguments):
      
     if not os.path.exists('%s/r%s-scales'%(outputFolder, runNumber)):
         os.mkdir('%s/r%s-scales'%(outputFolder, runNumber))           
-    joblib.dump(LtoModel_vector, '%s/r%s-scales/r%s-scales.jbl'%(outputFolder, runNumber, runNumber))
+    joblib.dump(LtoModel_vector, '%s/r%s-scales/r%s-scales.jbl'
+                                  %(outputFolder, runNumber, runNumber))
     
 if __name__ == "__main__":
     print "\n**** CALLING model_scaleVsModel ****"

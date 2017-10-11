@@ -29,25 +29,37 @@ def main(myArguments):
     identity = numpy.matrix([[1, 0],[0, 1]])
     
     # DEFAULTS:
-    runNumber = ''
     deltaQrodThreshold = 0.001
     n_minThreshold = 6
     nUsedLattices = 30
     nTriangles = 100
     nGoodFraction = 0.7
     
+    str_input_1 = '--runNumber <runNumber> --model <model> --dQrod <dQrod> --nMin <nMin>'
+    str_input_2 = '--nLattices <nLattices> --nTriangles <nTriangles> --nGoodFraction <nGoodFraction>'
+    
     # READ COMMAND LINE ARGUMENTS
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments,"h",["runNumber=", "dQrod=", "nMin=", "nLattices=", "nTriangles=", "nGoodFraction="])
+        optionPairs, leftOver = getopt.getopt(myArguments,"h",["runNumber=",
+                                                               "model=", 
+                                                               "dQrod=", 
+                                                               "nMin=", 
+                                                               "nLattices=", 
+                                                               "nTriangles=", 
+                                                               "nGoodFraction="])
     except getopt.GetoptError:
-        print 'Usage: python model_transformVsModel.py --runNumber <runNumber> --dQrod <dQrod> --nMin <nMin> --nLattices <nLattices> --nTriangles <nTriangles> --nGoodFraction <nGoodFraction>'
+        print 'Usage: python model_transformVsModel.py %s %s'%(str_input_1, 
+                                                               str_input_2)
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python model_transformVsModel.py --runNumber <runNumber> --dQrod <dQrod> --nMin <nMin> --nLattices <nLattices> --nTriangles <nTriangles> --nGoodFraction <nGoodFraction>'
+            print 'Usage: python model_transformVsModel.py %s %s'%(str_input_1, 
+                                                                   str_input_2)
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
+        elif option == "--model":
+            lattice_model = value   #./Output_runMerging/model/lattice_model.jbl
         elif option == "--dQrod":
             deltaQrodThreshold = float(value)
         elif option == "--nMin":
@@ -65,7 +77,7 @@ def main(myArguments):
         os.mkdir(transformationFolder)
 
     # LOAD MODEL: h k qRod I
-    lattice_model = joblib.load('./Output_runMerging/model/lattice_model.jbl')  
+    lattice_model = joblib.load('%s'%lattice_model)  
             
     # LOAD LATTICES LIST OF MATRICES: h k qRod I flag=1 i_unassembled j_unassembled   
     myList = joblib.load('Output_r%s/transformAndScale/spotsMatricesList-r%s/r%s_spotsMatricesList.jbl'%(runNumber, runNumber, runNumber))

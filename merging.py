@@ -16,20 +16,23 @@ from model_poly_order import poly_order
 
 
 def mergingFunction(myArguments):
+    input_str = '--inputFolder <inputFolder> --resolutionLimit <resolutionLimit>'
     
     # DEFAULTS
-    inputFolder = './Output_runMerging'
     runNumbers = ['0195', '0196', '0197', '0198', '0199', '0200', '0201']
 
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["inputFolder=", "resolutionLimit="])
+        optionPairs, leftOver = getopt.getopt(myArguments, 
+                                              "h", 
+                                              ["inputFolder=", 
+                                              "resolutionLimit="])
     except getopt.GetoptError:
-        print 'Usage: python merging.py --inputFolder <inputFolder> --resolutionLimit <resolutionLimit>'
+        print 'Usage: python merging.py %s'%input_str
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python merging.py --inputFolder <inputFolder> --resolutionLimit <resolutionLimit>'
+            print 'Usage: python merging.py %s'%input_str
             sys.exit()
         elif option == "--inputFolder":
             inputFolder = value
@@ -68,10 +71,12 @@ def mergingFunction(myArguments):
         Qrod_vector = []
         Irod_vector = []
         
-        # FOR EVERY ROD, COLLECT (QROD, I) POINTS FROM ALL RUNS (AFTER RUN SCALING, WITH AVG SCALE SET TO 1)              
+        # FOR EVERY ROD, COLLECT (QROD, I) POINTS FROM ALL RUNS 
+        # (AFTER RUN SCALING, WITH AVG SCALE SET TO 1)              
         for runNumber in runNumbers:
             print 'Extracting (qRod, I) points from run %s'%runNumber
-            myList = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(inputFolder, runNumber, runNumber))
+            myList = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'
+                                  %(inputFolder, runNumber, runNumber))
         
             for latticeMatrix in myList:   # h k qRod I flag
                 latticeMatrix = numpy.asarray(latticeMatrix)
@@ -79,32 +84,42 @@ def mergingFunction(myArguments):
                     for spot in latticeMatrix:
                         h = spot[0]
                         k = spot[1]
-                        if (h == hRod and k == kRod) or (h == -hRod-kRod and k == hRod) or (h == kRod and k == -hRod-kRod):
+                        if ((h == hRod       and k == kRod) or 
+                            (h == -hRod-kRod and k == hRod) or 
+                            (h == kRod       and k == -hRod-kRod)):
                             Irod_vector.append(spot[3])
                             Qrod_vector.append(spot[2])
-                        if (h == -hRod and k == -kRod) or (h == hRod+kRod and k == -hRod) or (h == -kRod and k == hRod+kRod):
+                        if ((h == -hRod     and k == -kRod) or 
+                            (h == hRod+kRod and k == -hRod) or 
+                            (h == -kRod     and k == hRod+kRod)):
                             Irod_vector.append(spot[3])
                             Qrod_vector.append(-spot[2])
          
         # REMOVE NAN VALUES
-        cleanedList_Irod = [Irod_vector[i] for i in range(0, len(Irod_vector)) if not numpy.isnan(Irod_vector[i])]
-        cleanedList_Qrod = [Qrod_vector[i] for i in range(0, len(Irod_vector)) if not numpy.isnan(Irod_vector[i])]
+        cleanedList_Irod = [Irod_vector[i] for i in range(0, len(Irod_vector)) 
+                                           if not numpy.isnan(Irod_vector[i])]
+        cleanedList_Qrod = [Qrod_vector[i] for i in range(0, len(Irod_vector)) 
+                                           if not numpy.isnan(Irod_vector[i])]
                     
         # BINNING
         Qrod_min = min(cleanedList_Qrod)
         Qrod_max = max(cleanedList_Qrod)
-        bins, step = numpy.linspace(Qrod_min, Qrod_max, num=(Qrod_max-Qrod_min)/0.008, endpoint = True, retstep = True)
+        bins, step = numpy.linspace(Qrod_min, Qrod_max, 
+                                    num=(Qrod_max-Qrod_min)/0.008, 
+                                    endpoint = True, retstep = True)
         
         Xs = []
         Ys_means = []
         Ys_medians = []
-        # FOR EACH BIN, COLLECT BIN CENTER ON HORIZONTAL AXIS, MEAN AND MEDIAN OF INTENSITY. CHECK WHETHER THE I DISTRIBUTION IN THE BIN IS POISSONIAN.
+        # FOR EACH BIN, COLLECT BIN CENTER ON HORIZONTAL AXIS, MEAN AND MEDIAN OF INTENSITY. 
+        # CHECK WHETHER THE I DISTRIBUTION IN THE BIN IS POISSONIAN.
         for i in range(0, len(bins)-1):
             edge_l = bins[i]
             edge_r = bins[i+1]
             X = (edge_r + edge_l)/2  # Bin center
 
-            binList_Irod = [cleanedList_Irod[item] for item in range(0, len(cleanedList_Irod)) if edge_l <= cleanedList_Qrod[item] <= edge_r]
+            binList_Irod = [cleanedList_Irod[item] for item in range(0, len(cleanedList_Irod)) 
+                                                   if edge_l <= cleanedList_Qrod[item] <= edge_r]
             
             if len(binList_Irod) > 0:
                 Xs.append(X)
@@ -112,12 +127,14 @@ def mergingFunction(myArguments):
                 Ys_means.append(Y_mean)
                 Y_median = numpy.median(binList_Irod)
                 Ys_medians.append(Y_median)
-                print '\nN of points in the bin = %d, Mean = %.2f, Median = %.2f'%(len(binList_Irod), Y_mean, Y_median)
+                print ('\nN of points in the bin = %d, Mean = %.2f, Median = %.2f'
+                        %(len(binList_Irod), Y_mean, Y_median))
                       
         # POLYNOMIAL FIT ORDER
         n = int(poly_order['[%s, %s]'%(hRod, kRod)])
         
-        # EXTEND INTERVAL ON WHICH FIT IS PERFORMED TO AVOID RAPID OSCILLATIONS OF THE POLYNOMIAL AT THE INTERVAL EDGES.
+        # EXTEND INTERVAL ON WHICH FIT IS PERFORMED 
+        # TO AVOID RAPID OSCILLATIONS OF THE POLYNOMIAL AT THE INTERVAL EDGES.
         Xs_extended = []
         Xs_extended.append(Xs[0]-step)
         for X_item in Xs:
@@ -133,7 +150,9 @@ def mergingFunction(myArguments):
         # POLYNOMIAL FIT OF MEDIANS
         c, stats = P.polyfit(Xs_extended, Ys_extended, n, full=True) 
         
-        x_fit = numpy.linspace(Qrod_min, Qrod_max, num=(Qrod_max-Qrod_min)/0.001, endpoint = True)
+        x_fit = numpy.linspace(Qrod_min, Qrod_max, 
+                               num=(Qrod_max-Qrod_min)/0.001, 
+                               endpoint = True)
         y_fit = numpy.zeros(shape=x_fit.shape)
         for exponent in range(0, n+1):
             y_fit = y_fit + c[exponent]*(x_fit**exponent)
@@ -143,7 +162,8 @@ def mergingFunction(myArguments):
             lattice_model.append(spot_model)
                
         # PLOT BRAGG ROD
-        matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, marker='o', color='c', alpha = 0.15, s=10)
+        matplotlib.pyplot.scatter(cleanedList_Qrod, cleanedList_Irod, 
+                                  marker='o', color='c', alpha = 0.15, s=10)
         matplotlib.pyplot.plot(x_fit, y_fit, '.b-')
         myAxis = matplotlib.pyplot.gca()
         matplotlib.pyplot.axhline(y=0, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
@@ -152,7 +172,8 @@ def mergingFunction(myArguments):
         scale = 1.1*max(cleanedList_Irod)
         myAxis.set_ylim([-0.1*scale,1*scale])
         myAxis.set_xlabel("q$_z$ (A$^{-1}$)", fontsize = 12, rotation = 'horizontal')
-        matplotlib.pyplot.savefig('%s/polyFit_mergedRod_%d_%d_fit_%s.png'%(outputFolder, hRod, kRod, n))
+        matplotlib.pyplot.savefig('%s/polyFit_mergedRod_%d_%d_fit_%s.png'
+                                  %(outputFolder, hRod, kRod, n))
         matplotlib.pyplot.close()
         
         # COLLECT I(qRod = 0)
@@ -165,7 +186,8 @@ def mergingFunction(myArguments):
         braggRodObject.setExperimentalPoints(cleanedList_Qrod, cleanedList_Irod)
         braggRodObject.setModelPoints(x_fit, y_fit)
         braggRodObject.setModelCoefficients(c)
-        joblib.dump(braggRodObject, '%s/braggRodObjects/braggRodObject_%d_%d.jbl'%(inputFolder, hRod, kRod))
+        joblib.dump(braggRodObject, '%s/braggRodObjects/braggRodObject_%d_%d.jbl'
+                                     %(inputFolder, hRod, kRod))
                 
         rodNumber = rodNumber + 1
         

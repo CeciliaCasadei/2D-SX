@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
 
-# INSTRUCTIONS: 
-# python runSetup_nonTilted.py
+from runSetup_settings import tiltAngles
+from runSetup_settings import nGoodFractions
+
 
 # SETUP FOR CURRENT RUN
+if len(sys.argv) != 2:
+    print("[USAGE] %s runnumber" % sys.argv[0])
+    sys.exit(-1)
 
-runNumber = '0052'
+runNumber = '%04d' % int(sys.argv[1])
 
 # OUTPUT FOLDER
 outFolder = './Output_r%s'%runNumber
 if not os.path.exists(outFolder):
     os.mkdir(outFolder)
-
-
-
-# LOG CURRENT SETTINGS
-os.system('cp ./runSetup_nonTilted_anomalous.py ./Output_r%s/runSetup_nonTilted_anomalous.log'%runNumber)
 
 
 
@@ -36,7 +36,7 @@ if flag == 1:
 
 
 # STORE IMAGE OBJECTS
-tiltAngle          = 0              # degrees 
+tiltAngle = float(tiltAngles['%s'%runNumber])              # degrees 
 imageListDirectory = '%s/ImageLists'%outFolder
 
 flag = 0
@@ -59,11 +59,11 @@ if flag == 1:
 
 # EXTRACT INFO FROM CHEETAH peaks.txt
 selectedImageList = '%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(outFolder, runNumber)
-peaksFile         = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
+peaksFile = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
 #peaksFile = '/mnt/das-gpfs/home/casadei_c/work/casadei/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
-geometryFile      = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
+geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
 #geometryFile = '/mnt/das-gpfs/home/casadei_c/work/casadei/Geometry/geometry.h5' # same for all runs
-pixelSize         = 0.000110 # m
+pixelSize = 0.000110         # m
 
 flag = 0
 if flag == 1:
@@ -84,7 +84,7 @@ if flag == 1:
 referenceCellSize = 62.45    # A
 hmax = 100                   # int
 kmax = 100                   # int
-resolutionLimit = 4.0        # A
+resolutionLimit = 6.0        # A
 
 flag = 0
 if flag == 1:
@@ -99,24 +99,24 @@ if flag == 1:
     
     
 # INDEX LATTICES
-detectorDistance      = 0.351     # m
-radialTolerance       = 6         # pxls
-pixelTolerance        = 10        # pxls
-azimuthTolerance      = 3         # degrees
-minNofPeaksPerLattice = 20        # int
-maxNofPeaksPerImage   = 300       # int
+detectorDistance      = 0.285  # m
+radialTolerance       = 8      # pxls
+pixelTolerance        = 12     # pxls
+azimuthTolerance      = 3      # degrees
+minNofPeaksPerLattice = 18     # int
+maxNofPeaksPerImage   = 250    # int
         
 flag = 0
 if flag == 1:
-    os.system('python latticeIndexing.py --referenceCellSize %f --runNumber %s --detectorDistance %f --pixelSize %f --radialTolerance %f --pixelTolerance %f --azimuthTolerance %f --minNofPeaksPerLattice %d --maxNofPeaksPerImage %d'
-    %(referenceCellSize, runNumber, detectorDistance, pixelSize, radialTolerance, pixelTolerance, azimuthTolerance, minNofPeaksPerLattice, maxNofPeaksPerImage))
+    os.system('python latticeIndexing.py --referenceCellSize %f --runNumber %s --detectorDistance %f --pixelSize %f --radialTolerance %f --pixelTolerance %f --azimuthTolerance %f --minNofPeaksPerLattice %d --maxNofPeaksPerImage %d --geometryFile %s'
+    %(referenceCellSize, runNumber, detectorDistance, pixelSize, radialTolerance, pixelTolerance, azimuthTolerance, minNofPeaksPerLattice, maxNofPeaksPerImage, geometryFile))
     
     
     
 # ORIENTATION AND CELL SIZE REFINEMENT
-nSizeRefSteps            = 25
-nOrientationRefSteps     = 25
-widthSizeRefSteps        = 0.002
+nSizeRefSteps            = 21
+nOrientationRefSteps     = 21
+widthSizeRefSteps        = 0.004
 widthOrientationRefSteps = 0.2
     
 flag = 0
@@ -130,24 +130,17 @@ if flag == 1:
 flag = 0
 if flag == 1:
     os.system('python plotRefinedLattices.py --runNumber %s'%runNumber)
-    
-    
-    
-# PLOT REFINED LATTICES - PAPER FIGURE
-flag = 0
-if flag == 1:
-    os.system('python plotRefinedLattices_imageOverlap.py --runNumber %s'%runNumber)
 
 
 
 # IMAGE PROCESSING
 bgSubtractionMethod       = 'plane'
 minimizationMethod        = '4Dbf'    # 4Dbf or Powell
-lowResLimit               = 55.0      # A
-highResLimit              = 5.8       # A
+lowResLimit               = 55.0
+highResLimit              = 6.0
 nCountsPerPhoton          = 26
-integrationRadius         = 5         # pxls
-fractionDetectedThreshold = 0.40
+integrationRadius         = 5
+fractionDetectedThreshold = 0.45
 
 flag = 0
 if flag == 1:
@@ -162,15 +155,8 @@ if flag == 1:
 #                                    --lowResLimit <lowResLimit> --highResLimit <highResLimit>
 #                                    --nCountsPerPhoton <nCountsPerPhoton> --integrationRadius <integrationRadius> --geometryFile <geometryFile>'
 #                                    --imageFolder <imageFolder> --imageSelection <imageSelection> --latticeSelection <latticeSelection>' 
-
-
                
-# PLOT CELL SIZE DISTRIBUTION 
-flag = 0
-if flag == 1:
-    os.system('python cellSizeDistribution.py --runNumber %s'%runNumber)
-    
-
+               
                
 # MAKE LIST OF SPOT MATRICES
 flag = 0
@@ -179,14 +165,15 @@ if flag == 1:
     
     
     
-# DETERMINE TRANSFORMATIONS
-deltaQrodThreshold = 0.001
-n_minThreshold = 6
-nSeeds = 6
-nUsedLattices = 'all'
-nTriangles = 100
-nGoodFraction = 0.7
+# DETERMINE TRANSFORMATIONS (spots to 7.1 A 2D-resolution are used)
+deltaQrodThreshold = 0.005
+n_minThreshold     = 6
+nSeeds             = 6
+nUsedLattices      = 'all'
+nTriangles         = 100
+nGoodFraction      = float(nGoodFractions['%s'%runNumber])   
     
+
 flag = 0
 if flag == 1:
     os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d --nGoodFraction %f'
@@ -203,18 +190,20 @@ if flag == 1:
 
                
 # APPLY TRANSFORMATIONS
-### !!! ###
 flag = 0
 if flag == 1:
-    os.system('python transform_applyTransformations_anomalous.py --runNumber %s'%runNumber)
+    os.system('python transform_applyTransformations.py --runNumber %s'%runNumber)
     
     
     
 # SCALING
-productThreshold = 0.45
+resolution_3D = 12 # A
+n_minThreshold = 5
+
 flag = 0
 if flag == 1:
-    os.system('python scaling.py --runNumber %s --dQrod %f --productThreshold %f'%(runNumber, deltaQrodThreshold, productThreshold))
+    os.system('python scaling.py --runNumber %s --resolution_3D %f --n_minThreshold %d'
+              %(runNumber, resolution_3D, n_minThreshold))
     
     
     
@@ -223,14 +212,7 @@ flag = 0
 if flag == 1:
     os.system('python scaling_seedComparison.py --runNumber %s'%runNumber)
     
-
-
-# PLOT SCALE FACTOR DISTRIBUTION 
-flag = 0
-if flag == 1:
-    os.system('python scaleFactorDistribution.py --runNumber %s'%runNumber)    
-
-
+    
     
 # SCALING - APPLY SCALES
 flag = 0
@@ -239,159 +221,9 @@ if flag == 1:
         
     
     
-# PLOT RODS AND ORBIT HISTOGRAMS
-flag = 1
+# PLOT RODS
+rods_resolution = 7.0 # A, 2D
+
+flag = 0
 if flag == 1:
-    os.system('python plotRods_anomalous.py --runNumber %s'%runNumber)
-        
-#    
-#    
-## PLOT PAPER FIGURE (4 MERGING HISTOGRAMS)
-#flag = 0
-#if flag == 1:
-#    os.system('python plotSelectedMergingHistograms.py --runNumber %s'%runNumber)
-#
-#flag = 0
-#if flag == 1:
-#    os.system('python plotSelectedMergingHistograms_scalingEffect.py --runNumber %s'%runNumber)
-#
-## PLOT MERGING EFFICIENCY
-#flag = 0
-#if flag == 1:
-#    os.system('python mergingEfficiency.py --runNumber %s'%runNumber)
-#    
-#
-#
-#### ************************************ IMAGE SUMS ************************************ ###
-#### ****************************** NO MODULE TRANSLATION ******************************* ###
-#    
-## IMAGE SUMS
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums.py')
-#
-#    
-#    
-######## ALTERNATIVE #######
-##IMAGE SUMS - FIRST BG SUBTRACTION AND THEN SUM
-##flag = 0
-##if flag == 1:
-##    os.system('python imageSums_bgSubAndSum.py')
-#### REALIZE THAT MANY GAUSS FITS ARE BAD -> THIS WAY OF BG SUBTRACTING IS NOT ADEQUATE
-#    
-#
-## IMAGE SUMS - PAPER PLOTS
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_singleOrbitPlots.py')
-#    
-#    
-#    
-## IMAGE SUMS - SIGMAS vs Q BEHAVIOUR
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_sigmaVsQ.py')
-#### REALIZE THAT THERE IS A PROBLEM IN CALIBRATION OF MODULE POSITIONS -> NEED TO INTRO TRANSLATION CORRECTIONS
-#    
-#    
-#    
-#### ************************************ IMAGE SUMS ************************************ ###
-#### ******************************** MODULE TRANSLATION ******************************** ###
-#flag = 0
-#if flag == 1:
-#    os.system('python calculate_moduleDisplacements.py')
-#    
-#    
-#flag = 0
-#if flag == 1:
-#    os.system('python calculate_moduleDisplacements_extract.py')
-#    
-#
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_displaced_modules.py')
-#        
-#
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_displaced_modules_sigmaVsQ.py')
-#    
-#    
-#
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_displaced_modules_finalIntegration.py')
-#    # prepare_ellipseIntegralLatexTable.py    
-#
-#    
-#    
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_displaced_modules_integrationPlots.py')
-#
-#
-#
-#### Data quality evaluation ###   
-#N_lattices = 10
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_displaced_modules_N_lattices.py --N_lattices %d'%N_lattices)
-#
-#
-#    
-#N_lattices = 100
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_displaced_modules_N_lattices.py --N_lattices %d'%N_lattices)
-#    
-# 
-#   
-#flag = 0
-#if flag == 1:
-#    os.system('python signal_to_noise.py')
-#    
-#    
-#    
-#flag = 0
-#if flag == 1:
-#    os.system('python signal_to_noise_plot.py')
-#    
-#    
-#
-#flag = 0
-#if flag == 1:
-#    os.system('python signal_to_noise_compare.py')
-#
-#
-#
-#N_lattices = 10
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_displaced_modules_CChalf.py --N_lattices %d'%N_lattices)
-#  
-#  
-#    
-#N_lattices = 100
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_displaced_modules_CChalf.py --N_lattices %d'%N_lattices)
-#    
-#    
-#
-#N_lattices = 586
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_displaced_modules_CChalf.py --N_lattices %d'%N_lattices)
-#
-#
-# 
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_displaced_modules_calculateCC.py')
-#    
-#    
-#    
-## PAPER FIGURE WITH IMG SUMS
-#flag = 0
-#if flag == 1:
-#    os.system('python imageSums_displacedModules_plots.py')
+    os.system('python plotRods.py --runNumber %s --resolutionLimit %f'%(runNumber, rods_resolution))

@@ -54,7 +54,7 @@ def scaling_seedComparisonFunction(myArguments):
     seedScores = numpy.asarray(seedScores)
     print 'Seed:\tN lattices:'
     for i in range(0, nSeeds):
-        if len(numpy.argwhere(seedScores > 20)) == 0:
+        if len(numpy.argwhere(seedScores > 10)) == 0: # was 20
             break
         bestSeed = numpy.argmax(seedScores)
         print '%d\t%d'%(bestSeed, seedScores[bestSeed])
@@ -107,7 +107,7 @@ def scaling_seedComparisonFunction(myArguments):
     # CHECK SEEDS CONSISTENCY (Seed_i-Seed_j-Seed_k TRIANGLES)
     products = []
     for i in range(0, nGoodSeeds):
-        for j in range(i, nGoodSeeds):
+        for j in range(i+1, nGoodSeeds):
             if numpy.isnan(S_SeedSeed[i,j]):
                 continue
             for k in range(0, nGoodSeeds):
@@ -124,7 +124,7 @@ def scaling_seedComparisonFunction(myArguments):
         for i in products:
             sumOfSquares = sumOfSquares + (i-average)**2
             productsError = numpy.sqrt(sumOfSquares/len(products))
-    print '\nSeed - seed - seed triangles: %.3f +- %.3f'%(average, productsError)
+        print '\nSeed - seed - seed triangles: %.3f +- %.3f'%(average, productsError)
     
     
     

@@ -10,23 +10,29 @@ import scaling_calculateScaleFactor
 
 def scaling_mergeRunsFunction(myArguments):
     runNumbers = ['0195', '0196', '0197', '0198', '0199', '0200', '0201']
+    resolution_3D = 6.5 
 
+    str_input = '--dQrod <dQrod> --nMin <nMin> --nLatticePairs <nLatticePairs> --resolution_3D <resolution_3D>'
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["dQrod=", "nMin=", "nLatticePairs="])
+        optionPairs, leftOver = getopt.getopt(myArguments, 
+                                              "h", 
+                                              ["dQrod=", "nMin=", "nLatticePairs=", "resolution_3D="])
     except getopt.GetoptError:
-        print 'Usage: python scaling_mergeRuns.py --dQrod <dQrod> --nMin <nMin> --nLatticePairs <nLatticePairs>'
+        print 'Usage: python scaling_mergeRuns.py %s'%str_input
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python scaling_mergeRuns.py --dQrod <dQrod> --nMin <nMin> --nLatticePairs <nLatticePairs>'
+            print 'Usage: python scaling_mergeRuns.py %s'%str_input
             sys.exit()
         elif option == "--dQrod":
             deltaQrodThreshold = float(value)
         elif option == "--nMin":
             n_minThreshold = int(value)
         elif option == "--nLatticePairs":
-            nLatticePairs = int(value)    
+            nLatticePairs = int(value)  
+        elif option == "--resolution_3D":
+            resolution_3D = float(value)
             
     nRuns = len(runNumbers)
     scales_RR = numpy.zeros(shape=(nRuns, nRuns))
@@ -54,7 +60,10 @@ def scaling_mergeRunsFunction(myArguments):
                 L1 = numpy.asarray(L1, dtype=numpy.float32) # h k qRod I flag i_unassembled j_unassembled
                 L2 = numpy.asarray(L2, dtype=numpy.float32) # h k qRod I flag i_unassembled j_unassembled
                 if L1[0, 4] == 1 and L2[0, 4] == 1:
-                    n_min, scale_L1toL2, I1, I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(L1, L2, deltaQrodThreshold) # I2 = scale * I1
+                    n_min, scale_L1toL2, I1, I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(L1, 
+                                                                                                            L2, 
+                                                                                                            deltaQrodThreshold, 
+                                                                                                            resolution_3D) # I2 = scale * I1
                     if n_min >= n_minThreshold:
                         R1toR2_vector.append(scale_L1toL2)
             
@@ -107,12 +116,13 @@ def scaling_mergeRunsFunction(myArguments):
     
     
     # EXTRACT RUN SCALE FACTORS
-    runToRunScales = scales_RR[:, 0] # Scale run_i to run_0
+    runToRunScales = scales_RR[:, 1] # Scale run_i to run_1, was run_0 !!!
     
     # NORMALIZE SCALES
     runToRunScales = numpy.asarray(runToRunScales)
     print runToRunScales
-    avgScale = numpy.average(runToRunScales)
+    clean_runToRunScales = [runToRunScales[i] for i in range(0, len(runToRunScales)) if not numpy.isnan(runToRunScales[i])]
+    avgScale = numpy.average(clean_runToRunScales)
     print avgScale
     runToRunScales = runToRunScales/avgScale
     print runToRunScales
@@ -125,7 +135,7 @@ def scaling_mergeRunsFunction(myArguments):
         scaledRun = []
         for lattice in latticesList:
             lattice = numpy.asarray(lattice)
-            if lattice[0, 4] == 0:
+            if lattice[0, 4] == 0 or numpy.isnan(runScale):
                 flag = 0
                 scaledLattice = []
                 for spot in lattice:

@@ -588,7 +588,7 @@ if flag == 1:
 
 
    
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python signal_to_noise_pixelConversion_compare.py --selectedRun %s'%runNumber)
 
@@ -647,6 +647,6 @@ if flag == 1:
 
 
  
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python imageSums_displaced_modules_calculateCC.py --selectedRun %s --cellSize %f'%(runNumber, referenceCellSize))

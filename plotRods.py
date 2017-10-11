@@ -27,8 +27,7 @@ def plotRodsFunction(myArguments):
         elif option == "--resolutionLimit":
             resolutionLimit = float(value)
 
-    outputFolder = './Output_r%s/transformAndScale'%runNumber
-    
+    outputFolder = './Output_r%s/transformAndScale'%runNumber    
     
     # LOAD LATTICES LIST OF MATRICES: h_transformed k_transformed qRod Iscaled flag 
     myList = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))

@@ -26,7 +26,7 @@ def calculateCC(myArguments):
             cellSize = float(value)
 
     N_lattices_list = [586, 100, 10]
-    N_sampling_list = [2,  5,  10]
+    N_sampling_list = [8,  9,  10]
     bin_size = 22
     
     

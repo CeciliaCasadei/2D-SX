@@ -57,14 +57,16 @@ def main(myArguments):
     for i in range(0, nRuns):
         run_1 = runNumbers[i]
         transformationFolder_1 = './Output_r%s/transformAndScale'%run_1
-        myList_1 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(transformationFolder_1, run_1, run_1))       # h_transformed k_transformed qRod Iscaled flag i_unassembled j_unassembled
+        myList_1 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'
+                               %(transformationFolder_1, run_1, run_1))       # h_transformed k_transformed qRod Iscaled flag i_unassembled j_unassembled
         nLattices_1 = len(myList_1) 
         for j in range(0, nRuns):
             run_2 = runNumbers[j]
             print '\nRun %s Run %s'%(run_1, run_2)
                 
             transformationFolder_2 = './Output_r%s/transformAndScale'%run_2            
-            myList_2 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(transformationFolder_2, run_2, run_2))   # h_transformed k_transformed qRod Iscaled flag i_unassembled j_unassembled
+            myList_2 = joblib.load('%s/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'
+                                   %(transformationFolder_2, run_2, run_2))   # h_transformed k_transformed qRod Iscaled flag i_unassembled j_unassembled
             nLattices_2 = len(myList_2)
             print '%d %d'%(nLattices_1, nLattices_2)
     
@@ -134,8 +136,7 @@ def main(myArguments):
     outputFolder = './Output_runMerging'
     if not os.path.exists(outputFolder):
         os.mkdir(outputFolder)
-    joblib.dump(runOrientations, '%s/runOrientations.jbl'%outputFolder)
-    
+    joblib.dump(runOrientations, '%s/runOrientations.jbl'%outputFolder)    
 
     # APPLY RUN TRANSFORMATIONS
     for i in range(0, nRuns):
@@ -144,7 +145,8 @@ def main(myArguments):
         print 'Run %s Orientation (wrt 0195) %s'%(runNumber, runOrientation)
         if not numpy.isnan(runOrientation):
             runOrientationMatrix = indexToMatrix(runOrientation)            
-            spotMatricesList = joblib.load('./Output_r%s/transformAndScale/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(runNumber, runNumber, runNumber)) 
+            spotMatricesList = joblib.load('./Output_r%s/transformAndScale/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'
+                                           %(runNumber, runNumber, runNumber)) 
             transformedSpotMatricesList = []
             
             for spotMatrix in spotMatricesList: # LATTICE: h_transformed k_transformed qRod Iscaled flag i_unassembled j_unassembled
@@ -169,8 +171,7 @@ def main(myArguments):
                         transformedSpotsMatrix.append(transformedSpot)
                 transformedSpotsMatrix = numpy.asarray(transformedSpotsMatrix) # h k qRod I flag i_unassembled j_unassembled
                 transformedSpotMatricesList.append(transformedSpotsMatrix)
-                    
-        
+                            
         outputPath = '%s/spotsMatricesList-Transformed-r%s'%(outputFolder, runNumber)
         if not os.path.exists(outputPath):
             os.mkdir(outputPath)

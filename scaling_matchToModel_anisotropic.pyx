@@ -8,7 +8,11 @@ DTYPE = numpy.float32
 ctypedef numpy.float32_t DTYPE_t
 
 
-def calculateScaleFactorFunction(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float deltaQrodThreshold, float resolution_3D_limit):
+def matching(DTYPE_t[:, :] spotsL1, 
+             DTYPE_t[:, :] spotsL2, 
+             float deltaQrodThreshold, 
+             float cellSize, 
+             float resolution_limit_3D):
     # spotsL1: h k qRod I flag              L1 can be the model
     # spotsL2: h k qRod I flag
 
@@ -18,13 +22,20 @@ def calculateScaleFactorFunction(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, f
     cdef int nSpotsL2 = spotsL2.shape[0]
     
     cdef int index
+    
+    cdef float q_x
+    cdef float q_y
+    cdef float q_3D
+    cdef float resolution_3D
         
     I1 = []
     I2 = []
+    qs_2D = []
+    qs_rod =[]
     
     ####################################
     #cdef float resolutionLimit = 7.1 # A
-    cdef float cellSize = 62.45      # A
+    #cdef float cellSize = 62.45      # A
     ####################################
     
     h_L1 = spotsL1[:, 0]
@@ -46,20 +57,20 @@ def calculateScaleFactorFunction(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, f
         
         ############################################
         reciprocalVector = [h, k]*reciprocalCellRows
-        q_x = reciprocalVector[0,0]                 # A^(-1)
-        q_y = reciprocalVector[0,1]                 # A^(-1)
-        q_3D = numpy.sqrt(q_x**2 + q_y**2 + q**2)   # A^(-1)
-        resolution_3D = 2* numpy.pi / q_3D          # A
-#        q_2D = numpy.sqrt(q_x**2 + q_y**2)         # A^(-1)
-#        resolution = 2* numpy.pi / q_2D            # A        
+        q_x = reciprocalVector[0,0]                # A^(-1)
+        q_y = reciprocalVector[0,1]                # A^(-1)
+        q_2D = numpy.sqrt(q_x**2 + q_y**2)         # A^(-1)
+        q_3D = numpy.sqrt(q_x**2 + q_y**2 + q**2)  # A^(-1)
+        resolution_3D = 2* numpy.pi / q_3D         # A
+#        resolution = 2* numpy.pi / q_2D           # A
         ############################################
-        
+                
         if numpy.isnan(spotsL2[i, 3]):
             continue  
         
         ################################     
         #if resolution < resolutionLimit:
-        if resolution_3D < resolution_3D_limit:
+        if resolution_3D < resolution_limit_3D:
             continue
         ################################
         
@@ -74,6 +85,8 @@ def calculateScaleFactorFunction(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, f
             if ((h1 == h and k1 == k) or (h1 == -h-k and k1 == h) or (h1 == k and k1 == -h-k)):
                 I1.append(I_L1[index])
                 I2.append(I)
+                qs_2D.append(q_2D)
+                qs_rod.append(q)
         for index in indices_qOpposite:
             if numpy.isnan(spotsL1[index, 3]):
                 continue   
@@ -82,15 +95,9 @@ def calculateScaleFactorFunction(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, f
             if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):
                 I1.append(I_L1[index])
                 I2.append(I)
+                qs_2D.append(q_2D)
+                qs_rod.append(q)
        
     n_pairs = len(I1)                
-    if n_pairs > 5:
-        I1 = numpy.asarray(I1)
-        I2 = numpy.asarray(I2)
-        I1 = I1[:,numpy.newaxis]
-
-        scale, _, _, _ = numpy.linalg.lstsq(I1, I2) # I2 = scale*I1    Lattice2 = scale*Lattice1   scale = scale_L1toL2   NO INTERCEPT!!!
-    else:
-        scale = numpy.nan
     
-    return n_pairs, scale, I1, I2
+    return n_pairs, I1, I2, qs_2D, qs_rod

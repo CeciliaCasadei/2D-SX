@@ -6,7 +6,7 @@ import os
     
     
 # DETERMINE AND APPLY RUN - RUN TRANSFORMATIONS
-deltaQrodThreshold = 0.005    # A-1
+deltaQrodThreshold = 0.005   # A-1
 n_minThreshold = 6
 nLatticePairs = 1000
 
@@ -21,7 +21,7 @@ if flag == 1:
 deltaQrodThreshold = 0.003    # A-1
 n_minThreshold = 8
 nLatticePairs = 1400
-resolution_3D = 6.5           # A
+resolution_3D = 12.0          # A
 
 flag = 0
 if flag == 1:
@@ -29,13 +29,24 @@ if flag == 1:
               %(deltaQrodThreshold, n_minThreshold, nLatticePairs, resolution_3D))
     
     
-# PLOT MERGED RODS AND DO POLYNOMIAL FIT
-inputFolder = './Output_runMerging'
-resolutionLimit = 7.0
+# PLOT MERGED RODS, BUILD SINC MODEL
+resolutionLimit = 6.0      # A. 2D
+thickness = 45             # A
+damping = 80
+folder = './Output_runMerging'
 
-flag = 0
+flag = 1
 if flag == 1:
-    os.system('python merging.py --inputFolder %s --resolutionLimit %f'%(inputFolder, resolutionLimit))
+    os.system('python merging.py --inputFolder %s --resolutionLimit %f'
+              %(folder, resolutionLimit))
+flag = 1
+if flag == 1:
+    os.system('python rodsFit_shannonTheo.py \
+               --resolutionLimit %f \
+               --thickness %f \
+               --damping %f \
+               --folder %s'
+               %(resolutionLimit, thickness, damping, folder))
 
 
 newFolder = './Output_runMergingVsModel'

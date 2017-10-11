@@ -12,41 +12,57 @@ import scaling_calculateScaleFactor
 
 def scalingFunction(myArguments):
     
-    # DEFAULTS
-    runNumber = '' 
+    # FIXED
     nSeeds = 6
-    deltaQrodThreshold = 0.003
-    n_minThreshold = 8
     nTriangles = 100
+    
+    # DEFAULTS    
+    deltaQrodThreshold = 0.003
     productThreshold = 0.25
-    outputFolder = ''
+    resolution_3D = 6.5
+    n_minThreshold = 8
+        
+    input_str_1 = '--runNumber <runNumber>  --dQrod <dQrod>'
+    input_str_2 = '--outputFolder <outputFolder> --productThreshold <productThreshold>'
+    input_str_3 = '--resolution_3D <resolution_3D> --n_minThreshold <n_minThreshold>'
     
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "dQrod=", "outputFolder=", "productThreshold="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", 
+                                             ["runNumber=", 
+                                              "dQrod=", 
+                                              "outputFolder=", 
+                                              "productThreshold=", 
+                                              "resolution_3D=",
+                                              "n_minThreshold="])
     except getopt.GetoptError:
-        print 'Usage: python scaling.py --runNumber <runNumber>  --dQrod <dQrod> --outputFolder <outputFolder>'
+        print 'Usage: python scaling.py %s %s %s'%(input_str_1, input_str_2, input_str_3)
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python scaling.py --runNumber <runNumber>  --dQrod <dQrod> --outputFolder <outputFolder>'
+            print 'Usage: python scaling.py %s %s %s'%(input_str_1, input_str_2, input_str_3)
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
         elif option == "--dQrod":
             deltaQrodThreshold = float(value)
-        elif option == "--outputFolder": #'./Output_Test_elliptical_integration'    
+        elif option == "--outputFolder":
             outputFolder = value
         elif option == "--productThreshold":
             productThreshold = float(value)
-                        
-    if outputFolder == '':
+        elif option == "--resolution_3D":
+            resolution_3D = float(value)
+        elif option == "--n_minThreshold":
+            n_minThreshold = int(value)
+    
+    if not 'outputFolder' in locals():                    
         outputFolder = './Output_r%s/transformAndScale'%runNumber
         
     print 'OUTPUT FOLDER: ', outputFolder
     
     # LOAD LATTICES LIST OF MATRICES: h_transformed k_transformed qRod I flag    
-    myList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(outputFolder, runNumber, runNumber))
+    myList = joblib.load('%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'
+                         %(outputFolder, runNumber, runNumber))
     nLattices = len(myList)
     
     # SCALE LATTICES WITH RESPECT TO (nSeeds) SEEDS
@@ -82,7 +98,13 @@ def scalingFunction(myArguments):
                 else:
                     nGood = 0
                     nBad = 0
-                    n_min, scale_seedTo1stN, I1, I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(spotsSeed, spots1stN, deltaQrodThreshold)
+                    n_min, \
+                    scale_seedTo1stN, \
+                    I1, \
+                    I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(spotsSeed, 
+                                                                                   spots1stN, 
+                                                                                   deltaQrodThreshold, 
+                                                                                   resolution_3D)
                     # BAD LATTICE
                     if n_min < n_minThreshold:
                         scale = numpy.nan
@@ -94,9 +116,21 @@ def scalingFunction(myArguments):
                         for secondNeighbor in secondShell:                    
                             spots2ndN = myList[secondNeighbor]
                             if spots2ndN[0, 4] == 1:                         
-                                n_min, scale_1stNto2ndN, I1, I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots1stN, spots2ndN, deltaQrodThreshold)
+                                n_min, \
+                                scale_1stNto2ndN, \
+                                I1, \
+                                I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots1stN, 
+                                                                                               spots2ndN, 
+                                                                                               deltaQrodThreshold, 
+                                                                                               resolution_3D)
                                 if n_min >= n_minThreshold:
-                                    n_min, scale_2ndNtoSeed, I1, I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots2ndN, spotsSeed, deltaQrodThreshold)
+                                    n_min, \
+                                    scale_2ndNtoSeed, \
+                                    I1, \
+                                    I2 = scaling_calculateScaleFactor.calculateScaleFactorFunction(spots2ndN, 
+                                                                                                   spotsSeed, 
+                                                                                                   deltaQrodThreshold,
+                                                                                                   resolution_3D)
                                     if n_min >= n_minThreshold:
                                         product = scale_seedTo1stN*scale_1stNto2ndN*scale_2ndNtoSeed
                                         if abs(product-1) <= productThreshold:
