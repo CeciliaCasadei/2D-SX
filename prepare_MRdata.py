@@ -11,7 +11,7 @@ def sinc_function(x, a, N, delta, T, d):
     y = 0
     for i in range(-N, N+1):
         j = i+N
-        if abs(x-(i*delta)) < 0.001:
+        if abs(x-(i*delta)) < 0.001: # Possible only if x is a single value
             y = y + a[j]
         else:
             y = (y + 
@@ -93,8 +93,7 @@ def prepare_MRdata_Function(myArguments):
     
         # DIVIDE EACH ROD IN INTERVALS CENTERED IN l VALUES
         for l in range(-l_max, l_max+1):
-            N = 0
-            sumOfSquaredResiduals = 0
+            
             
             qRod_center = l*c_star
             print 'qRod_center ', qRod_center
@@ -113,29 +112,32 @@ def prepare_MRdata_Function(myArguments):
                                            d)
             if I_model_center >= 0:
                 F = numpy.sqrt(I_model_center)
-            else:
-                F = -numpy.sqrt(-I_model_center)
-            
-            for index in range(0, len(experimental_qs)):
-                if qRod_left < experimental_qs[index] < qRod_right:
-                    N = N + 1
-                    q_experimental = experimental_qs[index]
-                    I_experimental = experimental_Is[index]
-                    I_model = sinc_function(q_experimental, 
-                                            model_coefficients, 
-                                            (len(model_coefficients)-1)/2, 
-                                            c_star, 
-                                            T, 
-                                            d)
-                    squaredResidual = (I_experimental-I_model)**2
-                    sumOfSquaredResiduals = sumOfSquaredResiduals + squaredResidual
+                N = 0
+                sumOfSquaredResiduals = 0
+                for index in range(0, len(experimental_qs)):
+                    if qRod_left < experimental_qs[index] < qRod_right:
+                        N = N + 1
+                        q_experimental = experimental_qs[index]
+                        I_experimental = experimental_Is[index]
+                        I_model = sinc_function(q_experimental, 
+                                                model_coefficients, 
+                                                (len(model_coefficients)-1)/2, 
+                                                c_star, 
+                                                T, 
+                                                d)
+                        squaredResidual = (I_experimental-I_model)**2
+                        sumOfSquaredResiduals = sumOfSquaredResiduals + squaredResidual
                     
-            varI = sumOfSquaredResiduals/N
-            sigI = numpy.sqrt(varI)
-            sigF = numpy.sqrt(I_model_center + sigI) - F
-            hkl_file.write('%3d %3d %3d %8.2f %8.2f\n'%(h, k, l, F, sigF))
-            hkl_file_q_I.write('%3d %3d %3d %8.2f %8.2f %8.2f\n'
-                                %(h, k, l, qRod_center, I_model_center, sigI))
+                varI = sumOfSquaredResiduals/N
+                sigI = numpy.sqrt(varI)
+                sigF = numpy.sqrt(I_model_center + sigI) - F
+                hkl_file.write('%3d %3d %3d %8.2f %8.2f\n'%(h, k, l, F, sigF))
+                hkl_file_q_I.write('%3d %3d %3d %8.2f %8.2f %8.2f\n'
+                                    %(h, k, l, qRod_center, I_model_center, sigI))
+            else:
+                F = 0
+                sigF = 0
+            
             print '%3d %3d %3d %8.2f %8.2f'%(h, k, l, F, sigF)
             
     hkl_file.close()

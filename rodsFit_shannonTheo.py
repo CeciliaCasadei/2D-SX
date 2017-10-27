@@ -114,7 +114,6 @@ def shannonFit(myArguments):
         
         # GENERATE FITTING CURVE
         x = numpy.linspace(qMin, qMax, num=(qMax-qMin)/0.001, endpoint = True)
-        #x = numpy.linspace(qMin, qMax, 10000)
         y = fit_function(x, popt, N, sampling, T, d)
         
         # MODEL
@@ -130,7 +129,13 @@ def shannonFit(myArguments):
                                   color='m', 
                                   alpha=1)
         matplotlib.pyplot.plot(x, y, color='m')
-        matplotlib.pyplot.savefig('%s/shannon_rod_%d_%d_nPts_%d.png'
+        myAxis = matplotlib.pyplot.gca()
+        matplotlib.pyplot.axhline(y=0, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
+        matplotlib.pyplot.axhline(y=10, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
+        myAxis.set_xlim([-0.60,+0.60])
+        scale = 1.1*max(experimental_I)
+        myAxis.set_ylim([-0.1*scale,1*scale])
+        matplotlib.pyplot.savefig('%s/shannon_rod_%d_%d_nPts_%d_reformat.png'
                                    %(outputfolder, rod[0], rod[1], n), dpi=96*2)
         matplotlib.pyplot.close()
         
