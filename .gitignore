@@ -1,2 +1,17 @@
 *.pyc
+.spyderworkspace
 Output_*
+BraggLines_allTilts
+CheckPreprocessing
+Cmp_EMC_py
+Cmp_Fo_Fc
+GeometryPlots
+Optimization_tests
+Patterson_code
+TestCode
+badPixels
+braggRodsSimulations
+build
+calculate_qRod_max
+geometry_check
+patternSymmetry
