@@ -11,7 +11,7 @@ def model_applyScalesFunction(myArguments):
     
     # READ INPUTS    
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["inputFolder="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h")
     except getopt.GetoptError:
         print 'Usage: python model_applyScales.py'
         sys.exit(2)   
@@ -20,13 +20,17 @@ def model_applyScalesFunction(myArguments):
             print 'Usage: python model_applyScales.py'
             sys.exit()
     
+    baseFolder = './Output_runMergingVsModel'
     # CALCULATE NORMALIZATION FACTOR
     totalScale = 0
     nLattices = 0    
     for runNumber in runNumbers:
-        scales = joblib.load('./Output_runMergingVsModel/transformAndScaleToModel_r%s/r%s-scales/r%s-scales.jbl'%(runNumber, runNumber, runNumber))
-        print runNumber
-        print len(scales)
+        folder = '%s/transformAndScaleToModel_r%s'%(baseFolder, runNumber)
+        scales = joblib.load('%s/r%s-scales/r%s-scales.jbl'%(folder, 
+                                                             runNumber, 
+                                                             runNumber))
+        print 'RUN ', runNumber
+        print len(scales), ' LATTICES'
         for scale in scales:
             if not numpy.isnan(scale):
                 totalScale = totalScale + scale
@@ -35,10 +39,13 @@ def model_applyScalesFunction(myArguments):
     
     # CALCULATE NORMALIZED SCALES
     for runNumber in runNumbers:
-        scales = joblib.load('./Output_runMergingVsModel/transformAndScaleToModel_r%s/r%s-scales/r%s-scales.jbl'%(runNumber, runNumber, runNumber))
+        folder = '%s/transformAndScaleToModel_r%s'%(baseFolder, runNumber)
+        scales = joblib.load('%s/r%s-scales/r%s-scales.jbl'%(folder, 
+                                                             runNumber, 
+                                                             runNumber))
         normalizedScales = []
-        print runNumber
-        print len(scales)
+        print 'RUN ', runNumber
+        print len(scales), ' LATTICES'
         for scale in scales:
             if not numpy.isnan(scale):
                 normalizedScale = scale/avgScale
@@ -46,15 +53,22 @@ def model_applyScalesFunction(myArguments):
                 normalizedScale = numpy.nan
             normalizedScales.append(normalizedScale)
             
-        joblib.dump(normalizedScales, './Output_runMergingVsModel/transformAndScaleToModel_r%s/r%s-scales/r%s-normalizedScales.jbl'%(runNumber, runNumber, runNumber))
+        joblib.dump(normalizedScales, 
+                    '%s/r%s-scales/r%s-normalizedScales.jbl'%(folder, 
+                                                              runNumber, 
+                                                              runNumber))
       
     # APPLY NORMALIZED SCALES 
     for runNumber in runNumbers:
-        normalizedScales = joblib.load('./Output_runMergingVsModel/transformAndScaleToModel_r%s/r%s-scales/r%s-normalizedScales.jbl'%(runNumber, runNumber, runNumber))
-        latticesList = joblib.load('./Output_runMergingVsModel/transformAndScaleToModel_r%s/spotsMatricesList-Transformed-r%s/r%s_transformedSpotsMatricesList.jbl'%(runNumber, runNumber, runNumber))
+        folder = '%s/transformAndScaleToModel_r%s'%(baseFolder, runNumber)
+        normalizedScales = joblib.load('%s/r%s-scales/r%s-normalizedScales.jbl'
+                                        %(folder, runNumber, runNumber))
+        folder_t = '%s/spotsMatricesList-Transformed-r%s'%(folder, runNumber)
+        latticesList = joblib.load('%s/r%s_transformedSpotsMatricesList.jbl'
+                                    %(folder_t, runNumber))
         print '****************'        
-        print len(normalizedScales)
-        print len(latticesList)  
+        print len(normalizedScales), ' LATTICES' 
+        print len(latticesList), ' LATTICES'  
         scaledLatticesList = []
         for lattice in range(0, len(normalizedScales)):
             normalizedScale = normalizedScales[lattice]
@@ -62,21 +76,35 @@ def model_applyScalesFunction(myArguments):
             if not numpy.isnan(normalizedScale):
                 flag = 1
                 scaledLattice = []
-                for spot in latticeMatrix: # h k qRod I flag i_unassembled j_unassembled
-                    scaledSpot = [spot[0], spot[1], spot[2], normalizedScale*spot[3], flag, spot[5], spot[6]]
+                for spot in latticeMatrix: 
+                    scaledSpot = [spot[0],                     # h
+                                  spot[1],                     # k
+                                  spot[2],                     # qRod
+                                  normalizedScale*spot[3],     # I
+                                  flag,                        # flag
+                                  spot[5],                     # i
+                                  spot[6]]                     # j
                     scaledLattice.append(scaledSpot)
             else:
                 flag = 0
                 scaledLattice = []
-                for spot in latticeMatrix: # h k qRod I flag i_unassembled j_unassembled
-                    scaledSpot = [spot[0], spot[1], spot[2], spot[3], flag, spot[5], spot[6]]
+                for spot in latticeMatrix: 
+                    scaledSpot = [spot[0], 
+                                  spot[1], 
+                                  spot[2], 
+                                  spot[3], 
+                                  flag, 
+                                  spot[5], 
+                                  spot[6]]
                     scaledLattice.append(scaledSpot)
             scaledLattice = numpy.asarray(scaledLattice, dtype = numpy.float32)
             scaledLatticesList.append(scaledLattice)
         
-        if not os.path.exists('./Output_runMergingVsModel/spotsMatricesList-Scaled-r%s'%runNumber):
-            os.mkdir('./Output_runMergingVsModel/spotsMatricesList-Scaled-r%s'%runNumber)
-        joblib.dump(scaledLatticesList, './Output_runMergingVsModel/spotsMatricesList-Scaled-r%s/r%s_scaledSpotsMatricesList.jbl'%(runNumber, runNumber))
+        folder_s = '%s/spotsMatricesList-Scaled-r%s'%(baseFolder, runNumber)
+        if not os.path.exists(folder_s):
+            os.mkdir(folder_s)
+        joblib.dump(scaledLatticesList,
+                    '%s/r%s_scaledSpotsMatricesList.jbl'%(folder_s, runNumber))
         
      
 if __name__ == "__main__":

@@ -42,15 +42,18 @@ def transform_seedComparisonFunction(myArguments):
 
     runNumber = ''
     
-    # READ INPUTS    
+    # READ INPUTS  
+    str_in = '--runNumber <runNumber> --nSeeds <nSeeds> --dQrod <dQrod>'
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "nSeeds=", "dQrod="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", 
+                                                                 "nSeeds=", 
+                                                                 "dQrod="])
     except getopt.GetoptError:
-        print 'Usage: python transform_seedComparison.py --runNumber <runNumber> --nSeeds <nSeeds> --dQrod <dQrod>'
+        print 'Usage: python transform_seedComparison.py %s'%str_in
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python transform_seedComparison.py --runNumber <runNumber> --nSeeds <nSeeds> --dQrod <dQrod>'
+            print 'Usage: python transform_seedComparison.py %s'%str_in
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
@@ -61,7 +64,11 @@ def transform_seedComparisonFunction(myArguments):
         
 
     outputFolder = './Output_r%s/transformAndScale'%runNumber
-    orientationsList = joblib.load('%s/r%s-%dseeds-dQrod%.3f-orientations.jbl'%(outputFolder, runNumber, nSeeds, deltaQrodThreshold))
+    orientationsList = joblib.load('%s/r%s-%dseeds-dQrod%.3f-orientations.jbl'
+                                    %(outputFolder, 
+                                      runNumber, 
+                                      nSeeds, 
+                                      deltaQrodThreshold))
    
     # FOR EACH SEED, COUNT N OF ORIENTED LATTICES 
     seedScores = []  
@@ -97,9 +104,12 @@ def transform_seedComparisonFunction(myArguments):
         for seed2 in range(seed1+1, nGoodSeeds):
             S1toS2 = []
             for lattice in range(0, nLattices):
-                if not numpy.isnan(orderedOrientationsList[seed1][lattice]) and not numpy.isnan(orderedOrientationsList[seed2][lattice]):
-                    LtoS1_matrix = indexToMatrix(orderedOrientationsList[seed1][lattice])
-                    LtoS2_matrix = indexToMatrix(orderedOrientationsList[seed2][lattice])
+                if (not numpy.isnan(orderedOrientationsList[seed1][lattice]) and 
+                    not numpy.isnan(orderedOrientationsList[seed2][lattice])):
+                    LtoS1_matrix = indexToMatrix(orderedOrientationsList[seed1]
+                                                                        [lattice])
+                    LtoS2_matrix = indexToMatrix(orderedOrientationsList[seed2]
+                                                                        [lattice])
                     S1toS2_matrix = LtoS1_matrix * LtoS2_matrix
                     S1toS2_index = matrixToIndex(S1toS2_matrix)
                     S1toS2.append(S1toS2_index)
@@ -115,9 +125,12 @@ def transform_seedComparisonFunction(myArguments):
         for seed2 in range(0, nGoodSeeds):
             T_SeedSeed[seed1, seed2] = numpy.nan
             for lattice in range(0, nLattices):
-                if not numpy.isnan(orderedOrientationsList[seed1][lattice]) and not numpy.isnan(orderedOrientationsList[seed2][lattice]):
-                    LtoS1_matrix = indexToMatrix(orderedOrientationsList[seed1][lattice])
-                    LtoS2_matrix = indexToMatrix(orderedOrientationsList[seed2][lattice])
+                if (not numpy.isnan(orderedOrientationsList[seed1][lattice]) and 
+                    not numpy.isnan(orderedOrientationsList[seed2][lattice])):
+                    LtoS1_matrix = indexToMatrix(orderedOrientationsList[seed1]
+                                                                        [lattice])
+                    LtoS2_matrix = indexToMatrix(orderedOrientationsList[seed2]
+                                                                        [lattice])
                     S1toS2_matrix = LtoS1_matrix * LtoS2_matrix
                     S1toS2_index = matrixToIndex(S1toS2_matrix)
                     T_SeedSeed[seed1, seed2] = S1toS2_index
@@ -148,7 +161,8 @@ def transform_seedComparisonFunction(myArguments):
         flag = 0
         for seed in range(0, nGoodSeeds):
             if not numpy.isnan(orderedOrientationsList[seed][lattice]):
-                seedToLattice = indexToMatrix(orderedOrientationsList[seed][lattice])
+                seedToLattice = indexToMatrix(orderedOrientationsList[seed]
+                                                                     [lattice])
                 seedToRefSeed = indexToMatrix(T_SeedSeed[0, seed])
                 latticeToRefSeed = matrixToIndex(seedToLattice*seedToRefSeed)
                 latticeOrientations.append(latticeToRefSeed)
@@ -156,7 +170,8 @@ def transform_seedComparisonFunction(myArguments):
                 break
         if flag == 0:
             latticeOrientations.append(numpy.nan)
-    joblib.dump(latticeOrientations, '%s/r%s-finalOrientations.jbl'%(outputFolder, runNumber))
+    joblib.dump(latticeOrientations, '%s/r%s-finalOrientations.jbl'%(outputFolder, 
+                                                                     runNumber))
     
     # LOG FINAL ORIENTATIONS        
     fOpen = open('%s/r%s-finalOrientations.txt'%(outputFolder, runNumber), 'w')
@@ -168,9 +183,13 @@ def transform_seedComparisonFunction(myArguments):
         if not numpy.isnan(orientation):
             nOriented_final = nOriented_final + 1
     percentageOriented = float(nOriented_final)/nLattices
-    fOpen.write('Fraction of oriented lattices: %.3f '%percentageOriented)
+    fOpen.write('Oriented lattices: %d/%d = %.3f '%(nOriented_final,
+                                                    nLattices,
+                                                    percentageOriented))
     fOpen.close()
-    print '\nFraction of oriented lattices: %.3f (Total: %d)'%(percentageOriented, len(latticeOrientations))
+    print '\nFraction of oriented lattices: %d/%d = %.3f'%(nOriented_final,
+                                                           nLattices,
+                                                           percentageOriented)
 
 if __name__ == "__main__":
     print "\n**** CALLING transform_seedComparison ****"

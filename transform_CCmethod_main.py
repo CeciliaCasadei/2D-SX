@@ -44,14 +44,27 @@ def main(myArguments):
     nGoodFraction = 0.7
     
     #READ COMMAND LINE ARGUMENTS
+    str_1 = '--runNumber <runNumber> --dQrod <dQrod> --nMin <nMin>' 
+    str_2 = '--nSeeds <nSeeds> --nLattices <nLattices>' 
+    str_3 = '--nTriangles <nTriangles> --nGoodFraction <nGoodFraction>'
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments,"h",["runNumber=", "dQrod=", "nMin=", "nSeeds=", "nLattices=", "nTriangles=", "nGoodFraction="])
+        optionPairs, leftOver = getopt.getopt(myArguments,"h",["runNumber=", 
+                                                               "dQrod=", 
+                                                               "nMin=", 
+                                                               "nSeeds=", 
+                                                               "nLattices=", 
+                                                               "nTriangles=", 
+                                                               "nGoodFraction="])
     except getopt.GetoptError:
-        print 'Usage: python transform_CCmethod_main.py --runNumber <runNumber> --dQrod <dQrod> --nMin <nMin> --nSeeds <nSeeds> --nLattices <nLattices> --nTriangles <nTriangles> --nGoodFraction <nGoodFraction>'
+        print 'Usage: python transform_CCmethod_main.py %s %s %s'%(str_1, 
+                                                                   str_2, 
+                                                                   str_3)
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python transform_CCmethod_main.py --runNumber <runNumber> --dQrod <dQrod> --nMin <nMin> --nSeeds <nSeeds> --nLattices <nLattices> --nTriangles <nTriangles> --nGoodFraction <nGoodFraction>'
+            print 'Usage: python transform_CCmethod_main.py %s %s %s'%(str_1, 
+                                                                       str_2, 
+                                                                       str_3)
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
@@ -71,7 +84,8 @@ def main(myArguments):
     transformationFolder = './Output_r%s/transformAndScale'%runNumber
     
     #LOAD LATTICES LIST OF MATRICES: h k qRod Icorrected       
-    myList = joblib.load('%s/spotsMatricesList-r%s/r%s_spotsMatricesList.jbl'%(transformationFolder, runNumber, runNumber))
+    myList = joblib.load('%s/spotsMatricesList-r%s/r%s_spotsMatricesList.jbl'
+                          %(transformationFolder, runNumber, runNumber))
     nLattices = len(myList)
     if nUsedLattices == 'all':
         nUsedLattices = int(nLattices)
@@ -88,7 +102,10 @@ def main(myArguments):
         
         startTime = time.time()
         print 'New seed: %d'%mySeed[0]
-        fOpen = open('%s/r%s-%dseeds-orientations_%s.txt'%(transformationFolder, runNumber, nSeeds, i), 'w')
+        fOpen = open('%s/r%s-%dseeds-orientations_%s.txt'%(transformationFolder, 
+                                                           runNumber, 
+                                                           nSeeds, 
+                                                           i), 'w')
         fOpen.write('Total: %s lattices\n'%nLattices)
         fOpen.write('Delta qRod: %f\n'%deltaQrodThreshold)        
         fOpen.write('Min pairs n: %d\n'%n_minThreshold)
@@ -102,54 +119,90 @@ def main(myArguments):
             
             # DETERMINE LATTICE TRANSFORMATION
             spots1stN = myList[firstNeighbor]               
-            n_min, avg_CCs = transform_calculateCCs.determineTransformation(spotsSeed, spots1stN, deltaQrodThreshold)
+            n_min, \
+            avg_CCs = transform_calculateCCs.determineTransformation(spotsSeed, 
+                                                                     spots1stN, 
+                                                                     deltaQrodThreshold)
             
             # BAD LATTICE
             if n_min < n_minThreshold:
                 transformation_SeedTo1stN = numpy.nan
-                fOpen.write('Lattice %s: n_min lattice-seed below threshold.\n'%firstNeighbor)
-                print 'Lattice %s: n_min lattice-seed below threshold.\n'%firstNeighbor
+                fOpen.write('Lattice %s: n_min lattice-seed below threshold.\n'
+                            %firstNeighbor)
+                print ('Lattice %s: n_min lattice-seed below threshold.\n'
+                       %firstNeighbor)
                 
             # GOOD LATTICE
             else:
                 transformation_SeedTo1stN = avg_CCs.index(max(avg_CCs))
-                transformationMatrix_SeedTo1stN = indexToMatrix(transformation_SeedTo1stN)
+                transformationMatrix_SeedTo1stN \
+                = indexToMatrix(transformation_SeedTo1stN)
                                 
                 # VERIFY LATTICE TRANSFORMATION BUILDING TRIANGULAR RELATIONSHIPS
                 secondShell = random.sample(range(nLattices), nTriangles)
                 for secondNeighbor in secondShell:                   
                     spots2ndN = myList[secondNeighbor]                   
-                    n_min, avg_CCs = transform_calculateCCs.determineTransformation(spots1stN, spots2ndN, deltaQrodThreshold)
+                    n_min, \
+                    avg_CCs = \
+                    transform_calculateCCs.determineTransformation(spots1stN, 
+                                                                   spots2ndN, 
+                                                                   deltaQrodThreshold)
                     if n_min >= n_minThreshold:
                         transformation_1stNto2ndN = avg_CCs.index(max(avg_CCs))
-                        transformationMatrix_1stNto2ndN = indexToMatrix(transformation_1stNto2ndN)                        
-                        n_min, avg_CCs = transform_calculateCCs.determineTransformation(spotsSeed, spots2ndN, deltaQrodThreshold)
+                        transformationMatrix_1stNto2ndN \
+                        = indexToMatrix(transformation_1stNto2ndN)                        
+                        n_min, \
+                        avg_CCs \
+                        = transform_calculateCCs.determineTransformation(spotsSeed, 
+                                                                         spots2ndN, 
+                                                                         deltaQrodThreshold)
                         if n_min >= n_minThreshold:
                             transformation_2ndNtoSeed = avg_CCs.index(max(avg_CCs))
-                            transformationMatrix_2ndToSeed = indexToMatrix(transformation_2ndNtoSeed)
+                            transformationMatrix_2ndToSeed \
+                            = indexToMatrix(transformation_2ndNtoSeed)
                             
-                            if numpy.array_equal(transformationMatrix_SeedTo1stN*transformationMatrix_1stNto2ndN*transformationMatrix_2ndToSeed, identity):
+                            product = (transformationMatrix_SeedTo1stN*
+                                       transformationMatrix_1stNto2ndN*
+                                       transformationMatrix_2ndToSeed)
+                            if numpy.array_equal(product, identity):
                                 nGood = nGood + 1
                             else:
                                 nBad = nBad + 1
                                 
-                    if nGood+nBad >= 0.4*nTriangles and float(nGood)/(nGood+nBad) >= nGoodFraction:
+                    if (nGood+nBad >= 0.4*nTriangles and 
+                        float(nGood)/(nGood+nBad) >= nGoodFraction):
                         break
                                 
-                if nGood+nBad >= 0.4*nTriangles and float(nGood)/(nGood+nBad) >= nGoodFraction:
-                    fOpen.write('Lattice %s, Orientation: %s (good = %d, bad = %d)\n'%(firstNeighbor, transformation_SeedTo1stN, nGood, nBad))
-                    print 'Lattice %s, Orientation: %s (good = %d, bad = %d)\n'%(firstNeighbor, transformation_SeedTo1stN, nGood, nBad)
+                if (nGood+nBad >= 0.4*nTriangles and 
+                    float(nGood)/(nGood+nBad) >= nGoodFraction):
+                    fOpen.write('L %s, Orientation: %s (good = %d, bad = %d)\n'
+                                %(firstNeighbor, 
+                                  transformation_SeedTo1stN, 
+                                  nGood, 
+                                  nBad))
+                    print ('L %s, Orientation: %s (good = %d, bad = %d)\n'
+                            %(firstNeighbor, 
+                              transformation_SeedTo1stN, 
+                              nGood, 
+                              nBad))
                 else:
                     transformation_SeedTo1stN = numpy.nan
-                    fOpen.write('Lattice %s, Orientation: n/a (good = %d, bad = %d)\n'%(firstNeighbor, nGood, nBad)) 
-                    print 'Lattice %s, Orientation: n/a (good = %d, bad = %d)\n'%(firstNeighbor, nGood, nBad)
+                    fOpen.write('L %s, Orientation: n/a (good = %d, bad = %d)\n'
+                                 %(firstNeighbor, nGood, nBad)) 
+                    print ('L %s, Orientation: n/a (good = %d, bad = %d)\n'
+                            %(firstNeighbor, nGood, nBad))
             LtoSi_vector.append(transformation_SeedTo1stN)
             
         LtoSS_vector.append(LtoSi_vector)
         runTime = time.time() - startTime
         fOpen.write('\nIt took: %.1f s'%runTime)
         fOpen.close        
-    joblib.dump(LtoSS_vector, '%s/r%s-%dseeds-dQrod%.3f-orientations.jbl'%(transformationFolder, runNumber, nSeeds, deltaQrodThreshold))
+    joblib.dump(LtoSS_vector, 
+                '%s/r%s-%dseeds-dQrod%.3f-orientations.jbl'
+                 %(transformationFolder, 
+                   runNumber, 
+                   nSeeds, 
+                   deltaQrodThreshold))
     
 if __name__ == "__main__":
     print "\n**** CALLING transform_CCmethod_main ****"

@@ -75,7 +75,7 @@ def scalingFunction(myArguments):
             if not numpy.isnan(scaleFactor):
                 flag = 1
                 scaledLattice = []
-                for spot in latticeMatrix: # h k qRod I flag i_unassembled j_unassembled
+                for spot in latticeMatrix: # h_t k_t qRod I flag i_unassembled j_unassembled
                     h = spot[0]
                     k = spot[1]
                     qRod = spot[2]
@@ -85,15 +85,16 @@ def scalingFunction(myArguments):
                     q_x = reciprocalVector[0,0]         # A^(-1)
                     q_y = reciprocalVector[0,1]         # A^(-1)        
                     q_2D = numpy.sqrt(q_x**2 + q_y**2)  # A^(-1)
-            
-                    scaledI = scaleFactor * I * numpy.exp(-damping_para*q_2D**2) * numpy.exp(-damping_perp*qRod**2)
-                    scaledSpot = [spot[0], spot[1], spot[2], scaledI, flag, spot[5], spot[6]]
+                    
+                    anisotropicScale = scaleFactor * numpy.exp(-damping_para*q_2D**2) * numpy.exp(-damping_perp*qRod**2)
+                    scaledI = anisotropicScale * I
+                    scaledSpot = [spot[0], spot[1], spot[2], scaledI, flag, spot[5], spot[6], anisotropicScale]
                     scaledLattice.append(scaledSpot)
             else:
                 flag = 0
                 scaledLattice = []
-                for spot in latticeMatrix: # h k qRod I flag i_unassembled j_unassembled
-                    scaledSpot = [spot[0], spot[1], spot[2], spot[3], flag, spot[5], spot[6]]
+                for spot in latticeMatrix: # h_t k_t qRod I flag i_unassembled j_unassembled
+                    scaledSpot = [spot[0], spot[1], spot[2], spot[3], flag, spot[5], spot[6], scaleFactor] # scaleFactor is numpy.nan
                     scaledLattice.append(scaledSpot)
             scaledLattice = numpy.asarray(scaledLattice, dtype = numpy.float32)
             scaledLatticesList.append(scaledLattice)
