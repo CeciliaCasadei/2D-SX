@@ -14,14 +14,14 @@ runNumber = '%04d' % int(sys.argv[1])
 
 
 # DETERMINE LATTICES TO MODEL TRANSFORMATIONS
-model = './Output_runMerging/model/lattice_model.jbl'
+model = './Output_runMerging/Shannon_sampling/model/lattice_model.jbl'
 deltaQrodThreshold = 0.001
 n_minThreshold = 6
 nUsedLattices = 'all'
 nTriangles = 100
 nGoodFraction = float(nGoodFractions['%s'%runNumber])  
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python model_transformVsModel.py --runNumber %s \
                                                 --model %s \
@@ -41,18 +41,23 @@ if flag == 1:
 
     
 # APPLY INDICES TRANSFORMATIONS
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python model_applyTransformations.py --runNumber %s'%runNumber)
 
 
 
 # DETERMINE LATTICE TO MODEL SCALE FACTOR 
-# USE POLYNOMIAL MODEL
-# DETERMINE MULTIPLICATIVE SCALE FACTOR
-resolution_3D = 6.5 # A
+resolution_3D = 7.0 # A
+CC_threshold = 0.92
    
 flag = 1
 if flag == 1:
-    os.system('python model_scaleVsModel.py --runNumber %s --resolution_3D %f'
-               %(runNumber, resolution_3D))
+    os.system('python model_scaleVsModel.py --runNumber %s \
+                                            --resolution_3D %f \
+                                            --CC_threshold %f \
+                                            --model %s'
+                                            %(runNumber, 
+                                              resolution_3D,
+                                              CC_threshold,
+                                              model))

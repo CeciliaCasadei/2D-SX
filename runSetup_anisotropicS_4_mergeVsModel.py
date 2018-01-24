@@ -2,6 +2,11 @@
 import os
 
 
+flag = 1
+if flag == 1:
+    os.system('python model_anisotropic_scaleFactorDistributions_perTilt.py')
+ 
+
 # NORMALIZE LATTICES TO MODEL SCALE FACTOR AND APPLY SCALE FACTOR
 cellSize = 62.45
 
@@ -17,7 +22,10 @@ resolutionLimit = 6.0
 
 flag = 0
 if flag == 1:
-    os.system('python merging.py --inputFolder %s --resolutionLimit %f'%(inputFolder, resolutionLimit))
+    os.system('python merging.py --inputFolder %s \
+                                 --resolutionLimit %f'
+                                 %(inputFolder, 
+                                 resolutionLimit))
  
    
 
@@ -26,7 +34,7 @@ resolutionLimit = 6.0      # A, 2D
 thickness = 45             # A
 damping = 80
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python rodsFit_shannonTheo.py \
                --resolutionLimit %f \
@@ -52,16 +60,30 @@ if flag == 1:
 # EXPORT h k l F sig(F) to MR
 flag = 0
 if flag == 1:
-    os.system('python prepare_MRdata.py --resolutionLimit %f'%resolutionLimit)
+    os.system('python prepare_MRdata.py --resolutionLimit %f \
+                                        --thickness %f \
+                                        --damping %f'
+                                         %(resolutionLimit,
+                                         thickness,
+                                         damping))
 
     
     
-## CALCULATE R-FACTOR
-#flag = 0
-#if flag == 1:
-#    os.system('python calculate_Rfactor.py --inputFolder %s --resolutionLimit %f'%(inputFolder, resolutionLimit))
-#
-#
+# CALCULATE R-FACTOR
+resolutionLimit = 7.0
+inputFolder = './Output_runMergingVsModel/Shannon_sampling'
+flag = 0
+if flag == 1:
+    os.system('python calculate_Rfactor.py --inputFolder %s \
+                                           --resolutionLimit %f \
+                                           --thickness %f \
+                                           --damping %f'
+                                           %(inputFolder, 
+                                           resolutionLimit,
+                                           thickness,
+                                           damping))
+
+
 ## CALCULATE PATTERSON
 #flag = 0
 #if flag == 1:

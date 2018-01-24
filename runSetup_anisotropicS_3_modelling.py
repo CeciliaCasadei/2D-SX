@@ -48,9 +48,9 @@ if flag == 1:
 
 
 # DETERMINE LATTICE TO MODEL SCALE FACTOR 
-CC_threshold = 0.95
+CC_threshold = 0.92
 cellSize = 62.45
-resolution_3D = 1
+resolution_3D = 14
    
 flag = 1
 if flag == 1:

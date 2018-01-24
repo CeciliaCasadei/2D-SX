@@ -18,20 +18,24 @@ outFolder = './Output_r%s'%runNumber
 if not os.path.exists(outFolder):
     os.mkdir(outFolder)
 
-
+prefix_afs = '/afs/psi.ch/group/0620/casadei/2D-MX'
+prefix_mnt = '/mnt/das-gpfs/home/casadei_c/work/casadei'
 
 # CHECK CHEETAH PREPROCESSING RESULTS
 # python checkH5content.py --runNumber <runNumber> --label <label>
 
 
 # MAKE IMAGE LIST
-imagesDirectoryName = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_@_LCLS/r%s-images/data1'%runNumber
-#imagesDirectoryName = '/mnt/das-gpfs/home/casadei_c/work/casadei/UNIX_@_LCLS/r%s-images/data1'%runNumber
+imagesDirectoryName = ('%s/UNIX_@_LCLS/r%s-images/data1'
+                       %(prefix_afs, 
+                         runNumber))
 
 flag = 0
 if flag == 1:
-    os.system('python makeImageList.py --runNumber %s --imagesDirectoryName %s'
-               %(runNumber, imagesDirectoryName))
+    os.system('python makeImageList.py --runNumber %s \
+                                       --imagesDirectoryName %s'
+                                       %(runNumber, 
+                                         imagesDirectoryName))
 
 
 
@@ -41,42 +45,62 @@ imageListDirectory = '%s/ImageLists'%outFolder
 
 flag = 0
 if flag == 1:
-    os.system('python storeImageObjects.py --runNumber %s --tiltAngle %f --imageListDirectory %s'
-               %(runNumber, tiltAngle, imageListDirectory))
+    os.system('python storeImageObjects.py --runNumber %s \
+                                           --tiltAngle %f \
+                                           --imageListDirectory %s'
+                                           %(runNumber, 
+                                             tiltAngle, 
+                                             imageListDirectory))
 
 
 
 # Check image dictionary from command line: 
-# python verify_pklContent.py --myPklFile <myPklFile> --myImageFileName <myImageFileName>
+# python verify_pklContent.py --myPklFile <myPklFile> 
+#                             --myImageFileName <myImageFileName>
 
 # Display assembled images from command line:
-# python verify_assembledImages.py --runNumber <runNumber> --imageNumber <imageNumber> --imageFolderName <imageFolderName>
+# python verify_assembledImages.py --runNumber <runNumber> 
+#                                  --imageNumber <imageNumber> 
+#                                  --imageFolderName <imageFolderName>
 
 # Browse assembled images from the command line:
-# python verify_browseAssembledImages.py --runNumber <runNumber> --imageFolderName <imageFolderName>
+# python verify_browseAssembledImages.py --runNumber <runNumber> 
+#                                        --imageFolderName <imageFolderName>
 
 
 
 # EXTRACT INFO FROM CHEETAH peaks.txt
-selectedImageList = '%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(outFolder, runNumber)
-peaksFile = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
-#peaksFile = '/mnt/das-gpfs/home/casadei_c/work/casadei/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
-geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
-#geometryFile = '/mnt/das-gpfs/home/casadei_c/work/casadei/Geometry/geometry.h5' # same for all runs
-pixelSize = 0.000110         # m
+selectedImageList = ('%s/ImageLists/r%s_ImageNumbers_Filenames.txt'
+                     %(outFolder, runNumber))
+peaksFile = ('%s/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'
+             %(prefix_afs, runNumber))
+geometryFile = '%s/Geometry/geometry.h5'%prefix_afs # same for all runs
+pixelSize = 0.000110 # m
 
 flag = 0
 if flag == 1:
-    os.system('python extractExpInfo.py --runNumber %s --selectedImageList %s --peaksFile %s --geometryFile %s --pixelSize %f'
-               %(runNumber, selectedImageList, peaksFile, geometryFile, pixelSize))
+    os.system('python extractExpInfo.py --runNumber %s \
+                                        --selectedImageList %s \
+                                        --peaksFile %s \
+                                        --geometryFile %s \
+                                        --pixelSize %f'
+                                        %(runNumber, 
+                                          selectedImageList, 
+                                          peaksFile, 
+                                          geometryFile, 
+                                          pixelSize))
 
 
 
 # Check image dictionary from command line: 
-# python verify_pklContent.py --myPklFile <myPklFile> --myImageFileName <myImageFileName>
+# python verify_pklContent.py --myPklFile <myPklFile> 
+#                             --myImageFileName <myImageFileName>
 
 # Display Cheetah peaks from command line:
-# python verify_showCheetahPeaks.py --runNumber <runNumber> --imageNumber <imageNumber> --imageFolderName <imageFolderName> --geometryFile <geometryFile>
+# python verify_showCheetahPeaks.py --runNumber <runNumber> 
+#                                   --imageNumber <imageNumber> 
+#                                   --imageFolderName <imageFolderName> 
+#                                   --geometryFile <geometryFile>
 
 
 
@@ -88,8 +112,16 @@ resolutionLimit = 6.0        # A
 
 flag = 0
 if flag == 1:
-    os.system('python reciprocalLattice.py --referenceCellSize %f --hmax %d --kmax %d --resolutionLimit %f --outFolder %s'
-               %(referenceCellSize, hmax, kmax, resolutionLimit, outFolder))
+    os.system('python reciprocalLattice.py --referenceCellSize %f \
+                                           --hmax %d \
+                                           --kmax %d \
+                                           --resolutionLimit %f \
+                                           --outFolder %s'
+                                           %(referenceCellSize, 
+                                             hmax, 
+                                             kmax, 
+                                             resolutionLimit, 
+                                             outFolder))
     
     
     
@@ -108,8 +140,26 @@ maxNofPeaksPerImage   = 250    # int
         
 flag = 0
 if flag == 1:
-    os.system('python latticeIndexing.py --referenceCellSize %f --runNumber %s --detectorDistance %f --pixelSize %f --radialTolerance %f --pixelTolerance %f --azimuthTolerance %f --minNofPeaksPerLattice %d --maxNofPeaksPerImage %d --geometryFile %s'
-    %(referenceCellSize, runNumber, detectorDistance, pixelSize, radialTolerance, pixelTolerance, azimuthTolerance, minNofPeaksPerLattice, maxNofPeaksPerImage, geometryFile))
+    os.system('python latticeIndexing.py --referenceCellSize %f \
+                                         --runNumber %s \
+                                         --detectorDistance %f \
+                                         --pixelSize %f \
+                                         --radialTolerance %f \
+                                         --pixelTolerance %f \
+                                         --azimuthTolerance %f \
+                                         --minNofPeaksPerLattice %d \
+                                         --maxNofPeaksPerImage %d \
+                                         --geometryFile %s'
+                                         %(referenceCellSize, 
+                                           runNumber, 
+                                           detectorDistance, 
+                                           pixelSize, 
+                                           radialTolerance, 
+                                           pixelTolerance, 
+                                           azimuthTolerance, 
+                                           minNofPeaksPerLattice, 
+                                           maxNofPeaksPerImage, 
+                                           geometryFile))
     
     
     
@@ -121,8 +171,24 @@ widthOrientationRefSteps = 0.2
     
 flag = 0
 if flag == 1:
-    os.system('python orientationAndCellRefinement.py --referenceCellSize %f --runNumber %s --nSizeRefSteps %d --nOrientationRefSteps %d --widthSizeRefSteps %f --widthOrientationRefSteps %f --hmax %d --kmax %d --resolutionLimit %f'
-               %(referenceCellSize, runNumber, nSizeRefSteps, nOrientationRefSteps, widthSizeRefSteps, widthOrientationRefSteps, hmax, kmax, resolutionLimit))
+    os.system('python orientationAndCellRefinement.py --referenceCellSize %f \
+                                                      --runNumber %s \
+                                                      --nSizeRefSteps %d \
+                                                      --nOrientationRefSteps %d \
+                                                      --widthSizeRefSteps %f \
+                                                      --widthOrientationRefSteps %f \
+                                                      --hmax %d \
+                                                      --kmax %d \
+                                                      --resolutionLimit %f'
+                                                      %(referenceCellSize, 
+                                                        runNumber, 
+                                                        nSizeRefSteps, 
+                                                        nOrientationRefSteps, 
+                                                        widthSizeRefSteps, 
+                                                        widthOrientationRefSteps, 
+                                                        hmax, 
+                                                        kmax, 
+                                                        resolutionLimit))
                
                
                
@@ -144,17 +210,42 @@ fractionDetectedThreshold = 0.45
 
 flag = 0
 if flag == 1:
-    os.system('python processingAndIntegration.py --runNumber %s --bgSubtractionMethod %s --minimizationMethod %s --lowResLimit %f --highResLimit %f --nCountsPerPhoton %d --integrationRadius %d --geometryFile %s --imageFolder %s --fractionDetectedThreshold %f'
-               %(runNumber, bgSubtractionMethod, minimizationMethod, lowResLimit, highResLimit, nCountsPerPhoton, integrationRadius, geometryFile, imagesDirectoryName, fractionDetectedThreshold))
+    os.system('python processingAndIntegration.py --runNumber %s \
+                                                  --bgSubtractionMethod %s \
+                                                  --minimizationMethod %s \
+                                                  --lowResLimit %f \
+                                                  --highResLimit %f \
+                                                  --nCountsPerPhoton %d \
+                                                  --integrationRadius %d \
+                                                  --geometryFile %s \
+                                                  --imageFolder %s \
+                                                  --fractionDetectedThreshold %f'
+                                                  %(runNumber, 
+                                                    bgSubtractionMethod, 
+                                                    minimizationMethod, 
+                                                    lowResLimit, 
+                                                    highResLimit, 
+                                                    nCountsPerPhoton, 
+                                                    integrationRadius, 
+                                                    geometryFile, 
+                                                    imagesDirectoryName, 
+                                                    fractionDetectedThreshold))
                
                
                
 # Check individual lattice processing with single spot figures:
-# python processingAndIntegration.py --runNumber <runNumber> --bgSubtractionMethod <bgSubtractionMethod>'
-#                                    --minimizationMethod <minimizationMethod> --fractionDetectedThreshold <fractionDetectedThreshold> 
-#                                    --lowResLimit <lowResLimit> --highResLimit <highResLimit>
-#                                    --nCountsPerPhoton <nCountsPerPhoton> --integrationRadius <integrationRadius> --geometryFile <geometryFile>'
-#                                    --imageFolder <imageFolder> --imageSelection <imageSelection> --latticeSelection <latticeSelection>' 
+# python processingAndIntegration.py --runNumber <runNumber> 
+#                                    --bgSubtractionMethod <bgSubtractionMethod>'
+#                                    --minimizationMethod <minimizationMethod> 
+#                                    --fractionDetectedThreshold <fractionDetectedThreshold> 
+#                                    --lowResLimit <lowResLimit> 
+#                                    --highResLimit <highResLimit>
+#                                    --nCountsPerPhoton <nCountsPerPhoton> 
+#                                    --integrationRadius <integrationRadius> 
+#                                    --geometryFile <geometryFile>'
+#                                    --imageFolder <imageFolder> 
+#                                    --imageSelection <imageSelection> 
+#                                    --latticeSelection <latticeSelection>' 
                
                
                
@@ -176,34 +267,85 @@ nGoodFraction      = float(nGoodFractions['%s'%runNumber])
 
 flag = 0
 if flag == 1:
-    os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d --nGoodFraction %f'
-              %(runNumber, deltaQrodThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles, nGoodFraction))
+    os.system('python transform_CCmethod_main.py --runNumber %s \
+                                                 --dQrod %f \
+                                                 --nMin %d \
+                                                 --nSeeds %d \
+                                                 --nLattices %s \
+                                                 --nTriangles %d \
+                                                 --nGoodFraction %f'
+                                                 %(runNumber, 
+                                                   deltaQrodThreshold, 
+                                                   n_minThreshold, 
+                                                   nSeeds, 
+                                                   nUsedLattices, 
+                                                   nTriangles, 
+                                                   nGoodFraction))
               
               
               
 # DETERMINE TRANSFORMATIONS - SEEDS COMPARISON
 flag = 0
 if flag == 1:
-    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f'
-               %(runNumber, nSeeds, deltaQrodThreshold))
+    os.system('python transform_seedComparison.py --runNumber %s \
+                                                  --nSeeds %d \
+                                                  --dQrod %f'
+                                                  %(runNumber, 
+                                                    nSeeds, 
+                                                    deltaQrodThreshold))
                
 
                
 # APPLY TRANSFORMATIONS
 flag = 0
 if flag == 1:
-    os.system('python transform_applyTransformations.py --runNumber %s'%runNumber)
-    
-    
-    
+    os.system('python transform_applyTransformations.py --runNumber %s'
+                                                         %runNumber)
+
+###################################################################
+##### ISOTROPIC, LOW-RESOLUTION SCALING BY TOTAL I COMPARISON #####   
+###################################################################
+
+# SCALING
+# ONLY HIGHEST TILTS: 0195 0196 0197 0200 0201
+resolution_3D = 18 # A
+
+flag = 0
+if flag == 1:
+    os.system('python scaling_total_I.py --runNumber %s \
+                                         --resolution_3D %f \
+                                         --cellSize %f'
+                                         %(runNumber, 
+                                           resolution_3D,
+                                           referenceCellSize))    
+                                           
+# PLOT RODS
+rods_resolution = 6.0 # A, 2D
+
+flag = 1
+if flag == 1:
+    os.system('python plotRods.py --runNumber %s \
+                                  --resolutionLimit %f'
+                                  %(runNumber, 
+                                    rods_resolution))
+
+#####################################################################
+######################### DEPRECATED ################################    
+##### ISOTROPIC, LOW-RESOLUTION SCALING BY PAIR-WISE COMPARISON #####  
+#####################################################################
+ 
 # SCALING
 resolution_3D = 12 # A
 n_minThreshold = 5
 
 flag = 0
 if flag == 1:
-    os.system('python scaling.py --runNumber %s --resolution_3D %f --n_minThreshold %d'
-              %(runNumber, resolution_3D, n_minThreshold))
+    os.system('python scaling.py --runNumber %s \
+                                 --resolution_3D %f \
+                                 --n_minThreshold %f'
+                                 %(runNumber, 
+                                   resolution_3D, 
+                                   n_minThreshold))
     
     
     
@@ -226,4 +368,7 @@ rods_resolution = 7.0 # A, 2D
 
 flag = 0
 if flag == 1:
-    os.system('python plotRods.py --runNumber %s --resolutionLimit %f'%(runNumber, rods_resolution))
+    os.system('python plotRods.py --runNumber %s \
+                                  --resolutionLimit %f'
+                                  %(runNumber, 
+                                    rods_resolution))

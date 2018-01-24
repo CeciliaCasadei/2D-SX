@@ -176,34 +176,55 @@ nGoodFraction      = float(nGoodFractions['%s'%runNumber])
 
 flag = 0
 if flag == 1:
-    os.system('python transform_CCmethod_main.py --runNumber %s --dQrod %f --nMin %d --nSeeds %d --nLattices %s --nTriangles %d --nGoodFraction %f'
-              %(runNumber, deltaQrodThreshold, n_minThreshold, nSeeds, nUsedLattices, nTriangles, nGoodFraction))
+    os.system('python transform_CCmethod_main.py --runNumber %s \
+                                                 --dQrod %f \
+                                                 --nMin %d \
+                                                 --nSeeds %d \
+                                                 --nLattices %s \
+                                                 --nTriangles %d \
+                                                 --nGoodFraction %f'
+                                                 %(runNumber, 
+                                                   deltaQrodThreshold, 
+                                                   n_minThreshold, 
+                                                   nSeeds, 
+                                                   nUsedLattices, 
+                                                   nTriangles, 
+                                                   nGoodFraction))
               
               
               
 # DETERMINE TRANSFORMATIONS - SEEDS COMPARISON
 flag = 0
 if flag == 1:
-    os.system('python transform_seedComparison.py --runNumber %s --nSeeds %d --dQrod %f'
-               %(runNumber, nSeeds, deltaQrodThreshold))
+    os.system('python transform_seedComparison.py --runNumber %s \
+                                                  --nSeeds %d \
+                                                  --dQrod %f'
+                                                  %(runNumber, 
+                                                    nSeeds, 
+                                                    deltaQrodThreshold))
                
 
                
 # APPLY TRANSFORMATIONS
 flag = 0
 if flag == 1:
-    os.system('python transform_applyTransformations.py --runNumber %s'%runNumber)
+    os.system('python transform_applyTransformations.py --runNumber %s'
+                                                         %runNumber)
     
     
     
 # SCALING
-resolution_3D = 6.5 # A
+resolution_3D = 7.0 # A
 n_minThreshold = 8
 
-flag = 0
+flag = 1
 if flag == 1:
-    os.system('python scaling.py --runNumber %s --resolution_3D %f --n_minThreshold %d'
-              %(runNumber, resolution_3D, n_minThreshold))
+    os.system('python scaling.py --runNumber %s \
+                                 --resolution_3D %f \
+                                 --n_minThreshold %d'
+                                 %(runNumber, 
+                                   resolution_3D, 
+                                   n_minThreshold))
     
     
     
@@ -224,4 +245,7 @@ if flag == 1:
 # PLOT RODS
 flag = 0
 if flag == 1:
-    os.system('python plotRods.py --runNumber %s --resolutionLimit %f'%(runNumber, highResLimit))
+    os.system('python plotRods.py --runNumber %s \
+                                  --resolutionLimit %f'
+                                  %(runNumber, 
+                                    highResLimit))
