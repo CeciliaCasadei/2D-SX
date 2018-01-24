@@ -8,14 +8,17 @@ import os
 import sys
 
 import makeOrbits
+import shannonSamplings
+
+
 
 def fit_function(x, a, N, delta, T, d):
     y = 0
     for i in range(-N, N+1):
         j = i+N
         y = (y + 
-             a[j]  * (numpy.sin(d*(x-i*delta)) / (d*(x-i*delta)) ) 
-                   * numpy.exp(-0.5*(1/(4*numpy.pi**2))*T*(x-i*delta)**2))
+             a[j]  * (numpy.sin(d*(x-i*delta)) / (d*(x-i*delta))) 
+                   *  numpy.exp(-0.5*(1/(4*numpy.pi**2))*T*(x-i*delta)**2))
     return y
     
 def wrapper_fit_function(x, N, delta, T, d, *args):
@@ -81,18 +84,7 @@ def shannonFit(myArguments):
         
         # DEFINE SAMPLING POINTS
         sampling = (2*numpy.pi) / (2*d)
-        samplings = []
-        for n in range(0, 1000):
-            q_rod_sampling = n * sampling
-            if q_rod_sampling <= qMax:
-                samplings.append(q_rod_sampling)
-            else:
-                samplings.append(q_rod_sampling)  # ADD ONE MORE TO BETTER FIT SHORT RODS
-                break        
-        n = len(samplings)     # ONLY NON_NEGATIVE
-        for i in range(1, n):
-            samplings.append(-samplings[i])            
-        samplings.sort()        
+        samplings = shannonSamplings.get_shannonSamplings(sampling, qMax)
         n = len(samplings)     # ALWAYS ODD
         if not n%2 == 1:
             raise Exception('Even n.')
@@ -101,8 +93,15 @@ def shannonFit(myArguments):
         N = (n-1)/2            # ALWAYS INTEGER
         params = [1 for i in range(0, n)]
         popt, pcov = scipy.optimize.curve_fit(lambda x, *params: 
-                                              wrapper_fit_function(x, N, sampling, T, d, params), 
-                                              experimental_q, experimental_I, p0=params)
+                                              wrapper_fit_function(x, 
+                                                                   N, 
+                                                                   sampling, 
+                                                                   T, 
+                                                                   d, 
+                                                                   params), 
+                                              experimental_q, 
+                                              experimental_I, 
+                                              p0=params)
         
         print "ROD ", rod
         print len(experimental_q), " EXPERIMENTAL POINTS"
@@ -133,9 +132,16 @@ def shannonFit(myArguments):
         matplotlib.pyplot.axhline(y=0, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
         matplotlib.pyplot.axhline(y=10, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
         myAxis.set_xlim([-0.60,+0.60])
+        matplotlib.pyplot.xlabel(r'$q_{\rm rod}$ $[\AA^{-1}]$', fontsize=19)
+        matplotlib.pyplot.ylabel('Intensity [photons]', fontsize=19)
         scale = 1.1*max(experimental_I)
+        #negScale = 1.1*min(experimental_I)
+        #myAxis.set_ylim([negScale,scale])
         myAxis.set_ylim([-0.1*scale,1*scale])
-        matplotlib.pyplot.savefig('%s/shannon_rod_%d_%d_nPts_%d_reformat.png'
+        matplotlib.pyplot.gca().tick_params(axis='x', labelsize=14)
+        matplotlib.pyplot.gca().tick_params(axis='y', labelsize=14)
+        matplotlib.pyplot.tight_layout()
+        matplotlib.pyplot.savefig('%s/shannon_rod_%d_%d_nPts_%d.png'
                                    %(outputfolder, rod[0], rod[1], n), dpi=96*2)
         matplotlib.pyplot.close()
         

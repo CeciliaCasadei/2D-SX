@@ -94,6 +94,10 @@ def poly_4(x, offset, a, b):
     y = offset + a*x**2 + b*x**4
     return y
     
+def poly_2_2D((x, y), offset, a, b):
+    y = offset + a*x**2 + b*y**2
+    return y
+    
 
 def quadratic_plus_sigmoid(x, offset, a, x0, k, scale):
     y = offset + a*x**2 + scale / (1 + numpy.exp(-k*(x-x0)))

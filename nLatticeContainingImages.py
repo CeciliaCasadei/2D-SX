@@ -2,7 +2,7 @@
 # Count number of lattice-containing images, right after indexing.
 import pickle
 
-runNumber = '0127'
+runNumber = '0201'
 latticesDictionary_file = open('./Output_r%s/LatticeIndexing/r%s_allLatticesDictionary.pkl'%(runNumber, runNumber), 'rb')
 latticesDictionary = pickle.load(latticesDictionary_file)
 latticesDictionary_file.close()

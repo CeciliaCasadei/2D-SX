@@ -6,19 +6,8 @@ import sys
 import getopt
 
 import makeOrbits
+import shannon_model
 
-def sinc_function(x, a, N, delta, T, d):
-    y = 0
-    for i in range(-N, N+1):
-        j = i+N
-        if abs(x-(i*delta)) < 0.001: # Possible only if x is a single value
-            y = y + a[j]
-        else:
-            y = (y + 
-                 a[j]  * (numpy.sin(d*(x-i*delta)) / (d*(x-i*delta)) ) 
-                       * numpy.exp(-0.5*(1/(4*numpy.pi**2))*T*(x-i*delta)**2))
-    return y
-    
 def prepare_MRdata_Function(myArguments):
     input_str_1 = '--resolutionLimit <resolutionLimit>'
     input_str_2 = '--thickness <thickness> --damping <damping>'
@@ -54,10 +43,8 @@ def prepare_MRdata_Function(myArguments):
                      %outFolder,'w')
     hkl_file_q_I = open('%s/experimentalReflections_h_k_l_qRod_I_sigI.hkl'
                          %outFolder, 'w')
-    
-    d = 45
+     
     c_star = (2*numpy.pi)/(2*d)
-    T = 80
        
     # DEFINE ROD INDICES       
     orbits = makeOrbits.makeOrbitsFunction(resolutionLimit)
@@ -86,14 +73,10 @@ def prepare_MRdata_Function(myArguments):
         
         model_coefficients = braggRodObject.model_coefficients
         
-        
-        
-        l_max = min( [int(qRod_max/c_star), int(-qRod_min/c_star)] )
-        
+        l_max = min( [int(qRod_max/c_star), int(-qRod_min/c_star)] )      
     
         # DIVIDE EACH ROD IN INTERVALS CENTERED IN l VALUES
-        for l in range(-l_max, l_max+1):
-            
+        for l in range(-l_max, l_max+1):          
             
             qRod_center = l*c_star
             print 'qRod_center ', qRod_center
@@ -104,12 +87,12 @@ def prepare_MRdata_Function(myArguments):
             if qRod_center < qRod_min or qRod_center > qRod_max:
                 print 'PROBLEM l=%d'%l
             
-            I_model_center = sinc_function(qRod_center, 
-                                           model_coefficients, 
-                                           (len(model_coefficients)-1)/2, 
-                                           c_star, 
-                                           T, 
-                                           d)
+            I_model_center = shannon_model.sinc_function(qRod_center, 
+                                                         model_coefficients, 
+                                                         (len(model_coefficients)-1)/2, 
+                                                         c_star, 
+                                                         T, 
+                                                         d)
             if I_model_center >= 0:
                 F = numpy.sqrt(I_model_center)
                 N = 0
@@ -119,12 +102,12 @@ def prepare_MRdata_Function(myArguments):
                         N = N + 1
                         q_experimental = experimental_qs[index]
                         I_experimental = experimental_Is[index]
-                        I_model = sinc_function(q_experimental, 
-                                                model_coefficients, 
-                                                (len(model_coefficients)-1)/2, 
-                                                c_star, 
-                                                T, 
-                                                d)
+                        I_model = shannon_model.sinc_function(q_experimental, 
+                                                              model_coefficients, 
+                                                              (len(model_coefficients)-1)/2, 
+                                                              c_star, 
+                                                              T, 
+                                                              d)
                         squaredResidual = (I_experimental-I_model)**2
                         sumOfSquaredResiduals = sumOfSquaredResiduals + squaredResidual
                     
@@ -145,5 +128,4 @@ def prepare_MRdata_Function(myArguments):
 
 if __name__ == "__main__":
     print "\n**** CALLING prepare_MRdata ****"
-    prepare_MRdata_Function(sys.argv[1:])    
-            
+    prepare_MRdata_Function(sys.argv[1:])                

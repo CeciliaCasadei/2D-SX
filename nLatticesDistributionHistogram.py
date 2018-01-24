@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot
-runNumber = '0127'
+runNumber = '0201'
 latticesFile = open('./Output_r%s/transformAndScale/spotsMatricesList-r%s/list-r%s.txt'%(runNumber, runNumber, runNumber), 'r')
 lattices = list(latticesFile)
 
-n_images = 968
+n_imagesDict = {}
+n_imagesDict['0127'] = 968
+n_imagesDict['0195'] = 308
+n_imagesDict['0196'] = 440
+n_imagesDict['0197'] = 484
+n_imagesDict['0198'] = 440
+n_imagesDict['0199'] = 528
+n_imagesDict['0200'] = 440
+n_imagesDict['0201'] = 528
+n_images = int(n_imagesDict['%s'%runNumber])
+print n_images
 n_0 = 0
 n_1 = 0
 n_2 = 0
@@ -49,8 +59,8 @@ print 'n_lattices_tot', 0*n_0+1*n_1+2*n_2+3*n_3+4*n_4+5*n_5+6*n_6+7*n_7+8*n_8
 matplotlib.pyplot.hist(histogram, bins=[-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5])
 matplotlib.pyplot.gca().set_xlabel(r"Number of lattices", fontsize = 10, rotation = 'horizontal')
 matplotlib.pyplot.gca().set_ylabel(r"Number of images",   fontsize = 10, rotation = 'vertical', labelpad = 3)
-matplotlib.pyplot.savefig('./N_lattices_after_processing_histogram.png')
-matplotlib.pyplot.savefig('./N_lattices_after_processing_histogram.pdf')
+matplotlib.pyplot.savefig('./Output_r%s/N_lattices_after_processing_histogram.png'%runNumber)
+matplotlib.pyplot.savefig('./Output_r%s/N_lattices_after_processing_histogram.pdf'%runNumber)
 
 n0_perc = float(n_0)/n_images
 n1_perc = float(n_1)/n_images
