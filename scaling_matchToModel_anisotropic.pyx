@@ -83,6 +83,7 @@ def matching(DTYPE_t[:, :] spotsL1,
             h1 = h_L1[index]
             k1 = k_L1[index]
             if ((h1 == h and k1 == k) or (h1 == -h-k and k1 == h) or (h1 == k and k1 == -h-k)):
+                #if I_L1[index] > 0 and I > 0:
                 I1.append(I_L1[index])
                 I2.append(I)
                 qs_2D.append(q_2D)
@@ -93,6 +94,7 @@ def matching(DTYPE_t[:, :] spotsL1,
             h1 = h_L1[index]
             k1 = k_L1[index]
             if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):
+                #if I_L1[index] > 0 and I > 0:
                 I1.append(I_L1[index])
                 I2.append(I)
                 qs_2D.append(q_2D)

@@ -10,15 +10,17 @@ def scaling_seedComparisonFunction(myArguments):
     # DEFAULTS:
     outputFolder = ''
     
-    # READ INPUTS    
+    # READ INPUTS 
+    str_in = '--runNumber <runNumber> --outputFolder <outputFolder>'
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", "outputFolder="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", 
+                                                                 "outputFolder="])
     except getopt.GetoptError:
-        print 'Usage: python scaling_seedComparison.py --runNumber <runNumber> --outputFolder <outputFolder>'
+        print 'Usage: python scaling_seedComparison.py %s'%str_in
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python scaling_seedComparison.py --runNumber <runNumber> --outputFolder <outputFolder>'
+            print 'Usage: python scaling_seedComparison.py %s'%str_in
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
@@ -28,11 +30,10 @@ def scaling_seedComparisonFunction(myArguments):
     if outputFolder == '':
         outputFolder = './Output_r%s/transformAndScale'%runNumber
     
-    scalesList = joblib.load('%s/r%s-scaling/r%s-scaling.jbl'%(outputFolder, runNumber, runNumber))  # lattice to seed scales
+    scalesList = joblib.load('%s/r%s-scaling/r%s-scaling.jbl'
+                              %(outputFolder, runNumber, runNumber))  # L to S 
     nSeeds = len(scalesList)
     print 'N seeds: %d'%nSeeds
-            
-            
             
     # FOR EACH SEED, COUNT N OF SCALED LATTICES 
     seedScores = []  
@@ -46,9 +47,7 @@ def scaling_seedComparisonFunction(myArguments):
         seedScores.append(nScaled)
     print seedScores
     print 'N lattices: %d'%nLattices   
-    
-    
-    
+        
     # ORDER SEEDS FROM BEST TO WORST 
     orderedScalesList = []
     seedScores = numpy.asarray(seedScores)
@@ -61,18 +60,17 @@ def scaling_seedComparisonFunction(myArguments):
         seedScores[bestSeed] = 0
         orderedScalesList.append(scalesList[bestSeed])
     nGoodSeeds = len(orderedScalesList)    
-    print 'N good seeds: %d'%nGoodSeeds
+    print 'N good seeds: %d'%nGoodSeeds  
     
-    
-    
-    # CHECK SEEDS CONSISTENCY (Seed_i-Seed_j-L TRIANGLES) AND BUILD S(Seed_i-Seed_j) MATRIX  
+    # CHECK SEEDS CONSISTENCY (S_i-S_j-L TRIANGLES) AND BUILD S(S_i-S_j) MATRIX  
     S_SeedSeed = numpy.zeros(shape=(nGoodSeeds, nGoodSeeds))    
     for seed1 in range(0, nGoodSeeds):
         for seed2 in range(0, nGoodSeeds):
         #for seed2 in range(seed1+1, nGoodSeeds):
             S1toS2 = []
             for lattice in range(0, nLattices):
-                if not numpy.isnan(orderedScalesList[seed1][lattice]) and not numpy.isnan(orderedScalesList[seed2][lattice]):
+                if (not numpy.isnan(orderedScalesList[seed1][lattice]) and 
+                    not numpy.isnan(orderedScalesList[seed2][lattice])):
                     latticeToS1 = orderedScalesList[seed1][lattice]
                     latticeToS2 = orderedScalesList[seed2][lattice]
                     S1toS2_item = latticeToS2 / latticeToS1
@@ -80,7 +78,7 @@ def scaling_seedComparisonFunction(myArguments):
             print '\nSeeds: %d %d'%(seed1, seed2)
             N = len(S1toS2)
             print 'Common scaled lattices: %d'%N
-            if N < 11:
+            if N < 5:
                 S_SeedSeed[seed1, seed2] = numpy.nan
             else:            
                 total = 0
@@ -92,7 +90,10 @@ def scaling_seedComparisonFunction(myArguments):
                 for i in S1toS2:
                     sumOfSquares = sumOfSquares + ((i - averageS1toS2)**2)
                 standardDeviation = numpy.sqrt(sumOfSquares/N)
-                print 'Scale seed %d to seed %d: %.3f +- %.3f'%(seed1, seed2, averageS1toS2, standardDeviation)
+                print 'Scale seed %d to seed %d: %.3f +- %.3f'%(seed1, 
+                                                                seed2, 
+                                                                averageS1toS2, 
+                                                                standardDeviation)
                 print 'Relative error: %.2f'%(standardDeviation/averageS1toS2)
                 S_SeedSeed[seed1, seed2] = averageS1toS2
                     
@@ -113,8 +114,9 @@ def scaling_seedComparisonFunction(myArguments):
             for k in range(0, nGoodSeeds):
                 if numpy.isnan(S_SeedSeed[j,k]) or numpy.isnan(S_SeedSeed[k,i]):
                     continue
-                product = S_SeedSeed[i,j]*S_SeedSeed[j,k]*S_SeedSeed[k,i]
-                products.append(product)
+                if k != i:
+                    product = S_SeedSeed[i,j]*S_SeedSeed[j,k]*S_SeedSeed[k,i]
+                    products.append(product)
     total = 0
     for i in products:
         total = total + i
@@ -124,7 +126,8 @@ def scaling_seedComparisonFunction(myArguments):
         for i in products:
             sumOfSquares = sumOfSquares + (i-average)**2
             productsError = numpy.sqrt(sumOfSquares/len(products))
-        print '\nSeed - seed - seed triangles: %.3f +- %.3f'%(average, productsError)
+        print '\nSeed - seed - seed triangles: %.3f +- %.3f'%(average, 
+                                                              productsError)
     
     
     
@@ -133,8 +136,11 @@ def scaling_seedComparisonFunction(myArguments):
     for lattice in range(0, nLattices):
         flag = 0
         for seed in range(0, nGoodSeeds):
-            if not numpy.isnan(orderedScalesList[seed][lattice]) and not numpy.isnan(S_SeedSeed[seed, 0]):            
-                latticeToRefSeed = orderedScalesList[seed][lattice] * S_SeedSeed[seed, 0] # S(latticeToSeed) * S(seedToReferenceSeed)
+            if (not numpy.isnan(orderedScalesList[seed][lattice]) and 
+                not numpy.isnan(S_SeedSeed[seed, 0])):
+                # S(latticeToSeed) * S(seedToReferenceSeed)
+                latticeToRefSeed \
+                = orderedScalesList[seed][lattice] * S_SeedSeed[seed, 0] 
                 latticeScales.append(latticeToRefSeed)
                 flag = 1
                 break
@@ -143,7 +149,10 @@ def scaling_seedComparisonFunction(myArguments):
     
     if not os.path.exists('%s/r%s-finalScales'%(outputFolder, runNumber)):
         os.mkdir('%s/r%s-finalScales'%(outputFolder, runNumber))
-    joblib.dump(latticeScales, '%s/r%s-finalScales/r%s-finalScales.jbl'%(outputFolder, runNumber, runNumber))
+    joblib.dump(latticeScales, 
+                '%s/r%s-finalScales/r%s-finalScales.jbl'%(outputFolder, 
+                                                          runNumber, 
+                                                          runNumber))
     print 'N SCALE FACTORS BEFORE NORMALIZATION: ', len(latticeScales)
 
 
@@ -173,7 +182,10 @@ def scaling_seedComparisonFunction(myArguments):
     scaleAvg = scaleSum / nScaled
     print 'AVERAGE SCALE (AFTER NORMALIZATION): ', scaleAvg
     
-    joblib.dump(latticeScales_normalized, '%s/r%s-finalScales/r%s-finalScales-normalized.jbl'%(outputFolder, runNumber, runNumber))
+    joblib.dump(latticeScales_normalized, 
+                '%s/r%s-finalScales/r%s-finalScales-normalized.jbl'%(outputFolder, 
+                                                                     runNumber, 
+                                                                     runNumber))
     
     
     # LOG FINAL SCALES   
@@ -186,9 +198,13 @@ def scaling_seedComparisonFunction(myArguments):
         if not numpy.isnan(scale):
             nScaled_final = nScaled_final + 1
     percentageScaled = float(nScaled_final)/nLattices
-    fOpen.write('Fraction of scaled lattices: %.3f '%percentageScaled)
+    fOpen.write('Fraction of scaled lattices: %d/%d = %.3f'%(nScaled_final,
+                                                             nLattices,
+                                                             percentageScaled))
     fOpen.close()
-    print '\nFraction of scaled lattices: %.3f (Total: %d)'%(percentageScaled, len(latticeScales))
+    print '\nFraction of scaled lattices: %d/%d = %.3f'%(nScaled_final,
+                                                         nLattices,
+                                                         percentageScaled)
 
 if __name__ == "__main__":
     print "\n**** CALLING scaling_seedComparison ****"

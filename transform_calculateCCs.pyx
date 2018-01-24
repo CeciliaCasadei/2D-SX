@@ -110,7 +110,9 @@ cdef sample_and_correlate(int n, int nmin, I1, I2, int size=100):
 
         
     
-def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float deltaQrodThreshold):
+def determineTransformation(DTYPE_t[:, :] spotsL1, 
+                            DTYPE_t[:, :] spotsL2, 
+                            float deltaQrodThreshold):
     # spotsL1: h k qRod I (flag)          # L1 CAN BE THE MODEL
     # spotsL2: h k qRod I flag
 
@@ -143,10 +145,11 @@ def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float 
     I1_ip = []
     I2_ip = []
     
-    #################################################################################################
-    directCell = cellSize * numpy.matrix([[1, numpy.cos(2*numpy.pi/3)],[0, numpy.sin(2*numpy.pi/3)]]) # A
+    ##########################################################################
+    directCell = cellSize * numpy.matrix([[1, numpy.cos(2*numpy.pi/3)],
+                                          [0, numpy.sin(2*numpy.pi/3)]]) # A
     reciprocalCellRows = 2 * numpy.pi * directCell.I    
-    #################################################################################################
+    ##########################################################################
     
     h_L1 = spotsL1[:, 0]                  # L1 or MODEL
     k_L1 = spotsL1[:, 1]
@@ -185,19 +188,27 @@ def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float 
             h1 = h_L1[index]
             k1 = k_L1[index]
             # IDENTITY
-            if ((h1 == h and k1 == k) or (h1 == -h-k and k1 == h) or (h1 == k and k1 == -h-k)):
+            if ((h1 == h    and k1 == k) or 
+                (h1 == -h-k and k1 == h) or 
+                (h1 == k    and k1 == -h-k)):
                 I1_I.append(I_L1[index])
                 I2_I.append(I)
             # INVERSION
-            if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):
+            if ((h1 == -h  and k1 == -k) or 
+                (h1 == h+k and k1 == -h) or 
+                (h1 == -k  and k1 == h+k)):
                 I1_i.append(I_L1[index])
                 I2_i.append(I)
             # PERMUTATION
-            if ((h1 == k and k1 == h) or (h1 == -k-h and k1 == k) or (h1 == h and k1 == -k-h)):
+            if ((h1 == k    and k1 == h) or 
+                (h1 == -k-h and k1 == k) or 
+                (h1 == h and k1 == -k-h)):
                 I1_p.append(I_L1[index])
                 I2_p.append(I)
             # INVERSION - PERMUTATION
-            if ((h1 == -k and k1 == -h) or (h1 == k+h and k1 == -k) or (h1 == -h and k1 == k+h)):
+            if ((h1 == -k  and k1 == -h) or 
+                (h1 == k+h and k1 == -k) or 
+                (h1 == -h  and k1 == k+h)):
                 I1_ip.append(I_L1[index])
                 I2_ip.append(I)
                 
@@ -207,19 +218,27 @@ def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float 
             h1 = h_L1[index]
             k1 = k_L1[index]
             # INVERSION
-            if ((h1 == h and k1 == k) or (h1 == -h-k and k1 == h) or (h1 == k and k1 == -h-k)):
+            if ((h1 == h    and k1 == k) or 
+                (h1 == -h-k and k1 == h) or 
+                (h1 == k    and k1 == -h-k)):
                 I1_i.append(I_L1[index])
                 I2_i.append(I)
             # IDENTITY
-            if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):
+            if ((h1 == -h  and k1 == -k) or 
+                (h1 == h+k and k1 == -h) or 
+                (h1 == -k  and k1 == h+k)):
                 I1_I.append(I_L1[index])
                 I2_I.append(I)
             # INVERSION-PERMUTATION
-            if ((h1 == k and k1 == h) or (h1 == -k-h and k1 == k) or (h1 == h and k1 == -k-h)):
+            if ((h1 == k    and k1 == h) or 
+                (h1 == -k-h and k1 == k) or 
+                (h1 == h    and k1 == -k-h)):
                 I1_ip.append(I_L1[index])
                 I2_ip.append(I)
             # PERMUTATION
-            if ((h1 == -k and k1 == -h) or (h1 == k+h and k1 == -k) or (h1 == -h and k1 == k+h)):
+            if ((h1 == -k  and k1 == -h) or 
+                (h1 == k+h and k1 == -k) or 
+                (h1 == -h  and k1 == k+h)):
                 I1_p.append(I_L1[index])
                 I2_p.append(I)
 
@@ -230,9 +249,9 @@ def determineTransformation(DTYPE_t[:, :] spotsL1, DTYPE_t[:, :] spotsL2, float 
     n_ip = len(I1_ip)                                          
     n_min = min([n_I, n_i, n_p, n_ip])
     if n_min > 3:
-        CC_I_avg = sample_and_correlate(n_I, n_min, I1_I, I2_I)
-        CC_i_avg = sample_and_correlate(n_i, n_min, I1_i, I2_i)
-        CC_p_avg = sample_and_correlate(n_p, n_min, I1_p, I2_p)
+        CC_I_avg  = sample_and_correlate(n_I,  n_min, I1_I,  I2_I)
+        CC_i_avg  = sample_and_correlate(n_i,  n_min, I1_i,  I2_i)
+        CC_p_avg  = sample_and_correlate(n_p,  n_min, I1_p,  I2_p)
         CC_ip_avg = sample_and_correlate(n_ip, n_min, I1_ip, I2_ip)    
         
         avg_CCs = [CC_I_avg, CC_i_avg, CC_p_avg, CC_ip_avg]
