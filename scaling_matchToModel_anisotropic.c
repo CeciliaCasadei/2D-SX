@@ -3103,7 +3103,7 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
  *             h1 = h_L1[index]
  *             k1 = k_L1[index]             # <<<<<<<<<<<<<<
  *             if ((h1 == h and k1 == k) or (h1 == -h-k and k1 == h) or (h1 == k and k1 == -h-k)):
- *                 I1.append(I_L1[index])
+ *                 #if I_L1[index] > 0 and I > 0:
  */
       __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_k_L1, __pyx_v_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
       __Pyx_GOTREF(__pyx_t_1);
@@ -3114,8 +3114,8 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
  *             h1 = h_L1[index]
  *             k1 = k_L1[index]
  *             if ((h1 == h and k1 == k) or (h1 == -h-k and k1 == h) or (h1 == k and k1 == -h-k)):             # <<<<<<<<<<<<<<
+ *                 #if I_L1[index] > 0 and I > 0:
  *                 I1.append(I_L1[index])
- *                 I2.append(I)
  */
       __pyx_t_1 = PyObject_RichCompare(__pyx_v_h1, __pyx_v_h, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -3176,51 +3176,51 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
       __pyx_L11_bool_binop_done:;
       if (__pyx_t_25) {
 
-        /* "scaling_matchToModel_anisotropic.pyx":86
- *             k1 = k_L1[index]
+        /* "scaling_matchToModel_anisotropic.pyx":87
  *             if ((h1 == h and k1 == k) or (h1 == -h-k and k1 == h) or (h1 == k and k1 == -h-k)):
+ *                 #if I_L1[index] > 0 and I > 0:
  *                 I1.append(I_L1[index])             # <<<<<<<<<<<<<<
  *                 I2.append(I)
  *                 qs_2D.append(q_2D)
  */
-        __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_I_L1, __pyx_v_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+        __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_I_L1, __pyx_v_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_I1, __pyx_t_1); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_I1, __pyx_t_1); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "scaling_matchToModel_anisotropic.pyx":87
- *             if ((h1 == h and k1 == k) or (h1 == -h-k and k1 == h) or (h1 == k and k1 == -h-k)):
+        /* "scaling_matchToModel_anisotropic.pyx":88
+ *                 #if I_L1[index] > 0 and I > 0:
  *                 I1.append(I_L1[index])
  *                 I2.append(I)             # <<<<<<<<<<<<<<
  *                 qs_2D.append(q_2D)
  *                 qs_rod.append(q)
  */
-        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_I2, __pyx_v_I); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_I2, __pyx_v_I); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "scaling_matchToModel_anisotropic.pyx":88
+        /* "scaling_matchToModel_anisotropic.pyx":89
  *                 I1.append(I_L1[index])
  *                 I2.append(I)
  *                 qs_2D.append(q_2D)             # <<<<<<<<<<<<<<
  *                 qs_rod.append(q)
  *         for index in indices_qOpposite:
  */
-        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_qs_2D, __pyx_v_q_2D); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_qs_2D, __pyx_v_q_2D); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 89; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "scaling_matchToModel_anisotropic.pyx":89
+        /* "scaling_matchToModel_anisotropic.pyx":90
  *                 I2.append(I)
  *                 qs_2D.append(q_2D)
  *                 qs_rod.append(q)             # <<<<<<<<<<<<<<
  *         for index in indices_qOpposite:
  *             if numpy.isnan(spotsL1[index, 3]):
  */
-        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_qs_rod, __pyx_v_q); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 89; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_qs_rod, __pyx_v_q); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
         /* "scaling_matchToModel_anisotropic.pyx":85
  *             h1 = h_L1[index]
  *             k1 = k_L1[index]
  *             if ((h1 == h and k1 == k) or (h1 == -h-k and k1 == h) or (h1 == k and k1 == -h-k)):             # <<<<<<<<<<<<<<
+ *                 #if I_L1[index] > 0 and I > 0:
  *                 I1.append(I_L1[index])
- *                 I2.append(I)
  */
       }
 
@@ -3235,7 +3235,7 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
     }
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "scaling_matchToModel_anisotropic.pyx":90
+    /* "scaling_matchToModel_anisotropic.pyx":91
  *                 qs_2D.append(q_2D)
  *                 qs_rod.append(q)
  *         for index in indices_qOpposite:             # <<<<<<<<<<<<<<
@@ -3246,26 +3246,26 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
       __pyx_t_3 = __pyx_v_indices_qOpposite; __Pyx_INCREF(__pyx_t_3); __pyx_t_26 = 0;
       __pyx_t_27 = NULL;
     } else {
-      __pyx_t_26 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_v_indices_qOpposite); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_26 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_v_indices_qOpposite); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_27 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_27)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_27 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_27)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     for (;;) {
       if (likely(!__pyx_t_27)) {
         if (likely(PyList_CheckExact(__pyx_t_3))) {
           if (__pyx_t_26 >= PyList_GET_SIZE(__pyx_t_3)) break;
           #if CYTHON_COMPILING_IN_CPYTHON
-          __pyx_t_1 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_26); __Pyx_INCREF(__pyx_t_1); __pyx_t_26++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_26); __Pyx_INCREF(__pyx_t_1); __pyx_t_26++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           #else
-          __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_26); __pyx_t_26++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_26); __pyx_t_26++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_1);
           #endif
         } else {
           if (__pyx_t_26 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
           #if CYTHON_COMPILING_IN_CPYTHON
-          __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_26); __Pyx_INCREF(__pyx_t_1); __pyx_t_26++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_26); __Pyx_INCREF(__pyx_t_1); __pyx_t_26++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           #else
-          __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_26); __pyx_t_26++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_26); __pyx_t_26++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           __Pyx_GOTREF(__pyx_t_1);
           #endif
         }
@@ -3275,26 +3275,26 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           }
           break;
         }
         __Pyx_GOTREF(__pyx_t_1);
       }
-      __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_v_index = __pyx_t_15;
 
-      /* "scaling_matchToModel_anisotropic.pyx":91
+      /* "scaling_matchToModel_anisotropic.pyx":92
  *                 qs_rod.append(q)
  *         for index in indices_qOpposite:
  *             if numpy.isnan(spotsL1[index, 3]):             # <<<<<<<<<<<<<<
  *                 continue
  *             h1 = h_L1[index]
  */
-      __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_isnan); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_isnan); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __pyx_t_32 = __pyx_v_index;
@@ -3310,9 +3310,9 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
       } else if (unlikely(__pyx_t_33 >= __pyx_v_spotsL1.shape[1])) __pyx_t_15 = 1;
       if (unlikely(__pyx_t_15 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_15);
-        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
-      __pyx_t_6 = PyFloat_FromDouble((*((__pyx_t_32scaling_matchToModel_anisotropic_DTYPE_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_spotsL1.data + __pyx_t_32 * __pyx_v_spotsL1.strides[0]) ) + __pyx_t_33 * __pyx_v_spotsL1.strides[1]) )))); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = PyFloat_FromDouble((*((__pyx_t_32scaling_matchToModel_anisotropic_DTYPE_t *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_spotsL1.data + __pyx_t_32 * __pyx_v_spotsL1.strides[0]) ) + __pyx_t_33 * __pyx_v_spotsL1.strides[1]) )))); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
       __pyx_t_7 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_8))) {
@@ -3325,26 +3325,26 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
         }
       }
       if (!__pyx_t_7) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else {
-        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_7); __pyx_t_7 = NULL;
         __Pyx_GIVEREF(__pyx_t_6);
         PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_6);
         __pyx_t_6 = 0;
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       }
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_25 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_25 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 91; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_25 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_25 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       if (__pyx_t_25) {
 
-        /* "scaling_matchToModel_anisotropic.pyx":92
+        /* "scaling_matchToModel_anisotropic.pyx":93
  *         for index in indices_qOpposite:
  *             if numpy.isnan(spotsL1[index, 3]):
  *                 continue             # <<<<<<<<<<<<<<
@@ -3353,7 +3353,7 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
  */
         goto __pyx_L17_continue;
 
-        /* "scaling_matchToModel_anisotropic.pyx":91
+        /* "scaling_matchToModel_anisotropic.pyx":92
  *                 qs_rod.append(q)
  *         for index in indices_qOpposite:
  *             if numpy.isnan(spotsL1[index, 3]):             # <<<<<<<<<<<<<<
@@ -3362,52 +3362,52 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
  */
       }
 
-      /* "scaling_matchToModel_anisotropic.pyx":93
+      /* "scaling_matchToModel_anisotropic.pyx":94
  *             if numpy.isnan(spotsL1[index, 3]):
  *                 continue
  *             h1 = h_L1[index]             # <<<<<<<<<<<<<<
  *             k1 = k_L1[index]
  *             if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):
  */
-      __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_h_L1, __pyx_v_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+      __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_h_L1, __pyx_v_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_XDECREF_SET(__pyx_v_h1, __pyx_t_1);
       __pyx_t_1 = 0;
 
-      /* "scaling_matchToModel_anisotropic.pyx":94
+      /* "scaling_matchToModel_anisotropic.pyx":95
  *                 continue
  *             h1 = h_L1[index]
  *             k1 = k_L1[index]             # <<<<<<<<<<<<<<
  *             if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):
- *                 I1.append(I_L1[index])
+ *                 #if I_L1[index] > 0 and I > 0:
  */
-      __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_k_L1, __pyx_v_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+      __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_k_L1, __pyx_v_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_XDECREF_SET(__pyx_v_k1, __pyx_t_1);
       __pyx_t_1 = 0;
 
-      /* "scaling_matchToModel_anisotropic.pyx":95
+      /* "scaling_matchToModel_anisotropic.pyx":96
  *             h1 = h_L1[index]
  *             k1 = k_L1[index]
  *             if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):             # <<<<<<<<<<<<<<
+ *                 #if I_L1[index] > 0 and I > 0:
  *                 I1.append(I_L1[index])
- *                 I2.append(I)
  */
-      __pyx_t_1 = PyNumber_Negative(__pyx_v_h); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = PyNumber_Negative(__pyx_v_h); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_8 = PyObject_RichCompare(__pyx_v_h1, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyObject_RichCompare(__pyx_v_h1, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       if (!__pyx_t_30) {
         goto __pyx_L22_next_or;
       } else {
       }
-      __pyx_t_8 = PyNumber_Negative(__pyx_v_k); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyNumber_Negative(__pyx_v_k); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_1 = PyObject_RichCompare(__pyx_v_k1, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = PyObject_RichCompare(__pyx_v_k1, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       if (!__pyx_t_30) {
       } else {
@@ -3415,21 +3415,21 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
         goto __pyx_L21_bool_binop_done;
       }
       __pyx_L22_next_or:;
-      __pyx_t_1 = PyNumber_Add(__pyx_v_h, __pyx_v_k); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = PyNumber_Add(__pyx_v_h, __pyx_v_k); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_8 = PyObject_RichCompare(__pyx_v_h1, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyObject_RichCompare(__pyx_v_h1, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       if (!__pyx_t_30) {
         goto __pyx_L24_next_or;
       } else {
       }
-      __pyx_t_8 = PyNumber_Negative(__pyx_v_h); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyNumber_Negative(__pyx_v_h); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_1 = PyObject_RichCompare(__pyx_v_k1, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = PyObject_RichCompare(__pyx_v_k1, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       if (!__pyx_t_30) {
       } else {
@@ -3437,76 +3437,76 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
         goto __pyx_L21_bool_binop_done;
       }
       __pyx_L24_next_or:;
-      __pyx_t_1 = PyNumber_Negative(__pyx_v_k); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = PyNumber_Negative(__pyx_v_k); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_8 = PyObject_RichCompare(__pyx_v_h1, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyObject_RichCompare(__pyx_v_h1, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       if (__pyx_t_30) {
       } else {
         __pyx_t_25 = __pyx_t_30;
         goto __pyx_L21_bool_binop_done;
       }
-      __pyx_t_8 = PyNumber_Add(__pyx_v_h, __pyx_v_k); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyNumber_Add(__pyx_v_h, __pyx_v_k); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_1 = PyObject_RichCompare(__pyx_v_k1, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = PyObject_RichCompare(__pyx_v_k1, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_30 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_30 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_t_25 = __pyx_t_30;
       __pyx_L21_bool_binop_done:;
       if (__pyx_t_25) {
 
-        /* "scaling_matchToModel_anisotropic.pyx":96
- *             k1 = k_L1[index]
+        /* "scaling_matchToModel_anisotropic.pyx":98
  *             if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):
+ *                 #if I_L1[index] > 0 and I > 0:
  *                 I1.append(I_L1[index])             # <<<<<<<<<<<<<<
  *                 I2.append(I)
  *                 qs_2D.append(q_2D)
  */
-        __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_I_L1, __pyx_v_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+        __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_I_L1, __pyx_v_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_I1, __pyx_t_1); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_I1, __pyx_t_1); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "scaling_matchToModel_anisotropic.pyx":97
- *             if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):
+        /* "scaling_matchToModel_anisotropic.pyx":99
+ *                 #if I_L1[index] > 0 and I > 0:
  *                 I1.append(I_L1[index])
  *                 I2.append(I)             # <<<<<<<<<<<<<<
  *                 qs_2D.append(q_2D)
  *                 qs_rod.append(q)
  */
-        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_I2, __pyx_v_I); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_I2, __pyx_v_I); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 99; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "scaling_matchToModel_anisotropic.pyx":98
+        /* "scaling_matchToModel_anisotropic.pyx":100
  *                 I1.append(I_L1[index])
  *                 I2.append(I)
  *                 qs_2D.append(q_2D)             # <<<<<<<<<<<<<<
  *                 qs_rod.append(q)
  * 
  */
-        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_qs_2D, __pyx_v_q_2D); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_qs_2D, __pyx_v_q_2D); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "scaling_matchToModel_anisotropic.pyx":99
+        /* "scaling_matchToModel_anisotropic.pyx":101
  *                 I2.append(I)
  *                 qs_2D.append(q_2D)
  *                 qs_rod.append(q)             # <<<<<<<<<<<<<<
  * 
  *     n_pairs = len(I1)
  */
-        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_qs_rod, __pyx_v_q); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 99; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_31 = __Pyx_PyList_Append(__pyx_v_qs_rod, __pyx_v_q); if (unlikely(__pyx_t_31 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 101; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "scaling_matchToModel_anisotropic.pyx":95
+        /* "scaling_matchToModel_anisotropic.pyx":96
  *             h1 = h_L1[index]
  *             k1 = k_L1[index]
  *             if ((h1 == -h and k1 == -k) or (h1 == h+k and k1 == -h) or (h1 == -k and k1 == h+k)):             # <<<<<<<<<<<<<<
+ *                 #if I_L1[index] > 0 and I > 0:
  *                 I1.append(I_L1[index])
- *                 I2.append(I)
  */
       }
 
-      /* "scaling_matchToModel_anisotropic.pyx":90
+      /* "scaling_matchToModel_anisotropic.pyx":91
  *                 qs_2D.append(q_2D)
  *                 qs_rod.append(q)
  *         for index in indices_qOpposite:             # <<<<<<<<<<<<<<
@@ -3519,25 +3519,25 @@ __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_t_2, 1, (PyObject *(*)(char *)) __p
     __pyx_L3_continue:;
   }
 
-  /* "scaling_matchToModel_anisotropic.pyx":101
+  /* "scaling_matchToModel_anisotropic.pyx":103
  *                 qs_rod.append(q)
  * 
  *     n_pairs = len(I1)             # <<<<<<<<<<<<<<
  * 
  *     return n_pairs, I1, I2, qs_2D, qs_rod
  */
-  __pyx_t_26 = PyList_GET_SIZE(__pyx_v_I1); if (unlikely(__pyx_t_26 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 101; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_26 = PyList_GET_SIZE(__pyx_v_I1); if (unlikely(__pyx_t_26 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_n_pairs = __pyx_t_26;
 
-  /* "scaling_matchToModel_anisotropic.pyx":103
+  /* "scaling_matchToModel_anisotropic.pyx":105
  *     n_pairs = len(I1)
  * 
  *     return n_pairs, I1, I2, qs_2D, qs_rod             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_pairs); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_n_pairs); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyTuple_New(5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3);
