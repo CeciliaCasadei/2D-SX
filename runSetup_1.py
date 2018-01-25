@@ -23,12 +23,13 @@ if not os.path.exists(outFolder):
 # CHECK CHEETAH PREPROCESSING RESULTS
 # python checkH5content.py --runNumber <runNumber> --label <label>
 
+serverPath = '/mnt/das-gpfs/home/casadei_c/work/casadei' 
+#serverPath = '/afs/psi.ch/group/0620/casadei/2D-MX'
 
 # MAKE IMAGE LIST
-imagesDirectoryName = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_@_LCLS/r%s-images/data1'%runNumber
-#imagesDirectoryName = '/mnt/das-gpfs/home/casadei_c/work/casadei/UNIX_@_LCLS/r%s-images/data1'%runNumber
+imagesDirectoryName = '%s/UNIX_@_LCLS/r%s-images/data1'%(serverPath, runNumber)
 
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python makeImageList.py --runNumber %s --imagesDirectoryName %s'
                %(runNumber, imagesDirectoryName))
@@ -58,11 +59,11 @@ if flag == 1:
 
 
 # EXTRACT INFO FROM CHEETAH peaks.txt
-selectedImageList = '%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(outFolder, runNumber)
-peaksFile = '/afs/psi.ch/group/0620/casadei/2D-MX/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
-#peaksFile = '/mnt/das-gpfs/home/casadei_c/work/casadei/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%runNumber
-geometryFile = '/afs/psi.ch/group/0620/casadei/2D-MX/Geometry/geometry.h5' # same for all runs
-#geometryFile = '/mnt/das-gpfs/home/casadei_c/work/casadei/Geometry/geometry.h5' # same for all runs
+selectedImageList = '%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(outFolder, 
+                                                                    runNumber)
+peaksFile = '%s/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%(serverPath, 
+                                                              runNumber)
+geometryFile = '%s/Geometry/geometry.h5'%serverPath # same for all runs
 pixelSize = 0.000110         # m
 
 flag = 0
@@ -217,7 +218,7 @@ if flag == 1:
 resolution_3D = 7.0 # A
 n_minThreshold = 8
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python scaling.py --runNumber %s \
                                  --resolution_3D %f \

@@ -5,7 +5,7 @@ import numpy
 print numpy.get_include()
 
 setup(
-    ext_modules = cythonize("scaling_matchToModel_anisotropic.pyx", ),
+    ext_modules = cythonize("scaling_calculateScaleFactor.pyx", ),
     include_dirs=[numpy.get_include(), ]
 )
 
