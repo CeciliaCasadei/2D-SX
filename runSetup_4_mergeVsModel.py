@@ -63,7 +63,7 @@ if flag == 1:
                                              
                                              
 # CALCULATE CChalf
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python calculate_CChalf.py --inputFolder %s \
                                           --thickness %f \

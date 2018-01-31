@@ -3,20 +3,25 @@ import sys
 import getopt
 import joblib
 import numpy
+import random
 
-#import shannon_model
 import simulate_resolution
 import shannonSamplings
 import get_rodIndices
+import correlate
 
-
-def CChalf(low, high, rodIndices, inputFolder, cellSize, T, d):
-    CChalf = []
-    N = 0
-    print '****** ', low, high, ' ******'
+# CALCULATE CChalf OF A RESOLUTION BIN [high, low] ONCE
+def calculate(low, high, rodIndices, inputFolder, cellSize, T, d):
     
+    delta_qRod = (2*numpy.pi)/(2*d) 
+    
+    N_uniques = 0
+    CChalf_value = 0
+    Is_1 = []
+    Is_2 = []
+    
+    # Loop on Bragg lines
     for rod_hk in rodIndices:
-        print rod_hk
         h = rod_hk[0]
         k = rod_hk[1]
         braggRodObject = joblib.load('%s/braggRodObjects/braggRodObject_%d_%d.jbl'
@@ -24,45 +29,95 @@ def CChalf(low, high, rodIndices, inputFolder, cellSize, T, d):
         
         experimental_q = braggRodObject.experimental_q
         experimental_I = braggRodObject.experimental_I
-        model_coefficients = braggRodObject.model_coefficients
         qMin = braggRodObject.qMin
         qMax = braggRodObject.qMax
-        
-        
-        delta_qRod = (2*numpy.pi)/(2*d) 
+         
+        # Generate qRod Shannon values
         samplings = shannonSamplings.get_shannonSamplings(delta_qRod, qMax)
         samplings = samplings[1:-1]
         if not (samplings[0] > qMin and samplings[-1] < qMax):
             raise NameError('Samplings exceeding experimental range.')
+            
+        # Loop on qRod Shannon values
         for qRod in samplings:
             resolution = simulate_resolution.resolution(cellSize, h, k, qRod)
             if (low > resolution >= high):
-                print 'SPOT %d %d %.2f (%.2f A) IN RANGE: %.2f A - %.2f A'%(h, k, qRod, resolution, low, high)
-            
-    CChalf.append(0)
-#        
-#        for index in range(0, len(experimental_q)):
-#            q_observed = experimental_q[index]
-#            
-#            resolution = simulate_resolution.resolution(cellSize, 
-#                                                        h, 
-#                                                        k, 
-#                                                        q_observed)
-#            if high <= resolution < low:
-#                I_observed = experimental_I[index]
-#                
-#                I_model = shannon_model.sinc_function(q_observed, 
-#                                                      model_coefficients, 
-#                                                      (len(model_coefficients)-1)/2, 
-#                                                      c_star, 
-#                                                      T, 
-#                                                      d)
-#                R_value_up = R_value_up + abs(I_observed-I_model)
-#                R_value_down = R_value_down + abs(I_model)
-#                N = N+1
-#            
-#    R_value = R_value_up/R_value_down
-    return N, CChalf
+                
+                # Unique reflection belongs to resolution range
+                N_uniques = N_uniques + 1
+                
+                shannonBin_l = qRod - (delta_qRod/2)
+                shannonBin_r = qRod + (delta_qRod/2)
+
+                Is_shannonBin = [experimental_I[i] 
+                                 for i in range(0, len(experimental_q)) 
+                                 if shannonBin_l < experimental_q[i] < shannonBin_r]
+                N_obs = len(Is_shannonBin)
+                
+                Is_shannonBin_1 = []
+                Is_shannonBin_2 = []
+                
+                # Extract half of the observations      
+                random_sample = random.sample(range(N_obs), N_obs/2)
+                for i in range(0, N_obs):
+                    I_obs = Is_shannonBin[i]
+                    if i in random_sample:
+                        Is_shannonBin_1.append(I_obs)
+                    else:
+                        Is_shannonBin_2.append(I_obs)
+                if not (N_obs == len(Is_shannonBin_1) + len(Is_shannonBin_2)):
+                    raise Exception('Bad sub-group division.')
+                    
+                I1 = numpy.average(Is_shannonBin_1)
+                I2 = numpy.average(Is_shannonBin_2)
+                Is_1.append(I1)
+                Is_2.append(I2)
+                
+                print ('SPOT %4d %4d %6.2f (%6.2f A) IN RANGE: %6.2f A - %6.2f A. AVG I1 AND I2: %6.2f %6.2f'
+                       %(h, k, qRod, resolution, low, high, I1, I2))
+                                
+    CChalf_value = correlate.Correlate(Is_1, Is_2)
+    
+    if not (N_uniques == len(Is_1)):
+        raise Exception('Error in N of unique reflections.')
+        
+    return N_uniques, CChalf_value
+
+# CALCULATE CChalf OF A RESOLUTION BIN [high, low] n TIMES
+def CChalf(low, 
+           high, 
+           rodIndices, 
+           inputFolder, 
+           cellSize, 
+           T, 
+           d):
+               
+    n = 10
+    CChalf_list = []
+    N_uniques_list = []
+    
+    print '****** ', low, high, ' ******'
+    
+    for i in range(0, n):
+        
+        print '\n'
+        N_uniques, CChalf_value = calculate(low, 
+                                            high, 
+                                            rodIndices, 
+                                            inputFolder, 
+                                            cellSize, 
+                                            T, 
+                                            d)
+        CChalf_list.append(CChalf_value)
+        
+        if len(N_uniques_list) > 0:
+            if N_uniques != N_uniques_list[-1]:
+                raise Exception('Error: different N_unique values.')
+                
+        N_uniques_list.append(N_uniques)
+        
+    return N_uniques_list, CChalf_list
+    
         
 
 def calculate_CChalf_Function(myArguments):
@@ -110,41 +165,43 @@ def calculate_CChalf_Function(myArguments):
     
     # LOG
     fOpen = open('%s/CChalf_bins.txt'%inputFolder, 'w')
-    fOpen.write('Resolution 3D           N            CChalf\n')
+    fOpen.write('Resolution 3D           N_uniques      CChalf\n')
     
     # CALCULATE CChalf IN EACH 3D-RESOLUTION SHELL
     for i in range(0, nBins):
         low = bins[i]
         high = bins[i+1]
-        N, CChalf_vector = CChalf(low, 
-                                 high, 
-                                 rodIndices, 
-                                 inputFolder, 
-                                 cellSize,
-                                 T, 
-                                 d)
+        N_vector, CChalf_vector = CChalf(low, 
+                                         high, 
+                                         rodIndices, 
+                                         inputFolder, 
+                                         cellSize,
+                                         T, 
+                                         d)
         CChalf_value = numpy.average(CChalf_vector)
         print CChalf_vector, CChalf_value
-        fOpen.write('%6.2f - %6.2f      %12d       %.2f \n'%(low, 
+        print N_vector
+        fOpen.write('%6.2f - %6.2f      %12d       %.4f \n'%(low, 
                                                              high, 
-                                                             N, 
+                                                             N_vector[0], 
                                                              CChalf_value))
      
     # CALCULATE GLOBAL CChalf WITH DIFFERENT HIGH-RES CUTOFFS                                                              
     for secondEdge in [bins[-1], bins[-2]]:
         
-        N, CChalf_vector = CChalf(bins[0], 
-                                 secondEdge, 
-                                 rodIndices, 
-                                 inputFolder, 
-                                 cellSize, 
-                                 T, 
-                                 d)
+        N_vector, CChalf_vector = CChalf(bins[0], 
+                                         secondEdge, 
+                                         rodIndices, 
+                                         inputFolder, 
+                                         cellSize, 
+                                         T, 
+                                         d)
         CChalf_value = numpy.average(CChalf_vector)
         print 'Global: ', CChalf_vector, CChalf_value
-        fOpen.write('\n%6.2f - %6.2f      %12d       %.3f \n'%(bins[0], 
+        print N_vector
+        fOpen.write('\n%6.2f - %6.2f      %12d       %.4f \n'%(bins[0], 
                                                                secondEdge, 
-                                                               N, 
+                                                               N_vector[0], 
                                                                CChalf_value))
                                                                
     
