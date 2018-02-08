@@ -63,7 +63,7 @@ if flag == 1:
                                              
                                              
 # CALCULATE CChalf
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python calculate_CChalf.py --inputFolder %s \
                                           --thickness %f \
@@ -73,3 +73,33 @@ if flag == 1:
                                             thickness,
                                             damping,
                                             cellSize))
+                                            
+ 
+
+# FRENCH-WILSON METHOD
+flag = 0
+if flag == 1:
+    os.system('python calculate_FW_values.py --inputFolder %s \
+                                             --thickness %f \
+                                             --damping %f \
+                                             --cellSize %f'
+                                             %(inputFolder, 
+                                               thickness,
+                                               damping,
+                                               cellSize))                                             
+                                               
+# PRINT ALL STATS
+flag = 0
+if flag == 1:
+    os.system('python printStats.py')
+                                               
+# FROM FW RESULTS, EXTRACT DATA TO MR  
+flag = 1
+if flag == 1:
+    os.system('python printValuesToMR.py')
+                                                                                                                               
+                                            
+# MODEL COMPLETENESS VS TILT ANGLE
+flag = 0
+if flag == 1:
+    os.system('python simulate_completeness.py')

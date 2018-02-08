@@ -3,6 +3,7 @@ import sys
 import getopt
 import joblib
 import numpy
+import os
 
 import shannon_model
 import simulate_resolution
@@ -96,6 +97,9 @@ def calculate_Rfactor_Function(myArguments):
     rodIndices = get_rodIndices.defineRodIndices(resolution_2D)
     print '%d Rods to %.1f 2D-resolution'%(len(rodIndices), resolution_2D) 
     
+    # BINARY TO SAVE
+    data = []
+    
     # LOG
     fOpen = open('%s/R_factor_bins.txt'%inputFolder, 'w')
     fOpen.write('Resolution 3D           N            R\n')
@@ -116,10 +120,12 @@ def calculate_Rfactor_Function(myArguments):
                                                              high, 
                                                              N, 
                                                              R_value))
+        data_line = [low, high, N, R_value]
+        data.append(data_line)
                                                              
                                                              
     # CALCULATE GLOBAL R WITH DIFFERENT HIGH-RES CUTOFFS                                                         
-    for secondEdge in [bins[-1], bins[-2]]:
+    for secondEdge in [bins[-1]]: #, bins[-2]]:
         
         N, R_value = R(bins[0], 
                        secondEdge, 
@@ -133,10 +139,16 @@ def calculate_Rfactor_Function(myArguments):
                                                                secondEdge, 
                                                                N, 
                                                                R_value))
-                                                               
-    
-         
+        data_line = [bins[0], secondEdge, N, R_value]
+        data.append(data_line)
+                                                                        
     fOpen.close()
+    
+    data = numpy.asarray(data)
+    dataBinary_folder = '%s/Rfactor'%inputFolder
+    if not os.path.exists(dataBinary_folder):
+        os.mkdir(dataBinary_folder)
+    joblib.dump(data, '%s/R_factor_bins.jbl'%dataBinary_folder)
 
 if __name__ == "__main__":
     print "\n**** CALLING calculate_Rfactor ****"

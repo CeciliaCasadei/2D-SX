@@ -4,6 +4,7 @@ import getopt
 import joblib
 import numpy
 import random
+import os
 
 import simulate_resolution
 import shannonSamplings
@@ -118,7 +119,8 @@ def CChalf(low,
         
     return N_uniques_list, CChalf_list
     
-        
+def calculate_CCstar(CChalf):
+    return numpy.sqrt( (2*CChalf)/(1+CChalf) )      
 
 def calculate_CChalf_Function(myArguments):
     
@@ -165,7 +167,10 @@ def calculate_CChalf_Function(myArguments):
     
     # LOG
     fOpen = open('%s/CChalf_bins.txt'%inputFolder, 'w')
-    fOpen.write('Resolution 3D           N_uniques      CChalf\n')
+    fOpen.write('Resolution 3D           N_uniques      CChalf   CCstar\n')
+    
+    # BINARY TO SAVE
+    data = []
     
     # CALCULATE CChalf IN EACH 3D-RESOLUTION SHELL
     for i in range(0, nBins):
@@ -179,15 +184,20 @@ def calculate_CChalf_Function(myArguments):
                                          T, 
                                          d)
         CChalf_value = numpy.average(CChalf_vector)
-        print CChalf_vector, CChalf_value
+        CCstar = calculate_CCstar(CChalf_value)
+        print CChalf_vector, CChalf_value, CCstar
         print N_vector
-        fOpen.write('%6.2f - %6.2f      %12d       %.4f \n'%(low, 
-                                                             high, 
-                                                             N_vector[0], 
-                                                             CChalf_value))
+        fOpen.write('%6.2f - %6.2f      %12d       %.4f     %.4f\n'%(low, 
+                                                                     high, 
+                                                                     N_vector[0], 
+                                                                     CChalf_value,
+                                                                     CCstar))
+                                                             
+        data_line = [low, high, N_vector[0], CChalf_value, CCstar]
+        data.append(data_line)
      
     # CALCULATE GLOBAL CChalf WITH DIFFERENT HIGH-RES CUTOFFS                                                              
-    for secondEdge in [bins[-1], bins[-2]]:
+    for secondEdge in [bins[-1]]: #, bins[-2]]:
         
         N_vector, CChalf_vector = CChalf(bins[0], 
                                          secondEdge, 
@@ -197,16 +207,25 @@ def calculate_CChalf_Function(myArguments):
                                          T, 
                                          d)
         CChalf_value = numpy.average(CChalf_vector)
-        print 'Global: ', CChalf_vector, CChalf_value
+        CCstar = calculate_CCstar(CChalf_value)
+        print 'Global: ', CChalf_vector, CChalf_value, CCstar
         print N_vector
-        fOpen.write('\n%6.2f - %6.2f      %12d       %.4f \n'%(bins[0], 
-                                                               secondEdge, 
-                                                               N_vector[0], 
-                                                               CChalf_value))
-                                                               
-    
-         
+        fOpen.write('%6.2f - %6.2f      %12d       %.4f     %.4f\n'%(bins[0], 
+                                                                     secondEdge, 
+                                                                     N_vector[0], 
+                                                                     CChalf_value,
+                                                                     CCstar))
+        
+        data_line = [bins[0], secondEdge, N_vector[0], CChalf_value, CCstar]
+        data.append(data_line)
+                                                                      
     fOpen.close()
+    
+    data = numpy.asarray(data)
+    dataBinary_folder = '%s/CChalf'%inputFolder
+    if not os.path.exists(dataBinary_folder):
+        os.mkdir(dataBinary_folder)
+    joblib.dump(data, '%s/CChalf_bins.jbl'%dataBinary_folder)
 
 if __name__ == "__main__":
     print "\n**** CALLING calculate_CChalf ****"
