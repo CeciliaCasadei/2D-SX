@@ -86,18 +86,35 @@ if flag == 1:
                                              %(inputFolder, 
                                                thickness,
                                                damping,
-                                               cellSize))                                             
+                                               cellSize)) 
+                                               
+                                               
                                                
 # PRINT ALL STATS
 flag = 0
 if flag == 1:
     os.system('python printStats.py')
+    
+    
                                                
 # FROM FW RESULTS, EXTRACT DATA TO MR  
 flag = 1
 if flag == 1:
     os.system('python printValuesToMR.py')
-                                                                                                                               
+    
+    
+    
+# EXTRACT DATA TO MR, FROM SHANNON FITS, NO FRENCH-WILSON
+flag = 0
+if flag == 1:
+    os.system('python prepare_MRdata.py --resolutionLimit %f \
+                                        --thickness %f \
+                                        --damping %f'
+                                        %(resolutionLimit,
+                                          thickness,
+                                          damping))
+            
+                                                                                                                   
                                             
 # MODEL COMPLETENESS VS TILT ANGLE
 flag = 0

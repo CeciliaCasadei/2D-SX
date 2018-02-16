@@ -5,7 +5,7 @@ import numpy
 import sys
 import getopt
 
-import makeOrbits
+import get_rodIndices
 import shannon_model
 
 def prepare_MRdata_Function(myArguments):
@@ -20,13 +20,13 @@ def prepare_MRdata_Function(myArguments):
                                                "thickness=",
                                                "damping="])
     except getopt.GetoptError:
-        print 'Usage: python prepare_MRdata.py %s'%(input_str_1, 
-                                                    input_str_2)
+        print 'Usage: python prepare_MRdata.py %s %s'%(input_str_1, 
+                                                       input_str_2)
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python prepare_MRdata.py %s'%(input_str_1, 
-                                                        input_str_2)
+            print 'Usage: python prepare_MRdata.py %s %s'%(input_str_1, 
+                                                           input_str_2)
             sys.exit()
         elif option == "--resolutionLimit":
             resolutionLimit = float(value)
@@ -35,6 +35,7 @@ def prepare_MRdata_Function(myArguments):
         elif option == "--damping":
             T = float(value)
 
+    inFolder = './Output_runMergingVsModel/Shannon_sampling'
     outFolder = './Output_runMergingVsModel/dataToMR'
     if not os.path.exists(outFolder):
         os.mkdir(outFolder)
@@ -47,12 +48,7 @@ def prepare_MRdata_Function(myArguments):
     c_star = (2*numpy.pi)/(2*d)
        
     # DEFINE ROD INDICES       
-    orbits = makeOrbits.makeOrbitsFunction(resolutionLimit)
-    rodIndices_all = []
-    for orbit in orbits:
-        orbit_label = orbit.label
-        if orbit_label[0] >= 0 and orbit_label[1] >= 0:
-            rodIndices_all.append(orbit_label)        
+    rodIndices_all = get_rodIndices.defineRodIndices(resolutionLimit)
     print '%d Rods'%len(rodIndices_all) 
 
     # LOOP ON BRAGG RODS
@@ -61,8 +57,8 @@ def prepare_MRdata_Function(myArguments):
         h = rodIndices[0]
         k = rodIndices[1]
         
-        braggRodObjectFile = ('./Output_runMergingVsModel/Shannon_sampling/braggRodObjects/braggRodObject_%d_%d.jbl'
-                              %(h, k))
+        braggRodObjectFile = ('%s/braggRodObjects/braggRodObject_%d_%d.jbl'
+                              %(inFolder, h, k))
         braggRodObject = joblib.load(braggRodObjectFile)
         
         qRod_max = braggRodObject.qMax
@@ -111,8 +107,11 @@ def prepare_MRdata_Function(myArguments):
                         squaredResidual = (I_experimental-I_model)**2
                         sumOfSquaredResiduals = sumOfSquaredResiduals + squaredResidual
                     
-                varI = sumOfSquaredResiduals/N
-                sigI = numpy.sqrt(varI)
+                #varI = sumOfSquaredResiduals/N
+                #sigI = numpy.sqrt(varI)
+                
+                sigI = numpy.sqrt(sumOfSquaredResiduals)/N
+                
                 sigF = numpy.sqrt(I_model_center + sigI) - F
                 hkl_file.write('%3d %3d %3d %8.2f %8.2f\n'%(h, k, l, F, sigF))
                 hkl_file_q_I.write('%3d %3d %3d %8.2f %8.2f %8.2f\n'

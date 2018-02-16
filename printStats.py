@@ -11,7 +11,7 @@ print R_data.shape, CC_data.shape, StoN_data.shape
 fOpen = open('%s/stats.txt'%folder, 'w')
 fOpen.write('Res 3D: low-high    Nobs    Nunique Redundancy      R  CChalf  CCstar (S/N)_FW\n')
 nBins = R_data.shape[0]
-for bin_line in range(0, nBins):
+for bin_line in range(0, nBins-1):
     
     low  = R_data[bin_line][0]
     high = R_data[bin_line][1]

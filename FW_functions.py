@@ -17,12 +17,12 @@ def avg_amplitude_integrand(x, mu, sigma):
     return y
     
 def var_intensity_integrand(x, mu, sigma):
-    avg_intensity = scipy.integrate.quad(avg_intensity_integrand, 0, mu+20*sigma, args=(mu, sigma))[0]
+    avg_intensity = scipy.integrate.quad(avg_intensity_integrand, 0, mu+50*sigma, args=(mu, sigma))[0]
     y = (x-avg_intensity)**2 * Gauss_normalized(x, mu, sigma)
     return y
     
 def var_amplitude_integrand(x, mu, sigma):
-    avg_amplitude = scipy.integrate.quad(avg_amplitude_integrand, 0, mu+20*sigma, args=(mu, sigma))[0]
+    avg_amplitude = scipy.integrate.quad(avg_amplitude_integrand, 0, mu+50*sigma, args=(mu, sigma))[0]
     y = (numpy.sqrt(x)-avg_amplitude)**2 * Gauss_normalized(x, mu, sigma)
     return y
     
@@ -33,16 +33,16 @@ def calc_classic_std_amplitude(avg_intensity, std_intensity):
         return numpy.nan
         
 def calc_avg_intensity(mu, sigma):
-    return scipy.integrate.quad(avg_intensity_integrand, 0, mu+20*sigma, args=(mu, sigma))[0]
+    return scipy.integrate.quad(avg_intensity_integrand, 0, mu+50*sigma, args=(mu, sigma))[0]
     
 def calc_avg_amplitude(mu, sigma):
-    return scipy.integrate.quad(avg_amplitude_integrand, 0, mu+20*sigma, args=(mu, sigma))[0]
+    return scipy.integrate.quad(avg_amplitude_integrand, 0, mu+50*sigma, args=(mu, sigma))[0]
     
 def calc_var_intensity(mu, sigma):
-    return scipy.integrate.quad(var_intensity_integrand, 0, mu+20*sigma, args=(mu, sigma))[0]
+    return scipy.integrate.quad(var_intensity_integrand, 0, mu+50*sigma, args=(mu, sigma))[0]
     
 def calc_var_amplitude(mu, sigma):
-    return scipy.integrate.quad(var_amplitude_integrand, 0, mu+20*sigma, args=(mu, sigma))[0]
+    return scipy.integrate.quad(var_amplitude_integrand, 0, mu+50*sigma, args=(mu, sigma))[0]
 
 def testFunctions():    
     mu_sigmas = [(9., 2.), (10., 1.), (50., 6.), (0.5, 1.), (-0.4, 2.), (-5., 2.)]
