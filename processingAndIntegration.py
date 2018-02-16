@@ -20,9 +20,6 @@ import os
 import time
 import joblib
 import scipy.optimize
-import matplotlib
-matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
-import matplotlib.pyplot
 
 
 
@@ -52,17 +49,32 @@ def toBeMinimized(x, *p):
     orientation = x[1]/285
     imageCenter = [x[2]/10, x[3]/10]
     
-    highResLimit, waveVector, tiltAngle, detectorDistance, pixelSize, distanceThreshold, detectedPeaks = p
+    highResLimit, \
+    waveVector, \
+    tiltAngle, \
+    detectorDistance, \
+    pixelSize, \
+    distanceThreshold, \
+    detectedPeaks = p
     
-    reciprocalLattice = buildReciprocalLattice.buildReciprocalLatticeFunction(unitCell, 100, 100, highResLimit)
-    predictedPattern = calculatePredictedPattern.calculatePredictedPatternFunction(reciprocalLattice, orientation, 
-                                                                                   waveVector, tiltAngle, 
-                                                                                   detectorDistance, pixelSize)    
+    reciprocalLattice = buildReciprocalLattice.buildReciprocalLatticeFunction(unitCell, 
+                                                                              100, 
+                                                                              100, 
+                                                                              highResLimit)
+    predictedPattern = calculatePredictedPattern.calculatePredictedPatternFunction(reciprocalLattice, 
+                                                                                   orientation, 
+                                                                                   waveVector, 
+                                                                                   tiltAngle, 
+                                                                                   detectorDistance, 
+                                                                                   pixelSize)    
     predictedPattern = numpy.asarray(predictedPattern, dtype=numpy.float32)
     imageCenter = numpy.asarray(imageCenter, dtype=numpy.float32)   
-    nMatchedPeaks, latticeError = calculateLatticeError.calculateMatrixElement(imageCenter, predictedPattern, 
-                                                         detectedPeaks, pixelSize, 
-                                                         distanceThreshold)
+    nMatchedPeaks, \
+    latticeError = calculateLatticeError.calculateMatrixElement(imageCenter, 
+                                                                predictedPattern, 
+                                                                detectedPeaks, 
+                                                                pixelSize, 
+                                                                distanceThreshold)
     return latticeError
 
 
@@ -84,24 +96,35 @@ def processing(myArguments):
     latticeSelection = ''
     
     # READ INPUTS
-    string1 = 'Usage: python processingAndIntegration.py --runNumber <runNumber> --bgSubtractionMethod <bgSubtractionMethod>'
-    string2 = ' --minimizationMethod <minimizationMethod> --fractionDetectedThreshold <fractionDetectedThreshold> --lowResLimit <lowResLimit> --highResLimit <highResLimit>'
-    string3 = ' --nCountsPerPhoton <nCountsPerPhoton> --integrationRadius <integrationRadius> --geometryFile <geometryFile>'
-    string4 = ' --imageFolder <imageFolder> --imageSelection <imageSelection> --latticeSelection <latticeSelection>'    
+    s1  = 'Usage: python processingAndIntegration.py --runNumber <runNumber>'
+    s2  = ' --bgSubtractionMethod <bgSubtractionMethod>'
+    s3  = ' --minimizationMethod <minimizationMethod>'
+    s4  = ' --fractionDetectedThreshold <fractionDetectedThreshold>'
+    s5  = ' --lowResLimit <lowResLimit> --highResLimit <highResLimit>'
+    s6  = ' --nCountsPerPhoton <nCountsPerPhoton>'
+    s7  = ' --integrationRadius <integrationRadius>'
+    s8  = ' --geometryFile <geometryFile>'
+    s9  = ' --imageFolder <imageFolder> --imageSelection <imageSelection>'
+    s10 = ' --latticeSelection <latticeSelection>'    
     try:
         optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", 
-                                                                 "bgSubtractionMethod=", "minimizationMethod=", 
+                                                                 "bgSubtractionMethod=", 
+                                                                 "minimizationMethod=", 
                                                                  "fractionDetectedThreshold=",
-                                                                 "lowResLimit=", "highResLimit=", 
-                                                                 "nCountsPerPhoton=", "integrationRadius=",
-                                                                 "geometryFile=", "imageFolder=",
-                                                                 "imageSelection=", "latticeSelection="])
+                                                                 "lowResLimit=", 
+                                                                 "highResLimit=", 
+                                                                 "nCountsPerPhoton=", 
+                                                                 "integrationRadius=",
+                                                                 "geometryFile=", 
+                                                                 "imageFolder=",
+                                                                 "imageSelection=", 
+                                                                 "latticeSelection="])
     except getopt.GetoptError:
-        print string1 + string2 + string3 + string4
+        print s1 + s2 + s3 + s4 + s5 + s6 + s7 + s8 + s9 + s10
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':            
-            print string1 + string2 + string3 + string4
+            print s1 + s2 + s3 + s4 + s5 + s6 + s7 + s8 + s9 + s10
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
@@ -143,7 +166,8 @@ def processing(myArguments):
     boxWidth = 48
      
     ### FOLDERS ###
-    processingFolder = './Output_r%s/UnassembledImageProcessing'%runNumber        
+    outFolder = './Output_r%s'%runNumber 
+    processingFolder = '%s/UnassembledImageProcessing'%outFolder        
     if not os.path.exists(processingFolder):
         os.mkdir(processingFolder)
     processingFiguresFolder = '%s/BgSubtractionAndPeakSearchPlots'%processingFolder
@@ -155,66 +179,73 @@ def processing(myArguments):
     yGeometry = geometryData['/y']   ### float32 ###
     yGeometry_np = numpy.asarray(yGeometry, dtype=numpy.float32)
     
-    ### EXTRACT LATTICES ###    
-    latticeObjectsPath = './Output_r%s/OrientationAndCellRefinement/r%s_refinedLatticesDictionary.pkl'%(runNumber, runNumber)
+    ### EXTRACT LATTICES ###   
+    latticeFolder = '%s/OrientationAndCellRefinement'%outFolder
+    latticeObjectsPath = '%s/r%s_refinedLatticesDictionary.pkl'%(latticeFolder, 
+                                                                 runNumber)
     fLattices = open(latticeObjectsPath, 'rb')
     latticesDictionary = pickle.load(fLattices)
-    fLattices.close()
-    
+    fLattices.close()   
     
     ### STORE REFINED LATTICE SIZE ###
     refinedLatticeSizes = []
     
     ### LOOP ON LATTICES ###
-    for myKey, myLattice in latticesDictionary.items():
+    for K, L in latticesDictionary.items():
         processFlag = 0
         # IF ONE IMAGE / LATTICE WAS SELECTED, SWITCH FIGURE PLOTS ON.
         if not imageSelection == '' and not latticeSelection == '':
             
             if not os.path.exists(processingFiguresFolder):
                 os.mkdir(processingFiguresFolder)
-            if myLattice.runNumber == runNumber and myLattice.imageNumber == imageSelection and myLattice.latticeNumberInImage == latticeSelection:
+            if (L.runNumber   == runNumber and 
+                L.imageNumber == imageSelection and 
+                L.latticeNumberInImage == latticeSelection):
+                    
                 processFlag = 1
-                bgPlanePlotFlag = 1 #1
-                singleSpotFigureFlag = 1 #1
+                bgPlanePlotFlag = 0
+                singleSpotFigureFlag = 0 
                 integratedPeaksFigureFlag = 0
         else:
-            if myLattice.runNumber == runNumber:
+            if L.runNumber == runNumber:
                 processFlag = 1
                 bgPlanePlotFlag = 0
                 singleSpotFigureFlag = 0
                 integratedPeaksFigureFlag = 0
                  
         if processFlag == 1:
-            print "PROCESSING - Run %s Image %s Lattice %s"%(myLattice.runNumber, myLattice.imageNumber, myLattice.latticeNumberInImage)
+            print "PROCESSING - Run %s Image %s Lattice %s"%(L.runNumber, 
+                                                             L.imageNumber, 
+                                                             L.latticeNumberInImage)
             
             ### SET IMAGE CENTER ###
             imageCenter = [0, 0]
             imageCenter = numpy.asarray(imageCenter, dtype=numpy.float32)    
-            myLattice.imageCenter = imageCenter
+            L.imageCenter = imageCenter
             
             ### EXTRACT LATTICE ATTRIBUTES ###
-            tiltAngle = float(myLattice.tiltAngle)/180*numpy.pi
-            waveVector = 2*numpy.pi/myLattice.wavelength
-            detectorDistance = myLattice.detectorDistance
-            pixelSize = myLattice.pixelSize
+            tiltAngle = float(L.tiltAngle)/180*numpy.pi
+            waveVector = 2*numpy.pi/L.wavelength
+            detectorDistance = L.detectorDistance
+            pixelSize = L.pixelSize
             
             ### INITIALIZE LISTS TO FOLLOW LATTICE REFINEMENT BEHAVIOUR ###
             refinedCellSizes = []
-            refinedCellSizes.append(myLattice.refinedCellSize)
+            refinedCellSizes.append(L.refinedCellSize)
             refinedLatticeOrientations = []
-            refinedLatticeOrientations.append(myLattice.refinedInPlaneOrientation)
+            refinedLatticeOrientations.append(L.refinedInPlaneOrientation)
             refinedCenterXs = []
-            refinedCenterXs.append(myLattice.imageCenter[0])
+            refinedCenterXs.append(L.imageCenter[0])
             refinedCenterYs = []
-            refinedCenterYs.append(myLattice.imageCenter[1])
+            refinedCenterYs.append(L.imageCenter[1])
             nDetectedAndMatchedPeaks = []
-            nDetectedAndMatchedPeaks.append(myLattice.nMatchedPeaks)
+            nDetectedAndMatchedPeaks.append(L.nMatchedPeaks)
             avgLatticeErrors = []
-            avgLatticeErrors.append(myLattice.avgLatticeError)
+            avgLatticeErrors.append(L.avgLatticeError)
             
             ### EXTRACT MEASUREMENT RAW/UNASSEMBLED DATA ####
-            unassembledDataFile = h5py.File('%s/%s'%(imageFolder, myLattice.fileName), 'r')
+            unassembledDataFile = h5py.File('%s/%s'%(imageFolder, 
+                                                     L.fileName), 'r')
             unassembledData = unassembledDataFile['/data/rawdata0']                       #### int16 #### 
             unassembledData = numpy.asarray(unassembledData, dtype=numpy.float32)         #### !!!!! ####
             unassembledDataNrows = unassembledData.shape[0]
@@ -222,14 +253,17 @@ def processing(myArguments):
 
             ### LOGGING ###
             fOpen = open('%s/Processing_r%s_img%s_lattice%s_%s.txt'%(processingFolder,
-                                                                     myLattice.runNumber, 
-                                                                     myLattice.imageNumber, 
-                                                                     myLattice.latticeNumberInImage,
+                                                                     L.runNumber, 
+                                                                     L.imageNumber, 
+                                                                     L.latticeNumberInImage,
                                                                      minimizationMethod), 'w') 
-            fOpen.write('Run: %s \nImage: %s \nLattice: %s\n'%(myLattice.runNumber, myLattice.imageNumber, myLattice.latticeNumberInImage))
-            fOpen.write('START: \nLattice orientation: %.5f \nCell size: %.5f \n'%(myLattice.refinedInPlaneOrientation, myLattice.refinedCellSize)) 
-            fOpen.write('Center x: %.6f\n'%myLattice.imageCenter[0])
-            fOpen.write('Center y: %.6f\n'%myLattice.imageCenter[1])
+            fOpen.write('Run: %s \nImage: %s \nLattice: %s\n'%(L.runNumber, 
+                                                               L.imageNumber, 
+                                                               L.latticeNumberInImage))
+            fOpen.write('START: \nLattice orientation: %.5f \nCell size: %.5f \n'%(L.refinedInPlaneOrientation, 
+                                                                                   L.refinedCellSize)) 
+            fOpen.write('Center x: %.6f\n'%L.imageCenter[0])
+            fOpen.write('Center y: %.6f\n'%L.imageCenter[1])
             fOpen.write('\n***** Connected peaks detection *****\n\n')  
             fOpen.write('    n    h    k    Predicted x    Predicted y    Local noise     Detected x     Detected y     Detected I    Distance (pxls)\n\n')
             
@@ -242,32 +276,44 @@ def processing(myArguments):
             detectedPeaks  = [] # LIST ONLY SPOTS INITIALLY FOUND CLOSE TO PREDICTION (DISTANCE BELOW distanceThreshold) - TO BE USED IN 4D REFINEMENT
             spotDictionary = {} # COLLECT ***ALL*** SPOTS IN RESOLUTION RANGE
             
-            refinedPredictedPattern = myLattice.refinedPredictedPattern        # h k qx qy dmin q 
+            refinedPredictedPattern = L.refinedPredictedPattern                # h k qx qy dmin q 
                                                                                # azimuth rotated_azimuth detector_azimuth 
                                                                                # diffraction_angle detector_radius qrod LPfactor       
             for predictedPeak in refinedPredictedPattern:
-                if predictedPeak[4] <= lowResLimit and predictedPeak[4] >= highResLimit:
+                if (predictedPeak[4] <= lowResLimit and 
+                    predictedPeak[4] >= highResLimit):
                     nPredictedPeak = nPredictedPeak + 1
                     
                     h_peak = predictedPeak[0]
                     k_peak = predictedPeak[1]
-                    diffractionSpot = spotClass.diffractionSpot(nPredictedPeak, h_peak, k_peak)
+                    diffractionSpot = spotClass.diffractionSpot(nPredictedPeak, 
+                                                                h_peak, 
+                                                                k_peak)
                     
                     ### PREDICTED SPOT POSITION (INITIAL CENTER IN 0,0) ###
-                    Xpredicted = pixelSize * predictedPeak[10] * numpy.cos(predictedPeak[8])  ### POSITION IN m RELATIVE TO DIRECT BEAM ###
-                    Ypredicted = pixelSize * predictedPeak[10] * numpy.sin(predictedPeak[8])  ### POSITION IN m RELATIVE TO DIRECT BEAM ###
+                    Xpredicted = (pixelSize * 
+                                  predictedPeak[10] * 
+                                  numpy.cos(predictedPeak[8]))  ### POSITION IN m RELATIVE TO DIRECT BEAM ###
+                    Ypredicted = (pixelSize * 
+                                  predictedPeak[10] * 
+                                  numpy.sin(predictedPeak[8]))  ### POSITION IN m RELATIVE TO DIRECT BEAM ###
                     
                     ### MATCH PREDICTED SPOT POSITION TO POSITION IN UNASSEMBLED MATRIX VIA GEOMETRY ###
                     xIndices = numpy.argwhere(abs(xGeometry - Xpredicted) <= 0.000055)
                     xIndices = numpy.asarray(xIndices, dtype = numpy.int16)
                     yIndices = numpy.argwhere(abs(yGeometry - Ypredicted) <= 0.000055)
                     yIndices = numpy.asarray(yIndices, dtype = numpy.int16)
-                    successFlag, i_good, j_good = unassembledMatching.unassembledMatching(xIndices, yIndices)
+                    successFlag, \
+                    i_good, \
+                    j_good = unassembledMatching.unassembledMatching(xIndices, 
+                                                                     yIndices)
                     # xGeometry[i_good,j_good] ~ Xpredicted AND yGeometry[i_good,j_good] ~ Ypredicted -> (Xpredicted, Ypredicted) correspond to unassembledData[i_good, j_good]  
                     
                     ### EXTRACT UNASSEMBLED DATA SECTOR ###
                     if successFlag == 0:
-                        fOpen.write('%5d%5d%5d \tPredicted position was not found in geometry.\n\n'%(nPredictedPeak, predictedPeak[0], predictedPeak[1]))  
+                        fOpen.write('%5d%5d%5d \tPredicted position was not found in geometry.\n\n'%(nPredictedPeak, 
+                                                                                                     predictedPeak[0], 
+                                                                                                     predictedPeak[1]))  
                         spotDictionary['Spot%d'%nPredictedPeak] = diffractionSpot 
                     else:
                         xLeft  = max([j_good - boxWidth, 0])
@@ -277,29 +323,44 @@ def processing(myArguments):
                         boxMatrix = unassembledData[yDown:yUp, xLeft:xRight]   # 96x96 or smaller unassembled data sector
                         
                         ### BUILD DETECTOR MODULE MASK ###
-                        maskBoxMatrix = numpy.ones((2*boxWidth, 2*boxWidth), dtype=numpy.int)                             # 96x96 
-                        maskBorder_left, maskBorder_down, maskBoxMatrix = discontinuityMask.discontinuityMask(xGeometry_np, yGeometry_np, 
-                                                                                                              maskBoxMatrix, 
-                                                                                                              i_good, j_good, 
-                                                                                                              boxWidth)   # maskBoxMatrix 96x96 or smaller
+                        maskBoxMatrix = numpy.ones((2*boxWidth, 2*boxWidth), 
+                                                    dtype=numpy.int)                             # 96x96 
+                        maskBorder_left, \
+                        maskBorder_down, \
+                        maskBoxMatrix = discontinuityMask.discontinuityMask(xGeometry_np, 
+                                                                            yGeometry_np, 
+                                                                            maskBoxMatrix, 
+                                                                            i_good, 
+                                                                            j_good, 
+                                                                            boxWidth)   # maskBoxMatrix 96x96 or smaller
                         maskedBoxMatrix = numpy.multiply(boxMatrix, maskBoxMatrix)                                        # 96x96 or smaller, zero in neighbouring modules
                         
                         ### BACKGROUND PLANE SUBTRACTION ###
-                        bgSubtractionDictionary = backGroundSubtraction.backGroundSubtractionFunction(maskedBoxMatrix, maskBoxMatrix, bgSubtractionMethod, 
-                                                                                                      myLattice.fileName, myLattice.runNumber, myLattice.imageNumber, 
-                                                                                                      myLattice.latticeNumberInImage, nPredictedPeak, 
-                                                                                                      bgPlanePlotFlag, processingFiguresFolder)            
+                        bgSubtractionDictionary = backGroundSubtraction.backGroundSubtractionFunction(maskedBoxMatrix, 
+                                                                                                      maskBoxMatrix, 
+                                                                                                      bgSubtractionMethod, 
+                                                                                                      L.fileName, 
+                                                                                                      L.runNumber, 
+                                                                                                      L.imageNumber, 
+                                                                                                      L.latticeNumberInImage, 
+                                                                                                      nPredictedPeak, 
+                                                                                                      bgPlanePlotFlag, 
+                                                                                                      processingFiguresFolder)            
                         localNoise            = bgSubtractionDictionary['localNoise']
                         bgSubtractedBoxMatrix = bgSubtractionDictionary['bgSubtractedBoxMatrix']      # 96x96 or smaller
                         bgSubtractedBoxMatrix = numpy.multiply(bgSubtractedBoxMatrix, maskBoxMatrix)  # 96x96 or smaller, zero in neighbouring modules
                         
                         ### DETERMINATION OF MODULE ROTATION ANGLE ###
                         if j_good+1 < xGeometry.shape[1]:                
-                            deltaXgeo = float(xGeometry[i_good, j_good+1] - xGeometry[i_good, j_good])
-                            deltaYgeo = float(yGeometry[i_good, j_good+1] - yGeometry[i_good, j_good])
+                            deltaXgeo = float(xGeometry[i_good, j_good+1] - 
+                                              xGeometry[i_good, j_good])
+                            deltaYgeo = float(yGeometry[i_good, j_good+1] - 
+                                              yGeometry[i_good, j_good])
                         else:
-                            deltaXgeo = float(xGeometry[i_good, j_good] - xGeometry[i_good, j_good-1])
-                            deltaYgeo = float(yGeometry[i_good, j_good] - yGeometry[i_good, j_good-1])
+                            deltaXgeo = float(xGeometry[i_good, j_good] - 
+                                              xGeometry[i_good, j_good-1])
+                            deltaYgeo = float(yGeometry[i_good, j_good] - 
+                                              yGeometry[i_good, j_good-1])
                         if deltaXgeo != 0:
                             moduleRotation = numpy.arctan(deltaYgeo/deltaXgeo) # Rotation required to convert module coos to real space
                             if deltaXgeo < 0 and deltaYgeo > 0:
@@ -313,16 +374,22 @@ def processing(myArguments):
                                 moduleRotation = -numpy.pi / 2
                             
                         ### DETERMINATION OF ORIGIN IN BOX (BELONGING TO CURRENT MODULE) ###
-                        labX_Origin = xGeometry[yDown+maskBorder_down, xLeft+maskBorder_left]
-                        labY_Origin = yGeometry[yDown+maskBorder_down, xLeft+maskBorder_left] 
+                        labX_Origin = xGeometry[yDown+maskBorder_down, 
+                                                xLeft+maskBorder_left]
+                        labY_Origin = yGeometry[yDown+maskBorder_down, 
+                                                xLeft+maskBorder_left] 
                         
                         ### CONNECTED PEAKS DETECTION ###
                         peakDetectionDictionary = peakDetection.peakDetectionFunction(bgSubtractedBoxMatrix, 
-                                                                                      localNoise, pixelSize,
+                                                                                      localNoise, 
+                                                                                      pixelSize,
                                                                                       moduleRotation, 
-                                                                                      labX_Origin, labY_Origin,
-                                                                                      maskBorder_left, maskBorder_down,
-                                                                                      Xpredicted, Ypredicted)                    
+                                                                                      labX_Origin, 
+                                                                                      labY_Origin,
+                                                                                      maskBorder_left, 
+                                                                                      maskBorder_down,
+                                                                                      Xpredicted, 
+                                                                                      Ypredicted)                    
                         peakDetectionMask             = peakDetectionDictionary['peakDetectionMask']
                         xCenterOfMass_vector          = peakDetectionDictionary['xCenterOfMass_vector'] # In lab frame, in m and relative to detector center, to be compared to xPredicted
                         yCenterOfMass_vector          = peakDetectionDictionary['yCenterOfMass_vector'] # In lab frame, in m and relative to detector center, to be compared to yPredicted
@@ -339,12 +406,16 @@ def processing(myArguments):
                         nConnectedPeaks = len(integratedIntensity_vector)
                         if nConnectedPeaks == 0:
                             spotDictionary['Spot%d'%nPredictedPeak] = diffractionSpot 
-                            fOpen.write('%5d%5d%5d \tNo detected peaks.\n\n'%(nPredictedPeak, predictedPeak[0], predictedPeak[1]))
+                            fOpen.write('%5d%5d%5d \tNo detected peaks.\n\n'%(nPredictedPeak, 
+                                                                              predictedPeak[0], 
+                                                                              predictedPeak[1]))
                         else:
                             minIdx = distanceFromPrediction_vector.index(min(distanceFromPrediction_vector))
                             if distanceFromPrediction_vector[minIdx] > distanceThreshold:
                                 spotDictionary['Spot%d'%nPredictedPeak] = diffractionSpot 
-                                fOpen.write('%5d%5d%5d \tDetected peak(s) too far from prediction.\n\n'%(nPredictedPeak, predictedPeak[0], predictedPeak[1]))
+                                fOpen.write('%5d%5d%5d \tDetected peak(s) too far from prediction.\n\n'%(nPredictedPeak, 
+                                                                                                         predictedPeak[0], 
+                                                                                                         predictedPeak[1]))
                             else:                                                            ### KEEP THIS EXPERIMENTAL PEAK (relaxed threshold) ###
                                 detectedPeak = []
                                 xCoM = xCenterOfMass_vector[minIdx]
@@ -362,8 +433,14 @@ def processing(myArguments):
                                 diffractionSpot.setDistanceFromPrediction(distanceFromPrediction_vector[minIdx])
                                 
                                 spotDictionary['Spot%d'%nPredictedPeak] = diffractionSpot 
-                                fOpen.write('%5d%5d%5d%15.8f%15.8f%15.2f%15.8f%15.8f%15.2f%19.2f\n\n'%(nPredictedPeak, h_peak, k_peak, 
-                                                                                                       Xpredicted, Ypredicted, localNoise, xCoM, yCoM,                                                                                                                    
+                                fOpen.write('%5d%5d%5d%15.8f%15.8f%15.2f%15.8f%15.8f%15.2f%19.2f\n\n'%(nPredictedPeak, 
+                                                                                                       h_peak, 
+                                                                                                       k_peak, 
+                                                                                                       Xpredicted, 
+                                                                                                       Ypredicted, 
+                                                                                                       localNoise, 
+                                                                                                       xCoM, 
+                                                                                                       yCoM,                                                                                                                    
                                                                                                        integratedIntensity_vector[minIdx], 
                                                                                                        distanceFromPrediction_vector[minIdx])) 
                                                      
@@ -375,7 +452,9 @@ def processing(myArguments):
             if nDictionaryItems != nPredictedPeak:
                 print 'PROBLEM!'
             nDetected = detectedPeaks.shape[0]   
-            fOpen.write('Detected peaks (initial distance from prediction below %d pxls): %d/%d'%(distanceThreshold, nDetected, nDictionaryItems))
+            fOpen.write('Detected peaks (initial distance from prediction below %d pxls): %d/%d'%(distanceThreshold, 
+                                                                                                  nDetected, 
+                                                                                                  nDictionaryItems))
             
             endTime = time.time() - startTime
             print 'It took %.2f s\n'%endTime
@@ -408,16 +487,16 @@ def processing(myArguments):
                     sizeRefinementRescalings = numpy.linspace(1-nSizeRefStepsOverTwo*widthSizeRefSteps[nIteration], 
                                                               1+nSizeRefStepsOverTwo*widthSizeRefSteps[nIteration], 
                                                               nSizeRefSteps)
-                    sizeRefinementSteps = myLattice.refinedCellSize * sizeRefinementRescalings
+                    sizeRefinementSteps = L.refinedCellSize * sizeRefinementRescalings
                 
                     nOrientationRefStepsOverTwo = nOrientationRefSteps / 2
                     orientationRefinementSteps = numpy.linspace(-nOrientationRefStepsOverTwo*widthOrientationRefSteps[nIteration],
                                                                 +nOrientationRefStepsOverTwo*widthOrientationRefSteps[nIteration],
                                                                 nOrientationRefSteps)
-                    orientationRefinementSteps = myLattice.refinedInPlaneOrientation + orientationRefinementSteps
+                    orientationRefinementSteps = L.refinedInPlaneOrientation + orientationRefinementSteps
                     
-                    centerX_0 = myLattice.imageCenter[0]
-                    centerY_0 = myLattice.imageCenter[1]
+                    centerX_0 = L.imageCenter[0]
+                    centerY_0 = L.imageCenter[1]
                     nCenterRefStepsOverTwo = nCenterRefSteps / 2
                     centerXs = centerX_0 + numpy.linspace(-nCenterRefStepsOverTwo*widthCenterRefSteps[nIteration],
                                                           +nCenterRefStepsOverTwo*widthCenterRefSteps[nIteration],
@@ -427,20 +506,30 @@ def processing(myArguments):
                                                           nCenterRefSteps)
                     
                     ### BUILD 4D LATTICE-ERROR MATRIX ###
-                    latticeErrorMatrix = numpy.zeros((nOrientationRefSteps, nSizeRefSteps, nCenterRefSteps, nCenterRefSteps))
+                    latticeErrorMatrix = numpy.zeros((nOrientationRefSteps, 
+                                                      nSizeRefSteps, 
+                                                      nCenterRefSteps, 
+                                                      nCenterRefSteps))
                     
                     nCalls = 0
                     nSizeStep = 0
                     for sizeRefinementStep in sizeRefinementSteps: # (21) trial unit cell sizes
                         nSizeStep = nSizeStep + 1
-                        reciprocalLatticeData = buildReciprocalLattice.buildReciprocalLatticeFunction(sizeRefinementStep, 100, 100, highResLimit)
+                        reciprocalLatticeData = buildReciprocalLattice.buildReciprocalLatticeFunction(sizeRefinementStep, 
+                                                                                                      100, 
+                                                                                                      100, 
+                                                                                                      highResLimit)
                         
                         nRotationStep = 0       
                         for trialInPlaneRotation in orientationRefinementSteps: # (21) trial in-plane orientations
                             nRotationStep = nRotationStep + 1
                             
-                            predictedPattern = calculatePredictedPattern.calculatePredictedPatternFunction(reciprocalLatticeData, trialInPlaneRotation, waveVector, tiltAngle, 
-                                                                                                           myLattice.detectorDistance, myLattice.pixelSize)    
+                            predictedPattern = calculatePredictedPattern.calculatePredictedPatternFunction(reciprocalLatticeData, 
+                                                                                                           trialInPlaneRotation, 
+                                                                                                           waveVector, 
+                                                                                                           tiltAngle, 
+                                                                                                           L.detectorDistance, 
+                                                                                                           L.pixelSize)    
                             predictedPattern = numpy.asarray(predictedPattern, dtype=numpy.float32)
                     
                             centerXstep = 0    
@@ -453,14 +542,17 @@ def processing(myArguments):
                                     
                                     trialImageCenter = [centerX, centerY]
                                     trialImageCenter = numpy.asarray(trialImageCenter, dtype=numpy.float32)           
-                                    nMatchedPeaks, latticeError = calculateMatrixElement(trialImageCenter, predictedPattern, 
-                                                                                         detectedPeaks, pixelSize, 
+                                    nMatchedPeaks, latticeError = calculateMatrixElement(trialImageCenter, 
+                                                                                         predictedPattern, 
+                                                                                         detectedPeaks, 
+                                                                                         pixelSize, 
                                                                                          distanceThresholds[nIteration])
                                     nCalls = nCalls + 1
                                     latticeErrorMatrix[nRotationStep-1, nSizeStep-1, centerXstep-1, centerYstep-1] = latticeError
                      
                     print 'N calls %d'%nCalls               
-                    i, j, k, l = numpy.unravel_index(latticeErrorMatrix.argmin(), latticeErrorMatrix.shape)
+                    i, j, k, l = numpy.unravel_index(latticeErrorMatrix.argmin(), 
+                                                     latticeErrorMatrix.shape)
                     
                     ### RESULTS ###
                     refinedOrientation = orientationRefinementSteps[i]
@@ -469,9 +561,21 @@ def processing(myArguments):
                     refinedCenterY = centerYs[l]
                     
                 else:
-                    xStart = [myLattice.refinedCellSize*4, myLattice.refinedInPlaneOrientation*285, myLattice.imageCenter[0]*10, myLattice.imageCenter[1]*10]
-                    fixedParas = (highResLimit, waveVector, tiltAngle, detectorDistance, pixelSize, distanceThresholds[nIteration], detectedPeaks)
-                    result = scipy.optimize.minimize(toBeMinimized, xStart, args = fixedParas, method = minimizationMethod, 
+                    xStart = [L.refinedCellSize*4, 
+                              L.refinedInPlaneOrientation*285, 
+                              L.imageCenter[0]*10, 
+                              L.imageCenter[1]*10]
+                    fixedParas = (highResLimit, 
+                                  waveVector, 
+                                  tiltAngle, 
+                                  detectorDistance, 
+                                  pixelSize, 
+                                  distanceThresholds[nIteration], 
+                                  detectedPeaks)
+                    result = scipy.optimize.minimize(toBeMinimized, 
+                                                     xStart, 
+                                                     args = fixedParas, 
+                                                     method = minimizationMethod, 
                                                      options = {'xtol': 0.001, 'ftol': 0.001}) # Defaults: 'xtol': 0.0001, 'ftol': 0.0001
                     print result.message
                     
@@ -482,41 +586,52 @@ def processing(myArguments):
                     refinedCenterY = result.x[3]/10
                 
                 ### CALCULATE & STORE ITERATION RESULTS ###
-                reciprocalLattice = buildReciprocalLattice.buildReciprocalLatticeFunction(refinedCellSize, 100, 100, highResLimit)
-                predictedPattern = calculatePredictedPattern.calculatePredictedPatternFunction(reciprocalLattice, refinedOrientation, 
-                                                                                               waveVector, tiltAngle, 
-                                                                                               detectorDistance, pixelSize)    
+                reciprocalLattice = buildReciprocalLattice.buildReciprocalLatticeFunction(refinedCellSize, 
+                                                                                          100, 
+                                                                                          100, 
+                                                                                          highResLimit)
+                predictedPattern = calculatePredictedPattern.calculatePredictedPatternFunction(reciprocalLattice, 
+                                                                                               refinedOrientation, 
+                                                                                               waveVector, 
+                                                                                               tiltAngle, 
+                                                                                               detectorDistance, 
+                                                                                               pixelSize)    
                 predictedPattern = numpy.asarray(predictedPattern, dtype=numpy.float32)
                 imageCenter = [refinedCenterX, refinedCenterY]
                 imageCenter = numpy.asarray(imageCenter, dtype=numpy.float32)
-                nMatchedPeaks, latticeError = calculateMatrixElement(imageCenter, predictedPattern, 
-                                                                     detectedPeaks, pixelSize, 
+                nMatchedPeaks, latticeError = calculateMatrixElement(imageCenter, 
+                                                                     predictedPattern, 
+                                                                     detectedPeaks, 
+                                                                     pixelSize, 
                                                                      distanceThresholds[nIteration])
                 avgMinError = latticeError / nMatchedPeaks
                 
-                myLattice.setRefinedPattern(predictedPattern)
-                myLattice.setRefinedInPlaneOrientation(refinedOrientation)
-                myLattice.setRefinedCellSize(refinedCellSize)
-                myLattice.imageCenter = imageCenter
-                myLattice.setLatticeError(avgMinError)     
+                L.setRefinedPattern(predictedPattern)
+                L.setRefinedInPlaneOrientation(refinedOrientation)
+                L.setRefinedCellSize(refinedCellSize)
+                L.imageCenter = imageCenter
+                L.setLatticeError(avgMinError)     
                             
-                refinedLatticeOrientations.append(myLattice.refinedInPlaneOrientation)
-                refinedCellSizes.append(myLattice.refinedCellSize)
-                refinedCenterXs.append(myLattice.imageCenter[0])
-                refinedCenterYs.append(myLattice.imageCenter[1])
+                refinedLatticeOrientations.append(L.refinedInPlaneOrientation)
+                refinedCellSizes.append(L.refinedCellSize)
+                refinedCenterXs.append(L.imageCenter[0])
+                refinedCenterYs.append(L.imageCenter[1])
                 nDetectedAndMatchedPeaks.append(nMatchedPeaks)
-                avgLatticeErrors.append(myLattice.avgLatticeError)
+                avgLatticeErrors.append(L.avgLatticeError)
                 
                 ### LOG ITERATION RESULTS ###
                 fOpen.write('\n*****')
                 fOpen.write('\nIteration: %d'%nIteration)
-                fOpen.write('\nLattice orientation: %.5f\n'%myLattice.refinedInPlaneOrientation)
-                fOpen.write('Cell size: %.5f\n'%myLattice.refinedCellSize)
-                fOpen.write('Center x: %.6f\n'%myLattice.imageCenter[0])
-                fOpen.write('Center y: %.6f'%myLattice.imageCenter[1])
+                fOpen.write('\nLattice orientation: %.5f\n'%L.refinedInPlaneOrientation)
+                fOpen.write('Cell size: %.5f\n'%L.refinedCellSize)
+                fOpen.write('Center x: %.6f\n'%L.imageCenter[0])
+                fOpen.write('Center y: %.6f'%L.imageCenter[1])
                 
                 ### AFTER EACH ITERATION, UPDATE DISTANCE FROM PREDICTION IN detectedPeaks TABLE ###
-                detectedPeaks = recalculateDistance.recalculateDistanceFunction(imageCenter, predictedPattern, detectedPeaks, pixelSize)
+                detectedPeaks = recalculateDistance.recalculateDistanceFunction(imageCenter, 
+                                                                                predictedPattern, 
+                                                                                detectedPeaks, 
+                                                                                pixelSize)
                 nIteration = nIteration + 1
                 ### END 4D REFINEMENT ###
                                 
@@ -525,20 +640,21 @@ def processing(myArguments):
             print 'Refinement took %.2f s\n'%refinementEnd  
             
             ### STORE REFINED LATTICE SIZE ###
-            refinedLatticeSizes.append(myLattice.refinedCellSize)
+            refinedLatticeSizes.append(L.refinedCellSize)
             
             ### PLOT REFINEMENT BEHAVIOUR ###    
-            myLattice.refinedLatticeOrientations = refinedLatticeOrientations
-            myLattice.refinedCellSizes           = refinedCellSizes
-            myLattice.refinedCenterXs            = refinedCenterXs
-            myLattice.refinedCenterYs            = refinedCenterYs
-            myLattice.nDetectedAndMatchedPeaks   = nDetectedAndMatchedPeaks
-            myLattice.avgLatticeErrors           = avgLatticeErrors   
+            L.refinedLatticeOrientations = refinedLatticeOrientations
+            L.refinedCellSizes           = refinedCellSizes
+            L.refinedCenterXs            = refinedCenterXs
+            L.refinedCenterYs            = refinedCenterYs
+            L.nDetectedAndMatchedPeaks   = nDetectedAndMatchedPeaks
+            L.avgLatticeErrors           = avgLatticeErrors   
             
-            myLattice.refinementBehaviourPlot(processingFolder, minimizationMethod)
+            L.refinementBehaviourPlot(processingFolder, minimizationMethod)
             
             
             ### INTEGRATE AND PRODUCE SINGLE SPOT FIGURES ###
+            integrateStart = time.time()
             integratedPeaks = []
             
             
@@ -547,15 +663,20 @@ def processing(myArguments):
                 k = mySpot.k
                 
                 successFlag = 0
-                for predictedPeak in myLattice.refinedPredictedPattern:
+                for predictedPeak in L.refinedPredictedPattern:
                     if predictedPeak[0] == h and predictedPeak[1] == k:
-                        refinedX = pixelSize * ( myLattice.imageCenter[0] + predictedPeak[10] * numpy.cos(predictedPeak[8]) )   ### POSITION IN m RELATIVE TO DIRECT BEAM ###
-                        refinedY = pixelSize * ( myLattice.imageCenter[1] + predictedPeak[10] * numpy.sin(predictedPeak[8]) )   ### POSITION IN m RELATIVE TO DIRECT BEAM ### 
+                        refinedX = pixelSize * ( L.imageCenter[0] + 
+                                                 predictedPeak[10] * numpy.cos(predictedPeak[8]) )   ### POSITION IN m RELATIVE TO DIRECT BEAM ###
+                        refinedY = pixelSize * ( L.imageCenter[1] + 
+                                                 predictedPeak[10] * numpy.sin(predictedPeak[8]) )   ### POSITION IN m RELATIVE TO DIRECT BEAM ### 
                         xIndices = numpy.argwhere(abs(xGeometry - refinedX) <= 0.000055)
                         xIndices = numpy.asarray(xIndices, dtype = numpy.int16)
                         yIndices = numpy.argwhere(abs(yGeometry - refinedY) <= 0.000055)
                         yIndices = numpy.asarray(yIndices, dtype = numpy.int16)
-                        successFlag, iFinal_global, jFinal_global = unassembledMatching.unassembledMatching(xIndices, yIndices)
+                        successFlag, \
+                        iFinal_global, \
+                        jFinal_global = unassembledMatching.unassembledMatching(xIndices, 
+                                                                                yIndices)
                         qRod = predictedPeak[11]
                         LPfactor = predictedPeak[12]
                         break
@@ -567,7 +688,9 @@ def processing(myArguments):
                     else:                    
                         iFinal = iFinal_global-mySpot.yDown
                         jFinal = jFinal_global-mySpot.xLeft
-                        if 0 <= iFinal < mySpot.peakDetectionMask.shape[0] and 0 <= jFinal < mySpot.peakDetectionMask.shape[0]:
+                        if (0 <= iFinal < mySpot.peakDetectionMask.shape[0] and 
+                            0 <= jFinal < mySpot.peakDetectionMask.shape[0]):
+                                
                             mySpot.setFinalBoxIndices(iFinal, jFinal)
                             mySpot.nCountsPerPhoton = nCountsPerPhoton
                             mySpot.integrationRadius = integrationRadius
@@ -594,7 +717,10 @@ def processing(myArguments):
                             spotDictionary['Spot%d'%mySpot.n] = mySpot  
                 
                         if singleSpotFigureFlag == 1:
-                            mySpot.spotProcessingPlot(myLattice.runNumber, myLattice.imageNumber, myLattice.latticeNumberInImage, boxWidth)
+                            mySpot.spotProcessingPlot(L.runNumber, 
+                                                      L.imageNumber, 
+                                                      L.latticeNumberInImage, 
+                                                      boxWidth)
             
             ### SORTING ###
             integratedPeaks = numpy.asarray(integratedPeaks)
@@ -659,26 +785,45 @@ def processing(myArguments):
                     orderedIntegratedIntensities[i,5]=iIndex_data[i]
                     orderedIntegratedIntensities[i,6]=jIndex_data[i]
                     
-            myLattice.orderedIntegratedIntensities = orderedIntegratedIntensities
+            L.orderedIntegratedIntensities = orderedIntegratedIntensities
             
             ### LOGGING ###
-            integrationFile = open('%s/integration_r%s_img%s_lattice%s.txt'%(processingFolder, myLattice.runNumber, myLattice.imageNumber, myLattice.latticeNumberInImage), 'w')
+            integrationFile = open('%s/integration_r%s_img%s_lattice%s.txt'%(processingFolder, 
+                                                                             L.runNumber, 
+                                                                             L.imageNumber, 
+                                                                             L.latticeNumberInImage), 'w')
             integrationFile.write('    n    h    k        qRod      I (ph)    I corrected\n\n')        
             for index in range(0, len(n_data)):
-                integrationFile.write('%5d%5d%5d%12.5f%12.3f%15.3f\n'%(n_data[index], h_data[index], 
-                                                                       k_data[index], qRod_data[index],
-                                                                       I_data[index], Ic_data[index]))
+                integrationFile.write('%5d%5d%5d%12.5f%12.3f%15.3f\n'%(n_data[index], 
+                                                                       h_data[index], 
+                                                                       k_data[index], 
+                                                                       qRod_data[index],
+                                                                       I_data[index], 
+                                                                       Ic_data[index]))
             integrationFile.close()
 
             ### MINIMUM OUTPUT ###
-            imageNumber = myLattice.imageNumber.zfill(4)
+            imageNumber = L.imageNumber.zfill(4)
             joblib.dump(orderedIntegratedIntensities, '%s/OrderedIntegratedIntensities_r%s_Img%s_Lattice%s.jbl'
-                                                       %(processingFolder, myLattice.runNumber, imageNumber, myLattice.latticeNumberInImage))    
+                                                       %(processingFolder, 
+                                                         L.runNumber, 
+                                                         imageNumber, 
+                                                         L.latticeNumberInImage))    
                                                                                                             
             ### PAPER FIGURE (IMG N 74) ###
             ### NB Final orientation will be p -> LABEL INDICES NEED TO BE PERMUTED ###
             if integratedPeaksFigureFlag == 1:
-                singleImage_zoomedIn.zoomedPlot(myLattice, spotDictionary, unassembledDataFile, processingFolder, runNumber, imageNumber, detectorDistance, pixelSize)
+                singleImage_zoomedIn.zoomedPlot(L, 
+                                                spotDictionary, 
+                                                unassembledDataFile, 
+                                                processingFolder, 
+                                                runNumber, 
+                                                imageNumber, 
+                                                detectorDistance, 
+                                                pixelSize)
+                                                
+            integrateEnd = time.time() - integrateStart
+            print 'Integration took %.2f s\n'%integrateEnd  
                 
     joblib.dump(refinedLatticeSizes, '%s/refinedLatticeSizes_r%s.jbl'%(processingFolder, runNumber))
                 

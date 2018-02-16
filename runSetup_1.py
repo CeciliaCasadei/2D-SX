@@ -23,11 +23,11 @@ if not os.path.exists(outFolder):
 # CHECK CHEETAH PREPROCESSING RESULTS
 # python checkH5content.py --runNumber <runNumber> --label <label>
 
-serverPath = '/mnt/das-gpfs/home/casadei_c/work/casadei' 
-#serverPath = '/afs/psi.ch/group/0620/casadei/2D-MX'
+clusterPath = '/mnt/das-gpfs/home/casadei_c/work/casadei' 
+#clusterPath = '/afs/psi.ch/group/0620/casadei/2D-MX'
 
 # MAKE IMAGE LIST
-imagesDirectoryName = '%s/UNIX_@_LCLS/r%s-images/data1'%(serverPath, runNumber)
+imagesDirectoryName = '%s/UNIX_@_LCLS/r%s-images/data1'%(clusterPath, runNumber)
 
 flag = 1
 if flag == 1:
@@ -42,42 +42,62 @@ imageListDirectory = '%s/ImageLists'%outFolder
 
 flag = 0
 if flag == 1:
-    os.system('python storeImageObjects.py --runNumber %s --tiltAngle %f --imageListDirectory %s'
-               %(runNumber, tiltAngle, imageListDirectory))
+    os.system('python storeImageObjects.py --runNumber %s \
+                                           --tiltAngle %f \
+                                           --imageListDirectory %s'
+                                           %(runNumber, 
+                                             tiltAngle, 
+                                             imageListDirectory))
 
 
 
 # Check image dictionary from command line: 
-# python verify_pklContent.py --myPklFile <myPklFile> --myImageFileName <myImageFileName>
+# python verify_pklContent.py --myPklFile <myPklFile> \
+#                             --myImageFileName <myImageFileName>
 
 # Display assembled images from command line:
-# python verify_assembledImages.py --runNumber <runNumber> --imageNumber <imageNumber> --imageFolderName <imageFolderName>
+# python verify_assembledImages.py --runNumber <runNumber> \
+#                                  --imageNumber <imageNumber> \
+#                                  --imageFolderName <imageFolderName>
 
 # Browse assembled images from the command line:
-# python verify_browseAssembledImages.py --runNumber <runNumber> --imageFolderName <imageFolderName>
+# python verify_browseAssembledImages.py --runNumber <runNumber> \
+#                                        --imageFolderName <imageFolderName>
 
 
 
 # EXTRACT INFO FROM CHEETAH peaks.txt
 selectedImageList = '%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(outFolder, 
                                                                     runNumber)
-peaksFile = '%s/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%(serverPath, 
+peaksFile = '%s/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%(clusterPath, 
                                                               runNumber)
-geometryFile = '%s/Geometry/geometry.h5'%serverPath # same for all runs
+geometryFile = '%s/Geometry/geometry.h5'%clusterPath # same for all runs
 pixelSize = 0.000110         # m
 
 flag = 0
 if flag == 1:
-    os.system('python extractExpInfo.py --runNumber %s --selectedImageList %s --peaksFile %s --geometryFile %s --pixelSize %f'
-               %(runNumber, selectedImageList, peaksFile, geometryFile, pixelSize))
+    os.system('python extractExpInfo.py --runNumber %s \
+                                        --selectedImageList %s \
+                                        --peaksFile %s \
+                                        --geometryFile %s \
+                                        --pixelSize %f'
+                                        %(runNumber, 
+                                          selectedImageList, 
+                                          peaksFile, 
+                                          geometryFile, 
+                                          pixelSize))
 
 
 
 # Check image dictionary from command line: 
-# python verify_pklContent.py --myPklFile <myPklFile> --myImageFileName <myImageFileName>
+# python verify_pklContent.py --myPklFile <myPklFile> \
+#                             --myImageFileName <myImageFileName>
 
 # Display Cheetah peaks from command line:
-# python verify_showCheetahPeaks.py --runNumber <runNumber> --imageNumber <imageNumber> --imageFolderName <imageFolderName> --geometryFile <geometryFile>
+# python verify_showCheetahPeaks.py --runNumber <runNumber> \
+#                                   --imageNumber <imageNumber> \
+#                                   --imageFolderName <imageFolderName> \
+#                                   --geometryFile <geometryFile>
 
 
 
@@ -89,8 +109,16 @@ resolutionLimit = 6.0        # A
 
 flag = 0
 if flag == 1:
-    os.system('python reciprocalLattice.py --referenceCellSize %f --hmax %d --kmax %d --resolutionLimit %f --outFolder %s'
-               %(referenceCellSize, hmax, kmax, resolutionLimit, outFolder))
+    os.system('python reciprocalLattice.py --referenceCellSize %f \
+                                           --hmax %d \
+                                           --kmax %d \
+                                           --resolutionLimit %f \
+                                           --outFolder %s'
+                                           %(referenceCellSize, 
+                                             hmax, 
+                                             kmax, 
+                                             resolutionLimit, 
+                                             outFolder))
     
     
     
@@ -109,8 +137,26 @@ maxNofPeaksPerImage   = 250    # int
         
 flag = 0
 if flag == 1:
-    os.system('python latticeIndexing.py --referenceCellSize %f --runNumber %s --detectorDistance %f --pixelSize %f --radialTolerance %f --pixelTolerance %f --azimuthTolerance %f --minNofPeaksPerLattice %d --maxNofPeaksPerImage %d --geometryFile %s'
-    %(referenceCellSize, runNumber, detectorDistance, pixelSize, radialTolerance, pixelTolerance, azimuthTolerance, minNofPeaksPerLattice, maxNofPeaksPerImage, geometryFile))
+    os.system('python latticeIndexing.py --referenceCellSize %f \
+                                         --runNumber %s \
+                                         --detectorDistance %f \
+                                         --pixelSize %f \
+                                         --radialTolerance %f \
+                                         --pixelTolerance %f \
+                                         --azimuthTolerance %f \
+                                         --minNofPeaksPerLattice %d \
+                                         --maxNofPeaksPerImage %d \
+                                         --geometryFile %s'
+                                         %(referenceCellSize, 
+                                           runNumber, 
+                                           detectorDistance, 
+                                           pixelSize, 
+                                           radialTolerance, 
+                                           pixelTolerance, 
+                                           azimuthTolerance, 
+                                           minNofPeaksPerLattice, 
+                                           maxNofPeaksPerImage, 
+                                           geometryFile))
     
     
     
@@ -122,8 +168,24 @@ widthOrientationRefSteps = 0.2
     
 flag = 0
 if flag == 1:
-    os.system('python orientationAndCellRefinement.py --referenceCellSize %f --runNumber %s --nSizeRefSteps %d --nOrientationRefSteps %d --widthSizeRefSteps %f --widthOrientationRefSteps %f --hmax %d --kmax %d --resolutionLimit %f'
-               %(referenceCellSize, runNumber, nSizeRefSteps, nOrientationRefSteps, widthSizeRefSteps, widthOrientationRefSteps, hmax, kmax, resolutionLimit))
+    os.system('python orientationAndCellRefinement.py --referenceCellSize %f \
+                                                      --runNumber %s \
+                                                      --nSizeRefSteps %d \
+                                                      --nOrientationRefSteps %d \
+                                                      --widthSizeRefSteps %f \
+                                                      --widthOrientationRefSteps %f \
+                                                      --hmax %d \
+                                                      --kmax %d \
+                                                      --resolutionLimit %f'
+                                                      %(referenceCellSize, 
+                                                        runNumber, 
+                                                        nSizeRefSteps, 
+                                                        nOrientationRefSteps, 
+                                                        widthSizeRefSteps, 
+                                                        widthOrientationRefSteps, 
+                                                        hmax, 
+                                                        kmax, 
+                                                        resolutionLimit))
                
                
                
@@ -145,8 +207,26 @@ fractionDetectedThreshold = 0.45
 
 flag = 0
 if flag == 1:
-    os.system('python processingAndIntegration.py --runNumber %s --bgSubtractionMethod %s --minimizationMethod %s --lowResLimit %f --highResLimit %f --nCountsPerPhoton %d --integrationRadius %d --geometryFile %s --imageFolder %s --fractionDetectedThreshold %f'
-               %(runNumber, bgSubtractionMethod, minimizationMethod, lowResLimit, highResLimit, nCountsPerPhoton, integrationRadius, geometryFile, imagesDirectoryName, fractionDetectedThreshold))
+    os.system('python processingAndIntegration.py --runNumber %s \
+                                                  --bgSubtractionMethod %s \
+                                                  --minimizationMethod %s \
+                                                  --lowResLimit %f \
+                                                  --highResLimit %f \
+                                                  --nCountsPerPhoton %d \
+                                                  --integrationRadius %d \
+                                                  --geometryFile %s \
+                                                  --imageFolder %s \
+                                                  --fractionDetectedThreshold %f'
+                                                  %(runNumber, 
+                                                    bgSubtractionMethod, 
+                                                    minimizationMethod, 
+                                                    lowResLimit, 
+                                                    highResLimit, 
+                                                    nCountsPerPhoton, 
+                                                    integrationRadius, 
+                                                    geometryFile, 
+                                                    imagesDirectoryName, 
+                                                    fractionDetectedThreshold))
                
                
                
