@@ -20,7 +20,7 @@ import os
 import time
 import joblib
 import scipy.optimize
-
+from mpi4py import MPI
 
 
 ### PYTHON ###
@@ -190,8 +190,21 @@ def processing(myArguments):
     ### STORE REFINED LATTICE SIZE ###
     refinedLatticeSizes = []
     
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    numberOfCores = comm.Get_size()
+    if rank == 0:
+        print "I see %d cores are available"%(numberOfCores)
+
     ### LOOP ON LATTICES ###
+    iLattice = 0
     for K, L in latticesDictionary.items():
+
+        ### Process only lattices which belongs to this mpi rank ###
+        iLattice += 1
+        if iLattice%numberOfCores != rank:
+            continue
+
         processFlag = 0
         # IF ONE IMAGE / LATTICE WAS SELECTED, SWITCH FIGURE PLOTS ON.
         if not imageSelection == '' and not latticeSelection == '':
@@ -214,9 +227,10 @@ def processing(myArguments):
                 integratedPeaksFigureFlag = 0
                  
         if processFlag == 1:
-            print "PROCESSING - Run %s Image %s Lattice %s"%(L.runNumber, 
-                                                             L.imageNumber, 
-                                                             L.latticeNumberInImage)
+            if rank == 0:
+                print "PROCESSING - Run %s Image %s Lattice %s"%(L.runNumber, 
+                                                                 L.imageNumber, 
+                                                                 L.latticeNumberInImage)
             
             ### SET IMAGE CENTER ###
             imageCenter = [0, 0]
@@ -268,7 +282,8 @@ def processing(myArguments):
             fOpen.write('    n    h    k    Predicted x    Predicted y    Local noise     Detected x     Detected y     Detected I    Distance (pxls)\n\n')
             
             ### LOOP ON PREDICTED PEAKS ###
-            print 'Raw sectors extraction, background subtraction and connected peaks detection.\n'
+            if rank == 0:
+                print 'Raw sectors extraction, background subtraction and connected peaks detection.\n'
             startTime = time.time()
             
             nPredictedPeak = 0  # Spot ID number     
@@ -449,35 +464,41 @@ def processing(myArguments):
             for key, value in spotDictionary.items():
                 nDictionaryItems = nDictionaryItems + 1
             
-            if nDictionaryItems != nPredictedPeak:
-                print 'PROBLEM!'
+            #if nDictionaryItems != nPredictedPeak:
+            #    print 'PROBLEM!'
             nDetected = detectedPeaks.shape[0]   
             fOpen.write('Detected peaks (initial distance from prediction below %d pxls): %d/%d'%(distanceThreshold, 
                                                                                                   nDetected, 
                                                                                                   nDictionaryItems))
             
             endTime = time.time() - startTime
-            print 'It took %.2f s\n'%endTime
+            if rank == 0:
+                print 'It took %.2f s\n'%endTime
             
             nDetectedThreshold = nDictionaryItems * fractionDetectedThreshold
-            print 'N predicted: %d'%nDictionaryItems
-            print 'Threshold: %d'%nDetectedThreshold
-            print 'N detected: %d'%nDetected
+            if rank == 0:
+                print 'N predicted: %d'%nDictionaryItems
+                print 'Threshold: %d'%nDetectedThreshold
+                print 'N detected: %d'%nDetected
             if nDetected <= nDetectedThreshold:
-                print 'N of detected peaks is below threshold.'
+                if rank == 0:
+                    print 'N of detected peaks is below threshold.'
                 continue
             else:
-                print 'N of detected peaks is above threshold.'
+                if rank == 0:
+                    print 'N of detected peaks is above threshold.'
                 
             ### 4D REFINEMENT ###
-            print 'Refinement started. Method: %s\n'%minimizationMethod
+            if rank == 0:
+                print 'Refinement started. Method: %s\n'%minimizationMethod
             fOpen.write('\nREFINEMENT METHOD; %s \n'%minimizationMethod)
             refinementStart = time.time()
             
             calculateMatrixElement = calculateLatticeError.calculateMatrixElement
             nIteration = 0
             while nIteration < nIterations:
-                print 'N iteration: %d'%nIteration 
+                if rank == 0:
+                    print 'N iteration: %d'%nIteration 
                 
                 ### 4-DIMENSIONS BRUTE-FORCE ###
                 if minimizationMethod == '4Dbf':
@@ -550,7 +571,8 @@ def processing(myArguments):
                                     nCalls = nCalls + 1
                                     latticeErrorMatrix[nRotationStep-1, nSizeStep-1, centerXstep-1, centerYstep-1] = latticeError
                      
-                    print 'N calls %d'%nCalls               
+                    if rank == 0:
+                        print 'N calls %d'%nCalls               
                     i, j, k, l = numpy.unravel_index(latticeErrorMatrix.argmin(), 
                                                      latticeErrorMatrix.shape)
                     
@@ -577,7 +599,8 @@ def processing(myArguments):
                                                      args = fixedParas, 
                                                      method = minimizationMethod, 
                                                      options = {'xtol': 0.001, 'ftol': 0.001}) # Defaults: 'xtol': 0.0001, 'ftol': 0.0001
-                    print result.message
+                    if rank == 0:
+                        print result.message
                     
                     ### RESULTS ###
                     refinedOrientation = result.x[1]/285
@@ -637,7 +660,8 @@ def processing(myArguments):
                                 
             fOpen.close()
             refinementEnd = time.time() - refinementStart
-            print 'Refinement took %.2f s\n'%refinementEnd  
+            if rank == 0:
+                print 'Refinement took %.2f s\n'%refinementEnd  
             
             ### STORE REFINED LATTICE SIZE ###
             refinedLatticeSizes.append(L.refinedCellSize)
@@ -823,10 +847,11 @@ def processing(myArguments):
                                                 pixelSize)
                                                 
             integrateEnd = time.time() - integrateStart
-            print 'Integration took %.2f s\n'%integrateEnd  
+            if rank == 0:
+                print 'Integration took %.2f s\n'%integrateEnd  
                 
-    joblib.dump(refinedLatticeSizes, '%s/refinedLatticeSizes_r%s.jbl'%(processingFolder, runNumber))
+    joblib.dump(refinedLatticeSizes, '%s/refinedLatticeSizes_r%s_rank%d.jbl'%(processingFolder, runNumber, rank))
                 
 if __name__ == "__main__":
-    print "\n**** CALLING processing ****"
+    #print "\n**** CALLING processing ****"
     processing(sys.argv[1:])
