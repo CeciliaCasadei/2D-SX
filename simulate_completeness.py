@@ -9,7 +9,7 @@ import shannonSamplings
 cellSize = 62.45
 wavelength = 1.48 #A
 d = 45
-resolutionLimit_3D = 5.444 #phenix, all data 5.3
+resolutionLimit_3D = 5.3#phenix, all data 5.373
 cutoff_2D = 6.0
 
 # STANDARD PARAMETERS
@@ -29,6 +29,7 @@ reciprocalLattice = buildReciprocalLattice.buildReciprocalLatticeFunction(cellSi
                                                                           resolutionLimit_2D)
 
 completenesses = []
+matplotlib.pyplot.figure(figsize=(10, 15))
 for tiltAngle_deg in tiltAngles_deg:
     tiltAngle = tiltAngle_deg * numpy.pi / 180 
     
@@ -76,7 +77,13 @@ for tiltAngle_deg in tiltAngles_deg:
     completeness = float(N_2D_exp_tot)/N_sphere_tot
     completenesses.append(completeness)
     print tiltAngle_deg, completeness
-
+            
 matplotlib.pyplot.figure()    
 matplotlib.pyplot.scatter(tiltAngles_deg, completenesses)
-matplotlib.pyplot.savefig('./simulate_completeness.png')
+axes = matplotlib.pyplot.gca()
+axes.tick_params(axis='x', labelsize=12)
+axes.tick_params(axis='y', labelsize=12)
+axes.set_xlabel(r'$\eta$ (degrees)', fontsize = 14) 
+axes.set_ylabel(r'Completeness',     fontsize = 14) 
+matplotlib.pyplot.tight_layout()
+matplotlib.pyplot.savefig('./simulate_completeness.png', dpi=4*96)

@@ -23,7 +23,7 @@ resolutionLimit = 6.0      # A, 2D
 thickness = 45             # A
 damping = 80
 
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python rodsFit_shannonTheo.py \
                --resolutionLimit %f \
@@ -98,7 +98,7 @@ if flag == 1:
     
                                                
 # FROM FW RESULTS, EXTRACT DATA TO MR  
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python printValuesToMR.py')
     

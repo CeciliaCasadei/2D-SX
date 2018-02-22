@@ -132,16 +132,16 @@ def shannonFit(myArguments):
         matplotlib.pyplot.axhline(y=0, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
         matplotlib.pyplot.axhline(y=10, xmin=-1, xmax=1, linewidth=0.5, color = 'b')
         myAxis.set_xlim([-0.60,+0.60])
-        matplotlib.pyplot.xlabel(r'$q_{\rm rod}$ $[\AA^{-1}]$', fontsize=19)
-        matplotlib.pyplot.ylabel('Intensity [photons]', fontsize=19)
+        matplotlib.pyplot.xlabel(r'$q_{\rm rod}$ $[\AA^{-1}]$', fontsize=30)
+        matplotlib.pyplot.ylabel('Intensity [photons]', fontsize=30)
         scale = 1.1*max(experimental_I)
         #negScale = 1.1*min(experimental_I)
         #myAxis.set_ylim([negScale,scale])
         myAxis.set_ylim([-0.1*scale,1*scale])
-        matplotlib.pyplot.gca().tick_params(axis='x', labelsize=14)
-        matplotlib.pyplot.gca().tick_params(axis='y', labelsize=14)
+        matplotlib.pyplot.gca().tick_params(axis='x', labelsize=24)
+        matplotlib.pyplot.gca().tick_params(axis='y', labelsize=24)
         matplotlib.pyplot.tight_layout()
-        matplotlib.pyplot.savefig('%s/shannon_rod_%d_%d_nPts_%d.png'
+        matplotlib.pyplot.savefig('%s/Shannon_rod_%d_%d_nPts_%d.png'
                                    %(outputfolder, rod[0], rod[1], n), dpi=96*2)
         matplotlib.pyplot.close()
         

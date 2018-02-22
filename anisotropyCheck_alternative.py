@@ -44,7 +44,10 @@ def twoD_Gaussian_simple((x, y), amplitude, sigma_x, sigma_y):
 def anisotropy():
     directory = './F_calc_phenix'
     cellSize  = 62.45     # A
-    cAxis     = 180       # A
+    # Double sampling!
+    #cAxis     = 180       # A
+    # Single sampling!
+    cAxis     = 90        # A
     cStar     = (2*numpy.pi)/cAxis
     
     qRods  = []
@@ -195,6 +198,7 @@ def anisotropy():
 
     
 if __name__ == "__main__":
-    print "\n**** CALLING anisotropyCheck ****"    
+    print "\n**** CALLING anisotropyCheck ****"  
+    #prepareFile()
     anisotropy()
     
