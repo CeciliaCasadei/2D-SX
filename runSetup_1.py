@@ -29,7 +29,7 @@ clusterPath = '/mnt/das-gpfs/home/casadei_c/work/casadei'
 # MAKE IMAGE LIST
 imagesDirectoryName = '%s/UNIX_@_LCLS/r%s-images/data1'%(clusterPath, runNumber)
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python makeImageList.py --runNumber %s --imagesDirectoryName %s'
                %(runNumber, imagesDirectoryName))
@@ -72,7 +72,7 @@ selectedImageList = '%s/ImageLists/r%s_ImageNumbers_Filenames.txt'%(outFolder,
 peaksFile = '%s/UNIX_\@_LCLS/r%s-good-modified-11/peaks.txt'%(clusterPath, 
                                                               runNumber)
 geometryFile = '%s/Geometry/geometry.h5'%clusterPath # same for all runs
-pixelSize = 0.000110         # m
+pixelSize = 0.000110  # m
 
 flag = 0
 if flag == 1:
@@ -137,28 +137,35 @@ maxNofPeaksPerImage   = 250    # int
         
 flag = 0
 if flag == 1:
-    os.system('python latticeIndexing.py --referenceCellSize %f \
-                                         --runNumber %s \
-                                         --detectorDistance %f \
-                                         --pixelSize %f \
-                                         --radialTolerance %f \
-                                         --pixelTolerance %f \
-                                         --azimuthTolerance %f \
-                                         --minNofPeaksPerLattice %d \
-                                         --maxNofPeaksPerImage %d \
-                                         --geometryFile %s'
-                                         %(referenceCellSize, 
-                                           runNumber, 
-                                           detectorDistance, 
-                                           pixelSize, 
-                                           radialTolerance, 
-                                           pixelTolerance, 
-                                           azimuthTolerance, 
-                                           minNofPeaksPerLattice, 
-                                           maxNofPeaksPerImage, 
-                                           geometryFile))
+    os.system('mpirun python latticeIndexing_mpi.py --referenceCellSize %f \
+                                                    --runNumber %s \
+                                                    --detectorDistance %f \
+                                                    --pixelSize %f \
+                                                    --radialTolerance %f \
+                                                    --pixelTolerance %f \
+                                                    --azimuthTolerance %f \
+                                                    --minNofPeaksPerLattice %d \
+                                                    --maxNofPeaksPerImage %d'
+                                                    %(referenceCellSize, 
+                                                      runNumber, 
+                                                      detectorDistance, 
+                                                      pixelSize, 
+                                                      radialTolerance, 
+                                                      pixelTolerance, 
+                                                      azimuthTolerance, 
+                                                      minNofPeaksPerLattice, 
+                                                      maxNofPeaksPerImage))
     
-    
+ 
+flag = 1
+if flag == 1:
+    os.system('python latticeIndexing_mpi_merge.py --runNumber %s \
+                                                   --detectorDistance %f \
+                                                   --pixelSize %f'
+                                                   %(runNumber, 
+                                                     detectorDistance, 
+                                                     pixelSize))
+       
     
 # ORIENTATION AND CELL SIZE REFINEMENT
 nSizeRefSteps            = 21

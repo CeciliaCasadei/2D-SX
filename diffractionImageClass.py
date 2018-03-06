@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 class diffractionImage: 
     
-    def __init__(self, fileName, runNumber, imageNumber, tiltAngle, selectionFlag):
+    def __init__(self, 
+                 fileName, 
+                 runNumber, 
+                 imageNumber, 
+                 tiltAngle, 
+                 selectionFlag):
         self.fileName = fileName
         self.runNumber = runNumber
         self.imageNumber = imageNumber
@@ -24,9 +29,17 @@ class diffractionImage:
     
 
     
-    def readPeaksFile(self, peaksFile, pixelSize, xGeometry_np, yGeometry_np):
+    def readPeaksFile(self, 
+                      peaksFile, 
+                      pixelSize, 
+                      xGeometry_np, 
+                      yGeometry_np):
         import readPeaksFile
-        readPeaksFile.readPeaksFileFunction(self, peaksFile, pixelSize, xGeometry_np, yGeometry_np)
+        readPeaksFile.readPeaksFileFunction(self, 
+                                            peaksFile, 
+                                            pixelSize, 
+                                            xGeometry_np, 
+                                            yGeometry_np)
         # Extract experimental info from peaks.txt file.
         # Used in extractExpInfo.py
         # Generate new attributes of diffractionImage object:
@@ -42,26 +55,45 @@ class diffractionImage:
 
 
     
-    def indexingFunction(self, detectorDistance, pixelSize, 
-                         radialTolerance, pixelTolerance, azimuthTolerance,
-                         minNofPeaksPerLattice, maxNofPeaksPerImage, 
+    def indexingFunction(self, 
+                         detectorDistance, 
+                         pixelSize, 
+                         radialTolerance, 
+                         pixelTolerance, 
+                         azimuthTolerance,
+                         minNofPeaksPerLattice, 
+                         maxNofPeaksPerImage, 
                          referenceCellSize):
         if self.nPeaks <= maxNofPeaksPerImage:
             import indexing_C_F2
-            indexing_C_F2.indexingFunction(self, detectorDistance, pixelSize,
-                                      radialTolerance, pixelTolerance, azimuthTolerance,
-                                      minNofPeaksPerLattice, 
-                                      referenceCellSize)
-        else:
-            print 'Image %s - %s:\tnumber of peaks above threshold.'%(self.imageNumber.zfill(5), self.fileName)
+            indexing_C_F2.indexingFunction(self, 
+                                           detectorDistance, 
+                                           pixelSize,
+                                           radialTolerance, 
+                                           pixelTolerance, 
+                                           azimuthTolerance,
+                                           minNofPeaksPerLattice, 
+                                           referenceCellSize)
+#        else:
+#            print 'Image %s - %s:\tnumber of peaks above threshold.'%(self.imageNumber.zfill(5), 
+#                                                                      self.fileName)
+#            
         # Identify and index multiple lattices in one image.
         # Generate objects of the class Lattice.
 
 
         
-    def getPredictedPattern(self, detectorDistance, pixelSize, cellSize, trialInPlaneAngles):
+    def getPredictedPattern(self, 
+                            detectorDistance, 
+                            pixelSize, 
+                            cellSize, 
+                            trialInPlaneAngles):
         import getPredictedPattern
-        getPredictedPattern.getPredictedPatternFunction(self, detectorDistance, pixelSize, cellSize, trialInPlaneAngles)
+        getPredictedPattern.getPredictedPatternFunction(self, 
+                                                        detectorDistance, 
+                                                        pixelSize, 
+                                                        cellSize, 
+                                                        trialInPlaneAngles)
         # Calculate trial predicted patterns in 256 in-plane lattice orientations
         # Generate new attribute:
         # self.referencePredictedPattern: dictionary containing 256 predicted patterns.
@@ -72,8 +104,10 @@ class diffractionImage:
     def plotIndexedExperimentalPeaks(self, detectorDistance, 
                                      pixelSize, resolutionRadii):
         import plotIndexedExperimentalPeaks
-        plotIndexedExperimentalPeaks.plotIndexedExperimentalPeaksFunction(self, detectorDistance, 
-                                                                          pixelSize, resolutionRadii) 
+        plotIndexedExperimentalPeaks.plotIndexedExperimentalPeaksFunction(self, 
+                                                                          detectorDistance, 
+                                                                          pixelSize, 
+                                                                          resolutionRadii) 
         # Plot indexing results
         # Plot experimental peaks (from peaks.txt) and indexed calculated pattern(s)
     
@@ -81,7 +115,8 @@ class diffractionImage:
                                                                       
     def plotRefinedLattices(self, resolutionRadii):
         import plotRefinedIndexedImages
-        plotRefinedIndexedImages.plotRefinedIndexedImagesFunction(self, resolutionRadii)
+        plotRefinedIndexedImages.plotRefinedIndexedImagesFunction(self, 
+                                                                  resolutionRadii)
         # Plot refinement results
         # Plot experimental peaks (from peaks.txt) and indexed calculated pattern(s)
         # after lattice orientation and cell size refinement.
@@ -89,4 +124,5 @@ class diffractionImage:
     
     def plotRefinedLattices_imageOverlap(self, resolutionRadii):
         import plotRefinedIndexedImages
-        plotRefinedIndexedImages.plotRefinedIndexedImagesFunction_imageOverlap(self, resolutionRadii)
+        plotRefinedIndexedImages.plotRefinedIndexedImagesFunction_imageOverlap(self, 
+                                                                               resolutionRadii)

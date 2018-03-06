@@ -49,10 +49,15 @@ _fill_deltaAzimuthMatrix_C.filling.restype = None
 
 
 # FUNCTION TO INCLUDE C FUNCTION
-def fill_deltaAzimuthMatrix(inPlaneAngle, nPredictedSpots, 
-                            intenseExpPeakRadius, intenseExpPeakAzimuth, 
-                            radialTolerance, azimuthTolerance, pixelTolerance, 
-                            predictionInOneOrientation, deltaAzimuthMatrix):
+def fill_deltaAzimuthMatrix(inPlaneAngle, 
+                            nPredictedSpots, 
+                            intenseExpPeakRadius, 
+                            intenseExpPeakAzimuth, 
+                            radialTolerance, 
+                            azimuthTolerance, 
+                            pixelTolerance, 
+                            predictionInOneOrientation, 
+                            deltaAzimuthMatrix):
                                 
     # CONVERT ALL ARGUMENTS TO C TYPES
     c_inPlaneAngle = TYPE_INT(inPlaneAngle)
@@ -67,27 +72,41 @@ def fill_deltaAzimuthMatrix(inPlaneAngle, nPredictedSpots,
     
                                 
     # CALL C FUNCTION
-    _fill_deltaAzimuthMatrix_C.filling(c_inPlaneAngle, c_nPredictedSpots,
-                                       c_intenseExpPeakRadius, c_intenseExpPeakAzimuth,
-                                       c_radialTolerance, c_azimuthTolerance, c_pixelTolerance,
-                                       pointer_predictionInOneOrientation, pointer_deltaAzimuthMatrix) 
+    _fill_deltaAzimuthMatrix_C.filling(c_inPlaneAngle, 
+                                       c_nPredictedSpots,
+                                       c_intenseExpPeakRadius, 
+                                       c_intenseExpPeakAzimuth,
+                                       c_radialTolerance, 
+                                       c_azimuthTolerance, 
+                                       c_pixelTolerance,
+                                       pointer_predictionInOneOrientation, 
+                                       pointer_deltaAzimuthMatrix) 
                                        
                                      
 
 
-def indexingFunction(self, detectorDistance, pixelSize, 
-                     radialTolerance, pixelTolerance, azimuthTolerance, 
+def indexingFunction(self, 
+                     detectorDistance, 
+                     pixelSize, 
+                     radialTolerance, 
+                     pixelTolerance, 
+                     azimuthTolerance, 
                      minNofPeaksPerLattice, 
                      referenceCellSize):   
                          
     nInPlaneAngles = 256
-    trialInPlaneAngles = numpy.arange(-numpy.pi, numpy.pi, 2*numpy.pi/nInPlaneAngles)              # 256 elements
-    self.getPredictedPattern(detectorDistance, pixelSize, referenceCellSize, trialInPlaneAngles)   # Calculate 256 trial predicted patterns 
-                                                                                                   # and store result in self.referencePredictedPattern
-                                                                                                   # (dictionary with 256 items)
-                                                                                                   # [h k qx qy dMin q azimuth rotatedAzimuth detectorAzimuth 
-                                                                                                   # diffractionAngle detectorRadius qRod LPfactor]
-                                                                                                   # NB: azimuth on detector in [0, 2pi]    
+    trialInPlaneAngles = numpy.arange(-numpy.pi, 
+                                       numpy.pi, 
+                                       2*numpy.pi/nInPlaneAngles)              # 256 elements
+    self.getPredictedPattern(detectorDistance, 
+                             pixelSize, 
+                             referenceCellSize, 
+                             trialInPlaneAngles)   # Calculate 256 trial predicted patterns 
+                                                   # and store result in self.referencePredictedPattern
+                                                   # (dictionary with 256 items)
+                                                   # [h k qx qy dMin q azimuth rotatedAzimuth detectorAzimuth 
+                                                   # diffractionAngle detectorRadius qRod LPfactor]
+                                                   # NB: azimuth on detector in [0, 2pi]    
     nValidPeaks = self.nPeaks
        
     nPredictedSpots = self.referencePredictedPattern['1'].shape[0]
@@ -113,13 +132,19 @@ def indexingFunction(self, detectorDistance, pixelSize,
         deltaAzimuthMatrix = numpy.zeros((nPredictedSpots, nInPlaneAngles)) + 500          # 432spots x 256orientations         
         for inPlaneAngle in range(1, nInPlaneAngles+1):                                    # 1 to 256 included
             predictionInOneOrientation = self.referencePredictedPattern['%s'%inPlaneAngle] # 432 x 12
-            fill_deltaAzimuthMatrix(inPlaneAngle, nPredictedSpots, 
-                                    intenseExpPeakRadius, intenseExpPeakAzimuth, 
-                                    radialTolerance, azimuthTolerance, pixelTolerance, 
-                                    predictionInOneOrientation, deltaAzimuthMatrix)
+            fill_deltaAzimuthMatrix(inPlaneAngle, 
+                                    nPredictedSpots, 
+                                    intenseExpPeakRadius, 
+                                    intenseExpPeakAzimuth, 
+                                    radialTolerance, 
+                                    azimuthTolerance, 
+                                    pixelTolerance, 
+                                    predictionInOneOrientation, 
+                                    deltaAzimuthMatrix)
                                    
         # Find minimum of deltaAzimuthMatrix -> possibleRotationAngle            
-        i,j = numpy.unravel_index(deltaAzimuthMatrix.argmin(),deltaAzimuthMatrix.shape)
+        i,j = numpy.unravel_index(deltaAzimuthMatrix.argmin(),
+                                  deltaAzimuthMatrix.shape)
         possibleRotationAngleIndex = j                                                          # From 0
         possibleRotationAngle = trialInPlaneAngles[j]
         
@@ -129,10 +154,14 @@ def indexingFunction(self, detectorDistance, pixelSize,
         
         nMatches_array = [-1]  # FORTRAN: Need pass scalar as an array (pointer) for it to be modified and output.
         nMatches_array = numpy.asarray(nMatches_array)
-        calculate_nMatches_F.calculate(radialTolerance, azimuthTolerance, pixelTolerance,
-                                      self.orderedPeaksMatrix,
-                                      possiblePredictedPattern, nMatches_array,
-                                      self.nPeaks, nPredictedSpots)
+        calculate_nMatches_F.calculate(radialTolerance, 
+                                       azimuthTolerance, 
+                                       pixelTolerance,
+                                       self.orderedPeaksMatrix,
+                                       possiblePredictedPattern, 
+                                       nMatches_array,
+                                       self.nPeaks, 
+                                       nPredictedSpots)
         nMatches = nMatches_array[0]                              
         
 
@@ -143,15 +172,31 @@ def indexingFunction(self, detectorDistance, pixelSize,
             
             # Store all matches in indexedPeaksTable
             indexedPeaksTable = numpy.zeros((nMatches, 11))
-            generate_indexedPeaksTable_F.generate(radialTolerance, azimuthTolerance, pixelTolerance, 
-                                                  indexedPeaksTable, self.orderedPeaksMatrix, possiblePredictedPattern, 
-                                                  nMatches, self.nPeaks, nPredictedSpots)
+            generate_indexedPeaksTable_F.generate(radialTolerance, 
+                                                  azimuthTolerance, 
+                                                  pixelTolerance, 
+                                                  indexedPeaksTable, 
+                                                  self.orderedPeaksMatrix, 
+                                                  possiblePredictedPattern, 
+                                                  nMatches, 
+                                                  self.nPeaks, 
+                                                  nPredictedSpots)
                                 
             # GENERATE Lattice OBJECT, STORE IN DICTIONARY 
-            latticeObject = latticeClass.Lattice(self.fileName, self.imageNumber, self.runNumber, self.tiltAngle, 
-                                                 rotationAngle, self.wavelength, pixelSize, detectorDistance, nMatches, 
-                                                 referenceCellSize, indexedPeaksTable, nLatticesInImage)
-            latticeDictionaryFromOneImage['%s_Lattice_%d'%(self.fileName, nLatticesInImage)] = latticeObject           
+            latticeObject = latticeClass.Lattice(self.fileName, 
+                                                 self.imageNumber, 
+                                                 self.runNumber, 
+                                                 self.tiltAngle, 
+                                                 rotationAngle, 
+                                                 self.wavelength, 
+                                                 pixelSize, 
+                                                 detectorDistance, 
+                                                 nMatches, 
+                                                 referenceCellSize, 
+                                                 indexedPeaksTable, 
+                                                 nLatticesInImage)
+            latticeDictionaryFromOneImage['%s_Lattice_%d'%(self.fileName, 
+                                                           nLatticesInImage)] = latticeObject           
             
             # Update n of valid experimental peaks.
             nValidPeaks = 0
@@ -165,12 +210,15 @@ def indexingFunction(self, detectorDistance, pixelSize,
         nLattices = nLattices + 1
     
     # Save individual image lattices file.    
-    if nLattices == 0:
-        print 'Image %s - %s:\tno lattices found.'%(self.imageNumber.zfill(5), self.fileName)
-    else:    
+#    if nLattices == 0:
+#        print 'Image %s - %s:\tno lattices found.'%(self.imageNumber.zfill(5), self.fileName)
+#    else:
+    if not nLattices == 0:
         if not os.path.exists('./Output_r%s/LatticeIndexing'%self.runNumber):   
             os.mkdir('./Output_r%s/LatticeIndexing'%self.runNumber)          
-        outputFile = './Output_r%s/LatticeIndexing/latticeDictionary_r%s_image_%s.pkl'%(self.runNumber, self.runNumber, self.imageNumber)  
+        outputFile = './Output_r%s/LatticeIndexing/latticeDictionary_r%s_image_%s.pkl'%(self.runNumber, 
+                                                                                        self.runNumber, 
+                                                                                        self.imageNumber)  
         f = open(outputFile, 'wb')
         pickle.dump(latticeDictionaryFromOneImage, f)
         f.close()

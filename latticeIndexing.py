@@ -79,7 +79,7 @@ def latticeIndexingFunction(myArguments):
         startTime = time.time()
         print 'Indexing started.'
         
-        joblib.Parallel(n_jobs=-1)(joblib.delayed(myParallelFunction)
+        joblib.Parallel(n_jobs=1)(joblib.delayed(myParallelFunction)
                        (imageObjects['%s'%i], runNumber, detectorDistance, pixelSize, 
                         radialTolerance, pixelTolerance, azimuthTolerance, 
                         minNofPeaksPerLattice, maxNofPeaksPerImage, 
