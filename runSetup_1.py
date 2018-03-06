@@ -169,7 +169,7 @@ if flag == 1:
                                                           
                                                           
                                                             
-flag = 1
+flag = 0
 if flag == 1:
     figuresPath = '%s/Figures'%indexingDirectory
     if not os.path.exists(figuresPath):
@@ -188,34 +188,47 @@ nSizeRefSteps            = 21
 nOrientationRefSteps     = 21
 widthSizeRefSteps        = 0.004
 widthOrientationRefSteps = 0.2
+
+refinementFolder = './Output_r%s/OrientationAndCellRefinement'%runNumber
     
 flag = 0
 if flag == 1:
-    os.system('python orientationAndCellRefinement.py --referenceCellSize %f \
-                                                      --runNumber %s \
-                                                      --nSizeRefSteps %d \
-                                                      --nOrientationRefSteps %d \
-                                                      --widthSizeRefSteps %f \
-                                                      --widthOrientationRefSteps %f \
-                                                      --hmax %d \
-                                                      --kmax %d \
-                                                      --resolutionLimit %f'
-                                                      %(referenceCellSize, 
-                                                        runNumber, 
-                                                        nSizeRefSteps, 
-                                                        nOrientationRefSteps, 
-                                                        widthSizeRefSteps, 
-                                                        widthOrientationRefSteps, 
-                                                        hmax, 
-                                                        kmax, 
-                                                        resolutionLimit))
+       
+    if not os.path.exists(refinementFolder):
+        os.mkdir(refinementFolder)
+    refinedPatternsFolder = '%s/RefinedPredictedPatterns'%refinementFolder
+    if not os.path.exists(refinedPatternsFolder):
+        os.mkdir(refinedPatternsFolder)
+    figuresFolder = '%s/Figures'%refinementFolder
+    if not os.path.exists(figuresFolder):
+        os.mkdir(figuresFolder)
+    
+    os.system('mpirun python orientationAndCellRefinement_mpi.py --referenceCellSize %f \
+                                                                 --runNumber %s \
+                                                                 --nSizeRefSteps %d \
+                                                                 --nOrientationRefSteps %d \
+                                                                 --widthSizeRefSteps %f \
+                                                                 --widthOrientationRefSteps %f \
+                                                                 --resolutionLimit %f'
+                                                                 %(referenceCellSize, 
+                                                                   runNumber, 
+                                                                   nSizeRefSteps, 
+                                                                   nOrientationRefSteps, 
+                                                                   widthSizeRefSteps, 
+                                                                   widthOrientationRefSteps,
+                                                                   resolutionLimit))
+                                                                   
+flag = 0
+if flag == 1:
+     os.system('python orientationAndCellRefinement_mpi_merge.py --runNumber %s'
+                                                                  %runNumber)
                
                
                
 # PLOT REFINED LATTICES
-flag = 0
-if flag == 1:
-    os.system('python plotRefinedLattices.py --runNumber %s'%runNumber)
+flag = 1
+if flag == 1:            
+    os.system('mpirun python plotRefinedLattices.py --runNumber %s'%runNumber)
 
 
 

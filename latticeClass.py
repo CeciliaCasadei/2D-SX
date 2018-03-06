@@ -28,12 +28,17 @@ class Lattice:
         
         
     def refineCellSizeAndOrientation(self, 
-                                     sizeRefinementSteps, orientationRefinementSteps, 
-                                     folderName, RLfolderName):
+                                     sizeRefinementSteps, 
+                                     orientationRefinementSteps, 
+                                     folderName, 
+                                     resolutionLimit):
         import refineCellSizeAndOrientation
-        refinedParameters = refineCellSizeAndOrientation.refineCellSizeAndOrientation(self, 
-                                                                                      sizeRefinementSteps, orientationRefinementSteps, 
-                                                                                      folderName, RLfolderName)
+        refinedParameters = \
+        refineCellSizeAndOrientation.refineCellSizeAndOrientation(self, 
+                                                                  sizeRefinementSteps, 
+                                                                  orientationRefinementSteps, 
+                                                                  folderName, 
+                                                                  resolutionLimit)
         return refinedParameters
         # Called by orientationAndCellRefinement.py 
         # Given a list of cell size refinement steps and a list of in-plane orientation refinement steps,

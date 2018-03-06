@@ -8,12 +8,11 @@ import sys
 import getopt
 import os
 import pickle
-import time
-import joblib
+from mpi4py import MPI
 
-def myParallelFunction(myObject, runNumber, resolutionRadii):
-    if myObject.selectionFlag == 1 and myObject.runNumber == runNumber and myObject.nPeaks > 0:
-        myObject.plotRefinedLattices(resolutionRadii)
+def parallelFunction(I, runNumber, resolutionRadii):
+    if I.selectionFlag == 1 and I.runNumber == runNumber and I.nPeaks > 0:
+        I.plotRefinedLattices(resolutionRadii)
 
 def plotRefinedLatticesFunction(myArguments):
     resolutionRadii = [50, 10, 7]   
@@ -31,21 +30,33 @@ def plotRefinedLatticesFunction(myArguments):
         elif option == "--runNumber":
             runNumber = value.zfill(4)
     
-    imagesDictionaryFile = './Output_r%s/ExtractExperimentalInfo/r%s_imagesDictionary.pkl'%(runNumber, runNumber)
+    inputPath = './Output_r%s/ExtractExperimentalInfo'%runNumber
+    imagesDictionaryFile = '%s/r%s_imagesDictionary.pkl'%(inputPath, runNumber)
+    
     if not os.path.exists(imagesDictionaryFile):
         print 'File %s not found.'%imagesDictionaryFile
     else:
         fRead = open(imagesDictionaryFile, 'rb')
         myData = pickle.load(fRead)                                            # Dictionary items are diffractionImage objects
         fRead.close()
+        
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        numberOfCores = comm.Get_size()
+        if rank == 0:
+            print "I see %d cores are available"%(numberOfCores)
     
-        startTime = time.time()
-        print 'Plotting started.'
-        joblib.Parallel(n_jobs=1)(joblib.delayed(myParallelFunction)(myData['%s'%i], runNumber, resolutionRadii) for i,j in myData.items())
+    
+        iImg = 0
+        for i,j in myData.items():
+            iImg += 1
+            if iImg%numberOfCores != rank:
+                continue
+        
+            parallelFunction(j, runNumber, resolutionRadii)
                             
-        runTime = time.time() - startTime
-        print 'Plotting took %.1f s.'%runTime
+        
 
 if __name__ == "__main__":
-    print "\n**** CALLING plotRefinedLattices ****"
+    #print "\n**** CALLING plotRefinedLattices ****"
     plotRefinedLatticesFunction(sys.argv[1:]) 

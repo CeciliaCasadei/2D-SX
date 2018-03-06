@@ -118,7 +118,7 @@ def plotRefinedIndexedImagesFunction(self, resolutionRadii):
         os.mkdir('./Output_r%s/OrientationAndCellRefinement/Figures'%self.runNumber)   
     myFigure.savefig("./Output_r%s/OrientationAndCellRefinement/Figures/IndexedExperimentalPeaks_Refined_r%s_Image_%s.png"%(self.runNumber, self.runNumber, self.imageNumber), fontsize = 20, dpi=myDPI*2)
     matplotlib.pyplot.close()
-    print 'Plotting image %s'%self.fileName
+    #print 'Plotting image %s'%self.fileName
     
 
 
