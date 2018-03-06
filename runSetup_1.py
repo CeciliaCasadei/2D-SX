@@ -134,9 +134,15 @@ pixelTolerance        = 12     # pxls
 azimuthTolerance      = 3      # degrees
 minNofPeaksPerLattice = 18     # int
 maxNofPeaksPerImage   = 250    # int
-        
+
+indexingDirectory = './Output_r%s/LatticeIndexing'%runNumber
+
+# salloc -N 5 -p day
+# exit        
 flag = 0
-if flag == 1:
+if flag == 1:   
+    if not os.path.exists(indexingDirectory):   
+            os.mkdir(indexingDirectory)      
     os.system('mpirun python latticeIndexing_mpi.py --referenceCellSize %f \
                                                     --runNumber %s \
                                                     --detectorDistance %f \
@@ -157,14 +163,24 @@ if flag == 1:
                                                       maxNofPeaksPerImage))
     
  
+flag = 0
+if flag == 1:
+    os.system('python latticeIndexing_mpi_merge.py --runNumber %s'%runNumber)
+                                                          
+                                                          
+                                                            
 flag = 1
 if flag == 1:
-    os.system('python latticeIndexing_mpi_merge.py --runNumber %s \
-                                                   --detectorDistance %f \
-                                                   --pixelSize %f'
-                                                   %(runNumber, 
-                                                     detectorDistance, 
-                                                     pixelSize))
+    figuresPath = '%s/Figures'%indexingDirectory
+    if not os.path.exists(figuresPath):
+        os.mkdir(figuresPath)
+    os.system('mpirun python latticeIndexing_mpi_plot.py --runNumber %s \
+                                                          --detectorDistance %f \
+                                                          --pixelSize %f'
+                                                          %(runNumber, 
+                                                            detectorDistance, 
+                                                            pixelSize))
+    os.system('rm %s/latticeDictionary*.pkl'%indexingDirectory)
        
     
 # ORIENTATION AND CELL SIZE REFINEMENT

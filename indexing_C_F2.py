@@ -214,8 +214,6 @@ def indexingFunction(self,
 #        print 'Image %s - %s:\tno lattices found.'%(self.imageNumber.zfill(5), self.fileName)
 #    else:
     if not nLattices == 0:
-        if not os.path.exists('./Output_r%s/LatticeIndexing'%self.runNumber):   
-            os.mkdir('./Output_r%s/LatticeIndexing'%self.runNumber)          
         outputFile = './Output_r%s/LatticeIndexing/latticeDictionary_r%s_image_%s.pkl'%(self.runNumber, 
                                                                                         self.runNumber, 
                                                                                         self.imageNumber)  

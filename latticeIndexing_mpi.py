@@ -12,6 +12,7 @@ import pickle
 from mpi4py import MPI
 
 
+
 def latticeIndexingFunction(myArguments):
     
     # DEFAULTS

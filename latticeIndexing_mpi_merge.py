@@ -12,33 +12,24 @@ import os
 import pickle
 
 
+
 def mergeFunction(myArguments):
     
-    resolutionRadii = [50, 10, 7] 
-     
     # READ INPUTS
     string1 = 'Usage: python latticeIndexing.py'
     string2 = ' --runNumber <runNumber>'
-    string3 = ' --detectorDistance <detectorDistance>'
-    string4 = ' --pixelSize <pixelSize>' 
     
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", 
-                                                                 "detectorDistance=", 
-                                                                 "pixelSize="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber="])
     except getopt.GetoptError:
-        print string1 + string2 + string3 + string4 
+        print string1 + string2 
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print string1 + string2 + string3 + string4 
+            print string1 + string2 
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
-        elif option == "--detectorDistance":
-            detectorDistance = float(value)
-        elif option == "--pixelSize":
-            pixelSize = float(value)
 
         
     
@@ -56,12 +47,12 @@ def mergeFunction(myArguments):
         allLatticesDictionary = {}
         nProcessedImages = 0
         for i, j in imageObjects.items():
-            if (imageObjects['%s' %i].selectionFlag == 1 and 
-                imageObjects['%s' %i].runNumber == runNumber): 
+            if (j.selectionFlag == 1 and 
+                j.runNumber == runNumber): 
                 nProcessedImages = nProcessedImages + 1
                 myPath = '%s/latticeDictionary_r%s_image_%s.pkl'%(outputPath, 
-                                                                  imageObjects['%s' %i].runNumber, 
-                                                                  imageObjects['%s' %i].imageNumber)
+                                                                  j.runNumber, 
+                                                                  j.imageNumber)
                 if os.path.exists(myPath):  
                     openPkl = open(myPath, 'rb')
                     singleImageLatticesDictionary = pickle.load(openPkl)
@@ -79,9 +70,11 @@ def mergeFunction(myArguments):
                 
 
         # REPORT INDEXING RESULTS
-        print '\nSTORING INDEXING LOG FOR RUN %s IN FILE ./Output_r%s/LatticeIndexing/r%s_allLatticesDictionary.txt\n'%(runNumber, runNumber, runNumber)
-        logFile = './Output_r%s/LatticeIndexing/r%s_allLatticesDictionary.txt'%(runNumber, 
-                                                                                runNumber)  
+        print 'STORING INDEXING LOG FOR RUN %s IN FILE:'%runNumber 
+        print '%s/r%s_allLatticesDictionary.txt\n'%(outputPath, 
+                                                    runNumber)
+        logFile = '%s/r%s_allLatticesDictionary.txt'%(outputPath, 
+                                                      runNumber)  
         f = open(logFile, 'w') 
         f.write('INDEXING RESULTS FOR RUN %s\n'%runNumber)
         k = 0
@@ -101,7 +94,11 @@ def mergeFunction(myArguments):
             f.write('Number of matched peaks: %d\n'%j.nMatchedPeaks)
             f.write('Reference cell size: %.3f A\n'%j.referenceCellSize)
             f.write('Indexed peaks table:\n')
-            f.write('    h    k    observed radius    observed azimuth    observed I    radial delta    azimuth delta    obs peak n    predicted peak n    predicted radius    predicted azimuth\n')
+            str1 = '    h    k    observed radius    observed azimuth'
+            str2 = '    observed I    radial delta    azimuth delta'
+            str3 = '    obs peak n    predicted peak n'
+            str4 = '    predicted radius    predicted azimuth\n'
+            f.write(str1+str2+str3+str4)
             for z in range(0, j.nMatchedPeaks):
                 f.write('%5d%5d%19.3f%20.3f%14.2f%16.3f%17.3f%14d%20d%20.3f%21.3f\n'
                       %(j.indexedPeaksTable[z,0], 
@@ -117,21 +114,6 @@ def mergeFunction(myArguments):
                         j.indexedPeaksTable[z,10]))
         f.close()
         
-        # PLOT INDEXING RESULTS
-        plotFlag = 0
-        if plotFlag == 1:
-            print 'Plotting indexed experimental peaks.'
-            for i, j in sorted(imageObjects.items()):
-                if (imageObjects['%s' %i].selectionFlag == 1 and 
-                    imageObjects['%s' %i].runNumber == runNumber and 
-                    imageObjects['%s' %i].nPeaks > 0): 
-                    imageObjects['%s' %i].plotIndexedExperimentalPeaks(detectorDistance, 
-                                                                       pixelSize, 
-                                                                       resolutionRadii)
-            
-        
-        # REMOVE INDIVIDUAL LATTICE DICTIONARIES
-        os.system('rm ./Output_r%s/LatticeIndexing/latticeDictionary*.pkl'%runNumber)
-  
+
 if __name__ == "__main__":
     mergeFunction(sys.argv[1:])
