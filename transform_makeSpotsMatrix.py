@@ -6,7 +6,6 @@ import joblib
 import os
 
 def transform_makeSpotsMatrixFunction(myArguments):
-    runNumber = ''
     
     # READ INPUTS    
     try:
@@ -24,11 +23,13 @@ def transform_makeSpotsMatrixFunction(myArguments):
     outputFolder = './Output_r%s/transformAndScale'%runNumber
     if not os.path.exists(outputFolder):
         os.mkdir(outputFolder)
-    spotMatricesFolder = './Output_r%s/transformAndScale/spotsMatricesList-r%s'%(runNumber, runNumber)
+    spotMatricesFolder = '%s/spotsMatricesList-r%s'%(outputFolder, runNumber)
     if not os.path.exists(spotMatricesFolder):
         os.mkdir(spotMatricesFolder)
         
-    os.system('ls ./Output_r%s/UnassembledImageProcessing/Ordered*.jbl > %s/list-r%s.txt'%(runNumber, spotMatricesFolder, runNumber))
+    os.system('ls ./Output_r%s/UnassembledImageProcessing/Ordered*.jbl > %s/list-r%s.txt'%(runNumber, 
+                                                                                           spotMatricesFolder, 
+                                                                                           runNumber))
     f = open('%s/list-r%s.txt'%(spotMatricesFolder, runNumber), 'r')
     myList = list(f)
     f.close()
@@ -49,7 +50,8 @@ def transform_makeSpotsMatrixFunction(myArguments):
     nLattices = len(spotsMatricesList)
     print 'N processed lattices: %d'%nLattices
     
-    joblib.dump(spotsMatricesList, '%s/r%s_spotsMatricesList.jbl'%(spotMatricesFolder, runNumber))
+    joblib.dump(spotsMatricesList, '%s/r%s_spotsMatricesList.jbl'%(spotMatricesFolder, 
+                                                                   runNumber))
 
 if __name__ == "__main__":
     print "\n**** CALLING transform_makeSpotsMatrix ****"

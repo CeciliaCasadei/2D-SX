@@ -78,9 +78,7 @@ def mergeFunction(myArguments):
                                                    pixelSize, 
                                                    resolutionRadii)
             
-        
-        # REMOVE INDIVIDUAL LATTICE DICTIONARIES
-        #os.system('rm ./Output_r%s/LatticeIndexing/latticeDictionary*.pkl'%runNumber)
+    
   
 if __name__ == "__main__":
     mergeFunction(sys.argv[1:])

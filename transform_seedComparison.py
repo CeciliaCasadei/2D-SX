@@ -43,11 +43,9 @@ def transform_seedComparisonFunction(myArguments):
     runNumber = ''
     
     # READ INPUTS  
-    str_in = '--runNumber <runNumber> --nSeeds <nSeeds> --dQrod <dQrod>'
+    str_in = '--runNumber <runNumber>'
     try:
-        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber=", 
-                                                                 "nSeeds=", 
-                                                                 "dQrod="])
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["runNumber="])
     except getopt.GetoptError:
         print 'Usage: python transform_seedComparison.py %s'%str_in
         sys.exit(2)   
@@ -57,18 +55,12 @@ def transform_seedComparisonFunction(myArguments):
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
-        elif option == "--nSeeds":
-            nSeeds = int(value)
-        elif option == "--dQrod":
-            deltaQrodThreshold = float(value)
         
-
     outputFolder = './Output_r%s/transformAndScale'%runNumber
-    orientationsList = joblib.load('%s/r%s-%dseeds-dQrod%.3f-orientations.jbl'
+    orientationsList = joblib.load('%s/r%s_orientations_allSeeds.jbl'
                                     %(outputFolder, 
-                                      runNumber, 
-                                      nSeeds, 
-                                      deltaQrodThreshold))
+                                      runNumber))
+    nSeeds = len(orientationsList)
    
     # FOR EACH SEED, COUNT N OF ORIENTED LATTICES 
     seedScores = []  
@@ -80,7 +72,7 @@ def transform_seedComparisonFunction(myArguments):
             if not numpy.isnan(seedToLattice):
                 nOriented = nOriented + 1
         seedScores.append(nOriented)
-    print 'N oriented lattices:'
+    print 'N oriented lattices (out of %d):'%nLattices
     print seedScores   
     
     # ORDER SEEDS FROM BEST TO WORST 
@@ -96,7 +88,7 @@ def transform_seedComparisonFunction(myArguments):
         orderedOrientationsList.append(orientationsList[bestSeed])
           
     nGoodSeeds = len(orderedOrientationsList)    
-    print 'N good seeds: %d'%nGoodSeeds
+    print 'N accepted seeds: %d (oriented lattices > 20)'%nGoodSeeds
         
     # CHECK SEEDS CONSISTENCY (Seed_i-Seed_j-L TRIANGLES)
     print '\nChecking seeds consistency (I): Seed_i-Seed_j-L TRIANGLES'
@@ -139,7 +131,7 @@ def transform_seedComparisonFunction(myArguments):
     print T_SeedSeed
     
     # CHECK SEEDS CONSISTENCY (Seed_i-Seed_j-Seed_k TRIANGLES)
-    print '\nChecking seeds consistency (I): Seed_i-Seed_j-Seed_k TRIANGLES'
+    print '\nChecking seeds consistency: Seed_i-Seed_j-Seed_k relations.'
     identity = numpy.matrix([[1, 0],[0, 1]])
     for i in range(0, nGoodSeeds):
         for j in range(i, nGoodSeeds):
@@ -170,11 +162,11 @@ def transform_seedComparisonFunction(myArguments):
                 break
         if flag == 0:
             latticeOrientations.append(numpy.nan)
-    joblib.dump(latticeOrientations, '%s/r%s-finalOrientations.jbl'%(outputFolder, 
+    joblib.dump(latticeOrientations, '%s/r%s-mergedOrientations.jbl'%(outputFolder, 
                                                                      runNumber))
     
     # LOG FINAL ORIENTATIONS        
-    fOpen = open('%s/r%s-finalOrientations.txt'%(outputFolder, runNumber), 'w')
+    fOpen = open('%s/r%s-mergedOrientations.txt'%(outputFolder, runNumber), 'w')
     n = 0
     nOriented_final = 0
     for orientation in latticeOrientations:

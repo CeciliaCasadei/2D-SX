@@ -1,8 +1,3 @@
-### INSTRUCTIONS ###
-# RUN e.g.:    python transform_CCmethod_main.py -h                                                   (see help)
-# RUN e.g.:    python transform_CCmethod_main.py --runNumber 0195 --dQrod 0.005 --dSelf 0 --nMin 6    (set some parameters)
-# RUN e.g.:    python transform_CCmethod_main.py                                                      (all default parameters)
-
 # -*- coding: utf-8 -*-
 import joblib
 import numpy 
@@ -196,13 +191,10 @@ def main(myArguments):
         LtoSS_vector.append(LtoSi_vector)
         runTime = time.time() - startTime
         fOpen.write('\nIt took: %.1f s'%runTime)
-        fOpen.close        
-    joblib.dump(LtoSS_vector, 
-                '%s/r%s-%dseeds-dQrod%.3f-orientations.jbl'
-                 %(transformationFolder, 
-                   runNumber, 
-                   nSeeds, 
-                   deltaQrodThreshold))
+        fOpen.close  
+        
+    joblib.dump(LtoSS_vector, '%s/r%s_orientations_allSeeds.jbl'%(transformationFolder, 
+                                                                  runNumber))
     
 if __name__ == "__main__":
     print "\n**** CALLING transform_CCmethod_main ****"

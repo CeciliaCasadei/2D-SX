@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import random
 
 from runSetup_settings import tiltAngles
 from runSetup_settings import nGoodFractions
@@ -161,6 +162,7 @@ if flag == 1:
                                                       azimuthTolerance, 
                                                       minNofPeaksPerLattice, 
                                                       maxNofPeaksPerImage))
+
     
  
 flag = 0
@@ -226,7 +228,7 @@ if flag == 1:
                
                
 # PLOT REFINED LATTICES
-flag = 1
+flag = 0
 if flag == 1:            
     os.system('mpirun python plotRefinedLattices.py --runNumber %s'%runNumber)
 
@@ -243,26 +245,26 @@ fractionDetectedThreshold = 0.45
 
 flag = 0
 if flag == 1:
-    os.system('python processingAndIntegration.py --runNumber %s \
-                                                  --bgSubtractionMethod %s \
-                                                  --minimizationMethod %s \
-                                                  --lowResLimit %f \
-                                                  --highResLimit %f \
-                                                  --nCountsPerPhoton %d \
-                                                  --integrationRadius %d \
-                                                  --geometryFile %s \
-                                                  --imageFolder %s \
-                                                  --fractionDetectedThreshold %f'
-                                                  %(runNumber, 
-                                                    bgSubtractionMethod, 
-                                                    minimizationMethod, 
-                                                    lowResLimit, 
-                                                    highResLimit, 
-                                                    nCountsPerPhoton, 
-                                                    integrationRadius, 
-                                                    geometryFile, 
-                                                    imagesDirectoryName, 
-                                                    fractionDetectedThreshold))
+    os.system('mpirun python processingAndIntegration.py --runNumber %s \
+                                                         --bgSubtractionMethod %s \
+                                                         --minimizationMethod %s \
+                                                         --lowResLimit %f \
+                                                         --highResLimit %f \
+                                                         --nCountsPerPhoton %d \
+                                                         --integrationRadius %d \
+                                                         --geometryFile %s \
+                                                         --imageFolder %s \
+                                                         --fractionDetectedThreshold %f'
+                                                         %(runNumber, 
+                                                           bgSubtractionMethod, 
+                                                           minimizationMethod, 
+                                                           lowResLimit, 
+                                                           highResLimit, 
+                                                           nCountsPerPhoton, 
+                                                           integrationRadius, 
+                                                           geometryFile, 
+                                                           imagesDirectoryName, 
+                                                           fractionDetectedThreshold))
                
                
                
@@ -276,7 +278,7 @@ if flag == 1:
                
                
 # MAKE LIST OF SPOT MATRICES
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python transform_makeSpotsMatrix.py --runNumber %s'%runNumber)
     
@@ -285,7 +287,7 @@ if flag == 1:
 # DETERMINE TRANSFORMATIONS (spots to 7.1 A 2D-resolution are used)
 deltaQrodThreshold = 0.005
 n_minThreshold     = 6
-nSeeds             = 6
+nSeeds             = 20
 nUsedLattices      = 'all'
 nTriangles         = 100
 nGoodFraction      = float(nGoodFractions['%s'%runNumber])   
@@ -307,18 +309,40 @@ if flag == 1:
                                                    nUsedLattices, 
                                                    nTriangles, 
                                                    nGoodFraction))
-              
+                                                   
+
+flag = 1
+if flag == 1:
+    for i in range(nSeeds):
+        seed = random.sample(range(349), 1)
+        os.system('mpirun python transform_CCmethod_mpi.py --runNumber %s \
+                                                           --dQrod %f \
+                                                           --nMin %d \
+                                                           --nTriangles %d \
+                                                           --nGoodFraction %f \
+                                                           --seed %d'
+                                                           %(runNumber, 
+                                                             deltaQrodThreshold, 
+                                                             n_minThreshold,
+                                                             nTriangles, 
+                                                             nGoodFraction,
+                                                             seed[0]))
+                                                             
+        os.system('python transform_CCmethod_mpi_merge.py --runNumber %s \
+                                                          --seed_id %d'
+                                                          %(runNumber, 
+                                                            i))
+                                                            
+    os.system('python transform_CCmethod_mpi_mergeSeeds.py --runNumber %s'
+                                                           %(runNumber))
+                        
+                  
               
               
 # DETERMINE TRANSFORMATIONS - SEEDS COMPARISON
-flag = 0
+flag = 1
 if flag == 1:
-    os.system('python transform_seedComparison.py --runNumber %s \
-                                                  --nSeeds %d \
-                                                  --dQrod %f'
-                                                  %(runNumber, 
-                                                    nSeeds, 
-                                                    deltaQrodThreshold))
+    os.system('python transform_seedComparison.py --runNumber %s'%runNumber)
                
 
                
