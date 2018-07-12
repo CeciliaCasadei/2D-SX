@@ -43,11 +43,11 @@ def shannonFit(myArguments):
                                                "damping=", 
                                                "folder="])
     except getopt.GetoptError:
-        print 'Usage: python rodsFit_shannonTheo.py %s'%(str_1, str_2)
+        print 'Usage: python rodsFit_shannonTheo.py %s %s'%(str_1, str_2)
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python rodsFit_shannonTheo.py %s'%(str_1, str_2)
+            print 'Usage: python rodsFit_shannonTheo.py %s %s'%(str_1, str_2)
             sys.exit()
         elif option == "--resolutionLimit":
             resolutionLimit = float(value)
@@ -57,6 +57,8 @@ def shannonFit(myArguments):
             T = float(value)
         elif option == "--folder":
             folder = value           
+    
+    print 'Using folder: ', folder
     
     outputfolder = '%s/Shannon_sampling'%folder
     if not os.path.exists(outputfolder):
@@ -141,7 +143,7 @@ def shannonFit(myArguments):
         matplotlib.pyplot.gca().tick_params(axis='x', labelsize=24)
         matplotlib.pyplot.gca().tick_params(axis='y', labelsize=24)
         matplotlib.pyplot.tight_layout()
-        matplotlib.pyplot.savefig('%s/Shannon_rod_%d_%d_nPts_%d.png'
+        matplotlib.pyplot.savefig('%s/shannon_rod_%d_%d_nPts_%d.png'
                                    %(outputfolder, rod[0], rod[1], n), dpi=96*2)
         matplotlib.pyplot.close()
         

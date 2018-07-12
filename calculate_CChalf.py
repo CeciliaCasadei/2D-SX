@@ -11,10 +11,12 @@ import shannonSamplings
 import get_rodIndices
 import correlate
 
+from bins import binLimits
+
 # CALCULATE CChalf OF A RESOLUTION BIN [high, low] ONCE
-def calculate(low, high, rodIndices, inputFolder, cellSize, T, d):
+def calculate(low, high, rodIndices, inputFolder, cellSize, overSampling, d):
     
-    delta_qRod = (2*numpy.pi)/(2*d) 
+    delta_qRod = (2*numpy.pi)/(overSampling*2*d) 
     
     N_uniques = 0
     CChalf_value = 0
@@ -90,7 +92,7 @@ def CChalf(low,
            rodIndices, 
            inputFolder, 
            cellSize, 
-           T, 
+           overSampling, 
            d):
                
     n = 10
@@ -107,7 +109,7 @@ def CChalf(low,
                                             rodIndices, 
                                             inputFolder, 
                                             cellSize, 
-                                            T, 
+                                            overSampling, 
                                             d)
         CChalf_list.append(CChalf_value)
         
@@ -125,21 +127,19 @@ def calculate_CCstar(CChalf):
 def calculate_CChalf_Function(myArguments):
     
     # SETTINGS
-    bins = [54.09, 25.27, 16.66, 12.79, 11.64, 10.19, 9.41, 8.64, 7.94, 7.53, 
-            7.13, 6.79, 6.54, 6.20, 6.02, 5.30]
-    nBins = len(bins) - 1
+    nBins = len(binLimits) - 1
     resolution_2D = 6.0
     
     # KEYWORD ARGUMENTS
     input_str_0 = '--inputFolder <inputFolder>'
-    input_str_1 = '--thickness <thickness> --damping <damping>'
+    input_str_1 = '--thickness <thickness> --overSampling <overSampling>'
     input_str_2 = '--cellSize <cellSize>'
     
     # READ INPUTS    
     try:
         optionPairs, leftOver = getopt.getopt(myArguments, "h", ["inputFolder=", 
                                                                  "thickness=",
-                                                                 "damping=",
+                                                                 "overSampling=",
                                                                  "cellSize="])
     except getopt.GetoptError:
         print 'Usage: python calculate_CChalf.py %s %s %s %s'%(input_str_0,
@@ -156,8 +156,8 @@ def calculate_CChalf_Function(myArguments):
             inputFolder = value
         elif option == "--thickness":
             d = float(value)
-        elif option == "--damping":
-            T = float(value)
+        elif option == "--overSampling":
+            overSampling = int(value)
         elif option == "--cellSize":
             cellSize = float(value)
                 
@@ -174,14 +174,14 @@ def calculate_CChalf_Function(myArguments):
     
     # CALCULATE CChalf IN EACH 3D-RESOLUTION SHELL
     for i in range(0, nBins):
-        low = bins[i]
-        high = bins[i+1]
+        low  = binLimits[i]
+        high = binLimits[i+1]
         N_vector, CChalf_vector = CChalf(low, 
                                          high, 
                                          rodIndices, 
                                          inputFolder, 
                                          cellSize,
-                                         T, 
+                                         overSampling, 
                                          d)
         CChalf_value = numpy.average(CChalf_vector)
         CCstar = calculate_CCstar(CChalf_value)
@@ -197,26 +197,26 @@ def calculate_CChalf_Function(myArguments):
         data.append(data_line)
      
     # CALCULATE GLOBAL CChalf WITH DIFFERENT HIGH-RES CUTOFFS                                                              
-    for secondEdge in [bins[-1]]: #, bins[-2]]:
+    for secondEdge in [binLimits[-1]]: #, binLimits[-2]]:
         
-        N_vector, CChalf_vector = CChalf(bins[0], 
+        N_vector, CChalf_vector = CChalf(binLimits[0], 
                                          secondEdge, 
                                          rodIndices, 
                                          inputFolder, 
                                          cellSize, 
-                                         T, 
+                                         overSampling, 
                                          d)
         CChalf_value = numpy.average(CChalf_vector)
         CCstar = calculate_CCstar(CChalf_value)
         print 'Global: ', CChalf_vector, CChalf_value, CCstar
         print N_vector
-        fOpen.write('%6.2f - %6.2f      %12d       %.4f     %.4f\n'%(bins[0], 
+        fOpen.write('%6.2f - %6.2f      %12d       %.4f     %.4f\n'%(binLimits[0], 
                                                                      secondEdge, 
                                                                      N_vector[0], 
                                                                      CChalf_value,
                                                                      CCstar))
         
-        data_line = [bins[0], secondEdge, N_vector[0], CChalf_value, CCstar]
+        data_line = [binLimits[0], secondEdge, N_vector[0], CChalf_value, CCstar]
         data.append(data_line)
                                                                       
     fOpen.close()

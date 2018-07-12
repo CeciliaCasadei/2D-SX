@@ -21,9 +21,9 @@ if flag == 1:
 # PLOT MERGED RODS, BUILD SINC MODEL
 resolutionLimit = 6.0      # A, 2D
 thickness = 45             # A
-damping = 80
+damping = 0                # 80
 
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python rodsFit_shannonTheo.py \
                --resolutionLimit %f \
@@ -63,15 +63,17 @@ if flag == 1:
                                              
                                              
 # CALCULATE CChalf
+overSampling = 2
+
 flag = 0
 if flag == 1:
     os.system('python calculate_CChalf.py --inputFolder %s \
                                           --thickness %f \
-                                          --damping %f \
+                                          --overSampling %d \
                                           --cellSize %f'
                                           %(inputFolder, 
                                             thickness,
-                                            damping,
+                                            overSampling,
                                             cellSize))
                                             
  
@@ -82,11 +84,17 @@ if flag == 1:
     os.system('python calculate_FW_values.py --inputFolder %s \
                                              --thickness %f \
                                              --damping %f \
-                                             --cellSize %f'
+                                             --cellSize %f \
+                                             --overSampling %d'
                                              %(inputFolder, 
                                                thickness,
                                                damping,
-                                               cellSize)) 
+                                               cellSize,
+                                               overSampling)) 
+flag = 0
+if flag == 1:
+    import calculate_FW_values
+    calculate_FW_values.calculate_global(inputFolder)
                                                
                                                
                                                
@@ -101,6 +109,8 @@ if flag == 1:
 flag = 0
 if flag == 1:
     os.system('python printValuesToMR.py')
+    
+# FIGURES: shannonModel_compare.py
     
     
     
@@ -119,4 +129,4 @@ if flag == 1:
 # MODEL COMPLETENESS VS TILT ANGLE
 flag = 0
 if flag == 1:
-    os.system('python simulate_completeness.py')
+    os.system('python simulate_completeness.py > simulate_completeness.log')

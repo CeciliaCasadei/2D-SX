@@ -2,9 +2,11 @@
 import os
 import joblib
 
+from bins import binLimits
+
 folder = './Output_runMergingVsModel/Shannon_sampling'
 
-nBins = 15
+nBins = len(binLimits) - 1
 if os.path.exists('%s/h_k_l_F_sigF_FrenchWilson.txt'%folder):
     os.remove('%s/h_k_l_F_sigF_FrenchWilson.txt'%folder)
 fOpen = open('%s/h_k_l_F_sigF_FrenchWilson.txt'%folder, 'a')
@@ -26,6 +28,5 @@ for i in range(0, nBins):
                                                  l,
                                                  F,
                                                  sigF))
-    
-    
+       
 fOpen.close()

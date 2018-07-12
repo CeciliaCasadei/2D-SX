@@ -51,7 +51,7 @@ if flag == 1:
                                    resolutionLimit))
                                                                       
 thickness = 45  # A
-damping = 80
+damping = 0     # 80
                                    
 flag = 1
 if flag == 1:

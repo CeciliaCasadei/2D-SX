@@ -11,14 +11,16 @@ import pickle
 import time
 import joblib
 
-imageToPlot = '892'
+imageToPlot = '1'
 def myParallelFunction(myObject, runNumber, resolutionRadii):
+    print 'in'
     if myObject.selectionFlag == 1 and myObject.runNumber == runNumber and myObject.nPeaks > 0:
-        if myObject.imageNumber == imageToPlot:
-            myObject.plotRefinedLattices_imageOverlap(resolutionRadii)
+        #if myObject.imageNumber == imageToPlot:
+        myObject.plotRefinedLattices_imageOverlap(resolutionRadii)
 
 def plotRefinedLatticesFunction(myArguments):
-    resolutionRadii = [50, 10, 7]   
+    #resolutionRadii = [50, 10, 7]   
+    resolutionRadii = [50, 10, 6]   
     
     # READ INPUTS    
     try:

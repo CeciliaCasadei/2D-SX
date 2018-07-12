@@ -11,7 +11,18 @@ import get_rodIndices
 import shannonSamplings
 import FW_functions
 
-def calculate_binAvgI(low, high, rodIndices, inputFolder, cellSize, T, d):
+from bins import binLimits
+
+
+
+def calculate_binAvgI(low, 
+                      high, 
+                      rodIndices, 
+                      inputFolder, 
+                      cellSize, 
+                      T, 
+                      d, 
+                      overSampling):
     
     c_star = (2*numpy.pi)/(2*d) 
     Is_bin = []
@@ -26,7 +37,8 @@ def calculate_binAvgI(low, high, rodIndices, inputFolder, cellSize, T, d):
         qMax = braggRodObject.qMax
         model_coefficients = braggRodObject.model_coefficients
         
-        samplings = shannonSamplings.get_shannonSamplings(c_star, qMax)
+        samplingSpace = c_star/overSampling  
+        samplings = shannonSamplings.get_shannonSamplings(samplingSpace, qMax)
         samplings = samplings[1:-1]
         
         for q in samplings:
@@ -47,14 +59,23 @@ def calculate_binAvgI(low, high, rodIndices, inputFolder, cellSize, T, d):
     Is_bin = numpy.asarray(Is_bin)
     binAvgI = numpy.average(Is_bin)    
     return binAvgI
+    
+    
 
-def FW(low, high, rodIndices, inputFolder, cellSize, T, d):
+def FW(low, high, rodIndices, inputFolder, cellSize, T, d, overSampling):
     
     I_FW_over_sigI_FW_vector = []
     data = []
     c_star = (2*numpy.pi)/(2*d) 
     
-    binAvgI = calculate_binAvgI(low, high, rodIndices, inputFolder, cellSize, T, d)
+    binAvgI = calculate_binAvgI(low, 
+                                high, 
+                                rodIndices, 
+                                inputFolder, 
+                                cellSize, 
+                                T, 
+                                d, 
+                                overSampling)
      
     print '*** ', low, high, ' *** ' , binAvgI, ' ***'
     for rod_hk in rodIndices:
@@ -70,7 +91,7 @@ def FW(low, high, rodIndices, inputFolder, cellSize, T, d):
         model_coefficients = braggRodObject.model_coefficients
                
         ##########################
-        samplingSpace = 1.0*c_star  # Normally: samplingSpace = 1.0*c_star  
+        samplingSpace = c_star/overSampling  
         ##########################
         
         samplings = shannonSamplings.get_shannonSamplings(samplingSpace, qMax)
@@ -167,17 +188,17 @@ def FW(low, high, rodIndices, inputFolder, cellSize, T, d):
     data = numpy.asarray(data)
     
     for data_line in data:
-        print '%5d %5d %5d %5.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f'%(data_line[0],
-                                                                                        data_line[1],
-                                                                                        data_line[2],
-                                                                                        data_line[3],
-                                                                                        data_line[4],
-                                                                                        data_line[5],
-                                                                                        data_line[6],
-                                                                                        data_line[7],
-                                                                                        data_line[8],
-                                                                                        data_line[9],
-                                                                                        data_line[10])
+        print '%5d %5d %5d %5.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f'%(data_line[0],  # h
+                                                                             data_line[1],  # k
+                                                                             data_line[2],  # l
+                                                                             data_line[3],  # qRod
+                                                                             data_line[4],  # I
+                                                                             data_line[5],  # sig(I)
+                                                                             data_line[6],  # I_FW
+                                                                             data_line[7],  # sig(I)_FW
+                                                                             data_line[8],  # F_FW
+                                                                             data_line[9],  # sig(F)_FW
+                                                                             data_line[10]) # StoN
     
     return len(I_FW_over_sigI_FW_vector), StoN, data
 
@@ -186,32 +207,31 @@ def FW(low, high, rodIndices, inputFolder, cellSize, T, d):
 def calculate_FW_Function(myArguments):
     
     # SETTINGS
-    bins = [54.09, 25.27, 16.66, 12.79, 11.64, 10.19, 9.41, 8.64, 7.94, 7.53, 
-            7.13, 6.79, 6.54, 6.20, 6.02, 5.30]
-    nBins = len(bins) - 1
+    nBins = len(binLimits) - 1
     resolution_2D = 6.0
     
     # KEYWORD ARGUMENTS
     input_str_0 = '--inputFolder <inputFolder>'
     input_str_1 = '--thickness <thickness> --damping <damping>'
-    input_str_2 = '--cellSize <cellSize>'
+    input_str_2 = '--cellSize <cellSize> --overSampling <overSampling>'
     
     # READ INPUTS    
     try:
         optionPairs, leftOver = getopt.getopt(myArguments, "h", ["inputFolder=", 
                                                                  "thickness=",
                                                                  "damping=",
-                                                                 "cellSize="])
+                                                                 "cellSize=",
+                                                                 "overSampling="])
     except getopt.GetoptError:
-        print 'Usage: python calculate_Rfactor.py %s %s %s %s'%(input_str_0,
-                                                                input_str_1,
-                                                                input_str_2)
+        print 'Usage: python calculate_FW_values.py %s %s %s %s'%(input_str_0,
+                                                                  input_str_1,
+                                                                  input_str_2)
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python calculate_Rfactor.py %s %s %s %s'%(input_str_0,
-                                                                    input_str_1,
-                                                                    input_str_2)
+            print 'Usage: python calculate_FW_values.py %s %s %s %s'%(input_str_0,
+                                                                      input_str_1,
+                                                                      input_str_2)
             sys.exit()
         elif option == "--inputFolder":
             inputFolder = value
@@ -221,6 +241,8 @@ def calculate_FW_Function(myArguments):
             T = float(value)
         elif option == "--cellSize":
             cellSize = float(value)
+        elif option == "--overSampling":
+            overSampling = int(value)
     
     # SAVE BINARIES
     dataBinary_folder = '%s/French_Wilson'%inputFolder
@@ -244,15 +266,16 @@ def calculate_FW_Function(myArguments):
     
     # CALCULATE FW VALUES IN EACH 3D-RESOLUTION SHELL
     for i in range(0, nBins):
-        low = bins[i]
-        high = bins[i+1]
+        low  = binLimits[i]
+        high = binLimits[i+1]
         N, StoN, data = FW(low, 
                            high, 
                            rodIndices, 
                            inputFolder, 
                            cellSize,
                            T, 
-                           d)
+                           d,
+                           overSampling)
         
         fOpen.write('%6.2f - %6.2f      %12d       %.2f \n'%(low, 
                                                              high, 
@@ -283,8 +306,26 @@ def calculate_FW_Function(myArguments):
     joblib.dump(data_bins, '%s/FW_bins.jbl'%dataBinary_folder)
     
     
-
+        
+def calculate_global(inputFolder):
+    nBins = len(binLimits) - 1
+    dataBinary_folder = '%s/French_Wilson'%inputFolder
+    
+    StoN_list = []
+    for i in range(0,nBins):
+        print i
+        data = joblib.load('%s/FW_uniques_bin_%d.jbl'%(dataBinary_folder, i))
+        for dataLine in data:
+            StoN = dataLine[10]
+            StoN_list.append(StoN)
+            
+    
+    StoN_list = numpy.asarray(StoN_list)
+    globalAvgStoN = numpy.average(StoN_list)
+    print len(StoN_list), globalAvgStoN
+    
+    
+    
 if __name__ == "__main__":
     print "\n**** CALLING calculate_FW_values ****"
-    calculate_FW_Function(sys.argv[1:])    
-    
+    calculate_FW_Function(sys.argv[1:])  

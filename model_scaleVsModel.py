@@ -6,7 +6,7 @@ import numpy
 import sys
 import os
 import matplotlib
-matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg') # Force matplotlib not to use any Xwindows backend.
 import matplotlib.pyplot as m
 
 
@@ -16,7 +16,8 @@ import correlate
 
 def scalingFunction(myArguments):
     
-    input_str = '--runNumber <runNumber> --resolution_3D <resolution_3D>'
+    input_str_1 = '--runNumber <runNumber> --resolution_3D <resolution_3D>'
+    input_str_2 = '--CC_threshold <CC_threshold> --model <model>'
     
     # DEFAULTS
     runNumber = '' 
@@ -32,11 +33,13 @@ def scalingFunction(myArguments):
                                               "CC_threshold=",
                                               "model="])
     except getopt.GetoptError:
-        print 'Usage: python model_scaleVsModel.py %s'%input_str
+        print 'Usage: python model_scaleVsModel.py %s'%(input_str_1, 
+                                                        input_str_2)
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python model_scaleVsModel.py %s'%input_str
+            print 'Usage: python model_scaleVsModel.py %s'%(input_str_1,
+                                                            input_str_2)
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
@@ -73,27 +76,27 @@ def scalingFunction(myArguments):
     fOpen.write('Min pairs n: %d\n'%n_minThreshold)
     fOpen.write('CC threshold: %f\n'%CC_threshold)
     
-    for firstNeighbor in range(0, nLattices):
-        spots1stN = myList[firstNeighbor]  
-        if spots1stN[0, 4] == 0:
+    for L in range(0, nLattices):
+        spotsL = myList[L]  
+        if spotsL[0, 4] == 0:
             scale = numpy.nan
-            print 'L %s: Non oriented\n'%firstNeighbor
-            fOpen.write('L %s: Non oriented\n'%firstNeighbor)            
+            print 'L %s: Non oriented\n'%L
+            fOpen.write('L %s: Non oriented\n'%L)            
         else:        
-            print 'L %d'%firstNeighbor                
+            print 'L %d'%L                
 
             n_pairs, \
-            scale_modelTo1stN, \
+            scale_modelToL, \
             I1,  \
             I2 = \
             scaling_calculateScaleFactor.calculateScaleFactorFunction(lattice_model, 
-                                                                      spots1stN, 
+                                                                      spotsL, 
                                                                       deltaQrodThreshold,
                                                                       resolution_3D)
             if n_pairs < n_minThreshold:
                 scale = numpy.nan
                 fOpen.write('L %s: n_pairs model-lattice below threshold.\n'
-                             %firstNeighbor)
+                             %L)
             else:               
                 I1 = numpy.asarray(I1) # MODEL
                 I2 = numpy.asarray(I2) # LATTICE
@@ -105,11 +108,11 @@ def scalingFunction(myArguments):
                 
                 if CC >= CC_threshold:
                     nScaled = nScaled + 1
-                    scale = float(1)/scale_modelTo1stN # LATTICE TO MODEL
+                    scale = float(1)/scale_modelToL # LATTICE TO MODEL
                     fOpen.write('L %s, Scale (lattice to model): %.3f\n'
-                                 %(firstNeighbor, scale))
+                                 %(L, scale))
                     print ('L %s, Scale (lattice to model): %.3f\n'
-                            %(firstNeighbor, scale))
+                            %(L, scale))
                     
                     figureFlag = 0
                     if figureFlag == 1:
@@ -117,18 +120,18 @@ def scalingFunction(myArguments):
                         m.scatter(I1, I2, color='b', s=2)
                         x = numpy.linspace(1.1*min(I1), 
                                            1.1*max(I1))
-                        m.plot(x, scale_modelTo1stN*x, 'r-')
+                        m.plot(x, scale_modelToL*x, 'r-')
                         m.axhline(y=0)
                         m.axvline(x=0)
     
                         m.title('CC = %.5f'%CC)
                         m.savefig('%s/scaleToModel_lattice%d.png'%(figuresFolder, 
-                                                                   firstNeighbor))
+                                                                   L))
                         m.close()    
                 else:
                     scale = numpy.nan
-                    fOpen.write('L %s, Scale: n/a\n'%firstNeighbor) 
-                    print 'L %s, Scale: n/a\n'%firstNeighbor
+                    fOpen.write('L %s, Scale: n/a\n'%L) 
+                    print 'L %s, Scale: n/a\n'%L
                
         LtoModel_vector.append(scale) # lattice to model
         

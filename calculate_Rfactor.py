@@ -9,6 +9,8 @@ import shannon_model
 import simulate_resolution
 import get_rodIndices
 
+from bins import binLimits
+
 
 def R(low, high, rodIndices, inputFolder, cellSize, T, d):
     
@@ -26,8 +28,8 @@ def R(low, high, rodIndices, inputFolder, cellSize, T, d):
         braggRodObject = joblib.load('%s/braggRodObjects/braggRodObject_%d_%d.jbl'
                                       %(inputFolder, h, k))
         
-        experimental_q = braggRodObject.experimental_q
-        experimental_I = braggRodObject.experimental_I
+        experimental_q     = braggRodObject.experimental_q
+        experimental_I     = braggRodObject.experimental_I
         model_coefficients = braggRodObject.model_coefficients
         
         for index in range(0, len(experimental_q)):
@@ -57,9 +59,7 @@ def R(low, high, rodIndices, inputFolder, cellSize, T, d):
 def calculate_Rfactor_Function(myArguments):
     
     # SETTINGS
-    bins = [54.09, 25.27, 16.66, 12.79, 11.64, 10.19, 9.41, 8.64, 7.94, 7.53, 
-            7.13, 6.79, 6.54, 6.20, 6.02, 5.30]
-    nBins = len(bins) - 1
+    nBins = len(binLimits) - 1
     resolution_2D = 6.0
     
     # KEYWORD ARGUMENTS
@@ -106,8 +106,8 @@ def calculate_Rfactor_Function(myArguments):
     
     # CALCULATE R IN EACH 3D-RESOLUTION SHELL
     for i in range(0, nBins):
-        low = bins[i]
-        high = bins[i+1]
+        low = binLimits[i]
+        high = binLimits[i+1]
         N, R_value = R(low, 
                        high, 
                        rodIndices, 
@@ -125,9 +125,9 @@ def calculate_Rfactor_Function(myArguments):
                                                              
                                                              
     # CALCULATE GLOBAL R WITH DIFFERENT HIGH-RES CUTOFFS                                                         
-    for secondEdge in [bins[-1]]: #, bins[-2]]:
+    for secondEdge in [binLimits[-1]]: #, bins[-2]]:
         
-        N, R_value = R(bins[0], 
+        N, R_value = R(binLimits[0], 
                        secondEdge, 
                        rodIndices, 
                        inputFolder, 
@@ -135,11 +135,11 @@ def calculate_Rfactor_Function(myArguments):
                        T, 
                        d)
         print 'Global: ', R_value
-        fOpen.write('\n%6.2f - %6.2f      %12d       %.3f \n'%(bins[0], 
+        fOpen.write('\n%6.2f - %6.2f      %12d       %.3f \n'%(binLimits[0], 
                                                                secondEdge, 
                                                                N, 
                                                                R_value))
-        data_line = [bins[0], secondEdge, N, R_value]
+        data_line = [binLimits[0], secondEdge, N, R_value]
         data.append(data_line)
                                                                         
     fOpen.close()

@@ -23,7 +23,7 @@ for bin_line in range(0, nBins-1):
     CCstar  = CC_data[bin_line][4]
     
     StoN = StoN_data[bin_line][3]
-    fOpen.write('%6.2f %6.2f %10d %10d %10.2f %6.2f  %6.4f  %6.4f %6.2f\n'%(low,
+    fOpen.write('%6.2f & %6.2f & %10d & %10d & %10.2f & %6.2f & %6.4f & %6.4f & %6.2f \\ \n'%(low,
                                                                          high,
                                                                          Nobs,
                                                                          Nunique,

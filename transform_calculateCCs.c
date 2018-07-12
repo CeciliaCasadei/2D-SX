@@ -2493,10 +2493,10 @@ static PyObject *__pyx_f_22transform_calculateCCs_Correlate(__Pyx_memviewslice _
     __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
     goto __pyx_L10_try_end;
     __pyx_L3_error:;
+    __PYX_XDEC_MEMVIEW(&__pyx_t_3, 1);
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __PYX_XDEC_MEMVIEW(&__pyx_t_3, 1);
 
     /* "transform_calculateCCs.pyx":75
  *         CC = num / den

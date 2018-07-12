@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import joblib
 import numpy 
-import random
 import time
 import sys
 import getopt
@@ -10,20 +9,6 @@ import os
 ### CYTHON MODULES ###
 import transform_calculateCCs
 
-def indexToMatrix(index):
-    identity = numpy.matrix([[1, 0],[0, 1]])
-    inversion = numpy.matrix([[-1, 0],[0, -1]])
-    permutation = numpy.matrix([[0, 1],[1, 0]])
-    inversion_permutation = numpy.matrix([[0, -1],[-1, 0]])    
-    if index == 0:
-        matrix = identity
-    elif index == 1:
-        matrix = inversion
-    elif index == 2:
-        matrix = permutation
-    else:
-        matrix = inversion_permutation
-    return matrix
     
 def main(myArguments): 
     identity = numpy.matrix([[1, 0],[0, 1]])
@@ -31,13 +16,9 @@ def main(myArguments):
     # DEFAULTS:
     deltaQrodThreshold = 0.001
     n_minThreshold = 6
-    nUsedLattices = 30
-    nTriangles = 100
-    nGoodFraction = 0.7
     
     str_input_1 = '--runNumber <runNumber> --model <model> --dQrod <dQrod>'
     str_input_2 = '--nMin <nMin> --nLattices <nLattices>'
-    str_input_3 = '--nTriangles <nTriangles> --nGoodFraction <nGoodFraction>'
     
     # READ COMMAND LINE ARGUMENTS
     try:
@@ -45,19 +26,15 @@ def main(myArguments):
                                                                "model=", 
                                                                "dQrod=", 
                                                                "nMin=", 
-                                                               "nLattices=", 
-                                                               "nTriangles=", 
-                                                               "nGoodFraction="])
+                                                               "nLattices="])
     except getopt.GetoptError:
         print 'Usage: python model_transformVsModel.py %s %s %s'%(str_input_1, 
-                                                                  str_input_2,
-                                                                  str_input_3)
+                                                                  str_input_2)
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
             print 'Usage: python model_transformVsModel.py %s %s %s'%(str_input_1, 
-                                                                      str_input_2,
-                                                                      str_input_3)
+                                                                      str_input_2)
             sys.exit()
         elif option == "--runNumber":
             runNumber = value.zfill(4)
@@ -68,15 +45,11 @@ def main(myArguments):
         elif option == "--nMin":
             n_minThreshold = int(value)
         elif option == "--nLattices":
-            nUsedLattices = value
-        elif option == "--nTriangles":
-            nTriangles = int(value)  
-        elif option == "--nGoodFraction":
-            nGoodFraction = float(value)
+            nUsedLattices = int(value)
     
     newFolder = './Output_runMergingVsModel'
     transformationFolder = '%s/transformAndScaleToModel_r%s'%(newFolder, 
-                                                              runNumber)
+                                                              runNumber)                                                           
     if not os.path.exists(transformationFolder):
         os.mkdir(transformationFolder)
 
@@ -88,11 +61,11 @@ def main(myArguments):
                                                                        runNumber)
     myList = joblib.load('%s/r%s_spotsMatricesList.jbl'%(listPath, runNumber))
     nLattices = len(myList)
-    if nUsedLattices == 'all':
+    
+    if not 'nUsedLattices' in locals():        
         nUsedLattices = int(nLattices)
-    else:
-        nUsedLattices = int(nUsedLattices)
     print 'Number of lattices to transform: %d'%nUsedLattices
+    
     startTime = time.time()
     
     # ORIENT LATTICES 0 - nUsedLattices-1 WITH RESPECT TO MODEL
@@ -106,92 +79,27 @@ def main(myArguments):
     fOpen.write('Delta qRod: %f\n'%deltaQrodThreshold)
     fOpen.write('Min pairs n: %d\n'%n_minThreshold)
    
-    for firstNeighbor in range(0, nUsedLattices):
-        print '\nLattice %d'%firstNeighbor                
-        nGood = 0
-        nBad = 0
+    for L in range(0, nUsedLattices):
+        print '\nLattice %d'%L                
         
-        spots1stN = myList[firstNeighbor]   
-        print spots1stN.shape            
+        spotsL = myList[L]   
+        print spotsL.shape            
         n_min, \
         avg_CCs \
         = transform_calculateCCs.determineTransformation(lattice_model, 
-                                                         spots1stN, 
+                                                         spotsL, 
                                                          deltaQrodThreshold)
         if n_min < n_minThreshold:
-            transformation_ModelTo1stN = numpy.nan
-            fOpen.write('Lattice %s, Bad 1st N\n'%firstNeighbor)
-            print 'n_min below threshold (model to 1st neighbour n %s)'%firstNeighbor
+            transformation_ModelToL = numpy.nan
+            print 'n pairs below threshold for lattice ', L
         else:
-            print 'n_min above threshold (model to 1st neighbour): %d'%n_min
-            transformation_ModelTo1stN = avg_CCs.index(max(avg_CCs))
-            transformationMatrix_ModelTo1stN = indexToMatrix(transformation_ModelTo1stN)
-            
-            secondShell = random.sample(range(nLattices), nTriangles)
-            for secondNeighbor in secondShell:
-                
-                spots2ndN = myList[secondNeighbor]
-                
-                n_min, \
-                avg_CCs \
-                = transform_calculateCCs.determineTransformation(spots1stN, 
-                                                                 spots2ndN, 
-                                                                 5*deltaQrodThreshold)
-                if n_min < n_minThreshold:
-                    print 'n_min below threshold (1st to 2nd neighbour)'
-                else:
-                    transformation_1stNto2ndN = avg_CCs.index(max(avg_CCs))
-                    transformationMatrix_1stNto2ndN \
-                    = indexToMatrix(transformation_1stNto2ndN)
-                    
-                    n_min, \
-                    avg_CCs \
-                    = transform_calculateCCs.determineTransformation(lattice_model, 
-                                                                     spots2ndN, 
-                                                                     deltaQrodThreshold)
-                    if n_min < n_minThreshold:
-                        print 'n_min below threshold (model to 2nd neighbour)'
-                    else:
-                        transformation_2ndNtoModel = avg_CCs.index(max(avg_CCs))
-                        transformationMatrix_2ndToModel \
-                        = indexToMatrix(transformation_2ndNtoModel)
-                        
-                        p = (transformationMatrix_ModelTo1stN *
-                             transformationMatrix_1stNto2ndN  *
-                             transformationMatrix_2ndToModel)
-                        if numpy.array_equal(p, identity):
-                            nGood = nGood + 1
-                        else:
-                            nBad = nBad + 1
-                            
-                if (nGood+nBad >= 0.4*nTriangles and 
-                    float(nGood)/(nGood+nBad) >= nGoodFraction):
-                    break
-                            
-            if (nGood+nBad >= 0.4*nTriangles and 
-                float(nGood)/(nGood+nBad) >= nGoodFraction):
-                fOpen.write('Lattice %s, Orientation: %s (%d/%d)\n'
-                            %(firstNeighbor, 
-                              transformation_ModelTo1stN, 
-                              nGood, 
-                              nGood+nBad))
-                print ('Lattice %s, Orientation: %s (%d/%d)\n'
-                       %(firstNeighbor, 
-                         transformation_ModelTo1stN, 
-                         nGood, 
-                         nGood+nBad))
-                nOriented = nOriented + 1
-            else:
-                transformation_ModelTo1stN = numpy.nan
-                fOpen.write('Lattice %s, Orientation: N\A (%d/%d)\n'
-                             %(firstNeighbor, 
-                               nGood, 
-                               nGood+nBad)) 
-                print ('Lattice %s, Orientation: N\A (%d/%d)\n'
-                        %(firstNeighbor, 
-                          nGood, 
-                          nGood+nBad))
-        LtoModel_vector.append(transformation_ModelTo1stN)
+            print 'n pairs above threshold (model to L): %d'%n_min
+            transformation_ModelToL = avg_CCs.index(max(avg_CCs))
+            nOriented = nOriented + 1
+    
+        fOpen.write('Lattice %s, Orientation: %s\n'%(L, 
+                                                     transformation_ModelToL))
+        LtoModel_vector.append(transformation_ModelToL)
         
     fractionOriented = float(nOriented)/nLattices
     fOpen.write('\nFraction of transformed lattices: %d/%d = %.2f.'

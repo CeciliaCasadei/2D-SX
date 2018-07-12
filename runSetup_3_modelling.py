@@ -2,7 +2,6 @@
 import os
 import sys
 
-from runSetup_settings import nGoodFractions
 
 # SETUP FOR CURRENT RUN                                                                                                                                                                       
 if len(sys.argv) != 2:
@@ -17,26 +16,17 @@ runNumber = '%04d' % int(sys.argv[1])
 model = './Output_runMerging/Shannon_sampling/model/lattice_model.jbl'
 deltaQrodThreshold = 0.001
 n_minThreshold = 6
-nUsedLattices = 'all'
-nTriangles = 100
-nGoodFraction = float(nGoodFractions['%s'%runNumber])  
 
 flag = 0
 if flag == 1:
     os.system('python model_transformVsModel.py --runNumber %s \
                                                 --model %s \
                                                 --dQrod %f \
-                                                --nMin %d \
-                                                --nLattices %s \
-                                                --nTriangles %d \
-                                                --nGoodFraction %f'
+                                                --nMin %d'
                                                 %(runNumber, 
                                                   model, 
                                                   deltaQrodThreshold, 
-                                                  n_minThreshold, 
-                                                  nUsedLattices, 
-                                                  nTriangles, 
-                                                  nGoodFraction))
+                                                  n_minThreshold))
     
 
     
