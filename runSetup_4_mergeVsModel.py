@@ -47,6 +47,8 @@ if flag == 1:
                                     %(inputFolder, 
                                       resolutionLimit_2D,
                                       cellSize))
+
+# Introduce found bin limits by hand in bins.py
                
 # CALCULATE R-FACTOR
 flag = 0
@@ -63,7 +65,7 @@ if flag == 1:
                                              
                                              
 # CALCULATE CChalf
-overSampling = 2
+overSampling = 4
 
 flag = 0
 if flag == 1:
@@ -94,37 +96,36 @@ if flag == 1:
 flag = 0
 if flag == 1:
     import calculate_FW_values
-    calculate_FW_values.calculate_global(inputFolder)
+    calculate_FW_values.write_unique(inputFolder, overSampling)
+    calculate_FW_values.calculate_global(inputFolder, overSampling)
                                                
                                                
                                                
 # PRINT ALL STATS
 flag = 0
 if flag == 1:
-    os.system('python printStats.py')
+    os.system('python printStats.py --overSampling %d'%overSampling)
     
     
                                                
 # FROM FW RESULTS, EXTRACT DATA TO MR  
 flag = 0
 if flag == 1:
-    os.system('python printValuesToMR.py')
-    
-# FIGURES: shannonModel_compare.py
-    
+    os.system('python printValuesToMR.py --overSampling %d'%overSampling)
+ 
     
     
-# EXTRACT DATA TO MR, FROM SHANNON FITS, NO FRENCH-WILSON
+# FIGURES
 flag = 0
 if flag == 1:
-    os.system('python prepare_MRdata.py --resolutionLimit %f \
-                                        --thickness %f \
-                                        --damping %f'
-                                        %(resolutionLimit,
-                                          thickness,
-                                          damping))
-            
-                                                                                                                   
+    os.system('python shannonModel_compare.py --resolutionLimit %f \
+                                              --thickness %f \
+                                              --overSampling %d'
+                                              %(resolutionLimit,
+                                                thickness,
+                                                overSampling))
+    
+                                        
                                             
 # MODEL COMPLETENESS VS TILT ANGLE
 flag = 0

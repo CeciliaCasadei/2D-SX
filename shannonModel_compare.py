@@ -12,7 +12,8 @@ import shannonSamplings
 from bins import binLimits
 
 def plot(myArguments):
-    in_str = '--resolutionLimit <resolutionLimit> --thickness <thickness>'
+    in_1 = '--resolutionLimit <resolutionLimit> --thickness <thickness>'
+    in_2 = '--overSampling <overSampling>'
    
    
     
@@ -21,18 +22,21 @@ def plot(myArguments):
         optionPairs, leftOver = getopt.getopt(myArguments, 
                                               "h", 
                                               ["resolutionLimit=", 
-                                               "thickness="])
+                                               "thickness=",
+                                               "overSampling="])
     except getopt.GetoptError:
-        print 'Usage: python rodsFit_shannonTheo.py %s'%in_str
+        print 'Usage: python shannonModel_compare.py %s %s'%(in_1, in_2)
         sys.exit(2)   
     for option, value in optionPairs:
         if option == '-h':
-            print 'Usage: python rodsFit_shannonTheo.py %s'%in_str
+            print 'Usage: python shannonModel_compare.py %s %s'%(in_1, in_2)
             sys.exit()
         elif option == "--resolutionLimit":
             resolutionLimit = float(value)
         elif option == "--thickness":
             d = float(value)
+        elif option == "--overSampling":
+            overSampling = value
          
     
     # DEFINE ROD INDICES 
@@ -50,9 +54,10 @@ def plot(myArguments):
     i_Model = joblib.load('%s/Shannon_sampling/model/lattice_model.jbl'%i_Folder)
    
     
-    outputfolder = '%s/Shannon_sampling'%f_Folder
+    outputfolder = '%s/Shannon_sampling/Figures_OS_%s'%(f_Folder, overSampling)
     if not os.path.exists(outputfolder):
         os.mkdir(outputfolder) 
+    
     
     print '%d Rods'%len(rodIndices)
     for rod in rodIndices:
@@ -103,8 +108,8 @@ def plot(myArguments):
         
         nBins = len(binLimits) - 1
         for i in range(0, nBins):
-            FW_data = joblib.load('%s/Shannon_sampling/French_Wilson/FW_uniques_bin_%d.jbl'%(f_Folder, 
-                                                                            i))
+            FW_data = joblib.load('%s/Shannon_sampling/French_Wilson_OS_%s/FW_uniques_bin_%d.jbl'
+                                  %(f_Folder, overSampling, i))
             
             for spot in FW_data:
                 
@@ -124,7 +129,11 @@ def plot(myArguments):
                             
         # PLOT
         matplotlib.pyplot.figure()
-        matplotlib.pyplot.scatter(experimental_q, experimental_I, color='c', alpha=0.1, zorder=-1)
+        matplotlib.pyplot.scatter(experimental_q, 
+                                  experimental_I, 
+                                  color='xkcd:pale yellow', 
+                                  alpha=0.1, 
+                                  zorder=-1)
         matplotlib.pyplot.scatter(samplings, 
                                   [0 for i in range(0, len(samplings))], 
                                   color='k', 
@@ -145,18 +154,27 @@ def plot(myArguments):
                                    capthick=0.3   # cap thickness for error bar)
                                    )
         myAxis = matplotlib.pyplot.gca()
-        matplotlib.pyplot.axhline(y=0, xmin=-1, xmax=1, linewidth=0.5, color = 'k')
-        matplotlib.pyplot.axhline(y=10, xmin=-1, xmax=1, linewidth=0.5, color = 'b', ls='dashed')
+        matplotlib.pyplot.axhline(y=0, 
+                                  xmin=-1, 
+                                  xmax=1, 
+                                  linewidth=0.5, 
+                                  color = 'k')
+        matplotlib.pyplot.axhline(y=10, 
+                                  xmin=-1, 
+                                  xmax=1, 
+                                  linewidth=0.5, 
+                                  color = 'b', 
+                                  ls='dashed')
         myAxis.set_xlim([-0.60,+0.60])
         matplotlib.pyplot.xlabel(r'$q_{\rm rod}$ $[\AA^{-1}]$', fontsize=30)
         matplotlib.pyplot.ylabel('Intensity [photons]', fontsize=30)
         scale = 1.1*max(experimental_I)
         myAxis.set_ylim([-0.1*scale,1*scale])
-        matplotlib.pyplot.gca().tick_params(axis='x', labelsize=24)
-        matplotlib.pyplot.gca().tick_params(axis='y', labelsize=24)
+        matplotlib.pyplot.gca().tick_params(axis='x', labelsize=18)
+        matplotlib.pyplot.gca().tick_params(axis='y', labelsize=18)
         matplotlib.pyplot.tight_layout()
-        matplotlib.pyplot.savefig('%s/Cmp_shannon_rod_%d_%d_nPts_%d.png'
-                                   %(outputfolder, rod[0], rod[1], n), dpi=96*2)
+        matplotlib.pyplot.savefig('%s/y_Cmp_shannon_rod_%d_%d_nPts_%d.png'
+                                   %(outputfolder, rod[0], rod[1], n), dpi=96*3)
         matplotlib.pyplot.close()
         
         

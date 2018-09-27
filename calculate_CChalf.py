@@ -87,7 +87,7 @@ def calculate(low, high, rodIndices, inputFolder, cellSize, overSampling, d):
     return N_uniques, CChalf_value
 
 # CALCULATE CChalf OF A RESOLUTION BIN [high, low] n TIMES
-def CChalf(low, 
+def CChalf_f(low, 
            high, 
            rodIndices, 
            inputFolder, 
@@ -166,7 +166,8 @@ def calculate_CChalf_Function(myArguments):
     print '%d Rods to %.1f 2D-resolution'%(len(rodIndices), resolution_2D)         
     
     # LOG
-    fOpen = open('%s/CChalf_bins.txt'%inputFolder, 'w')
+    fOpen = open('%s/CChalf_bins_OS_%d.txt'%(inputFolder,
+                                             overSampling), 'w')
     fOpen.write('Resolution 3D           N_uniques      CChalf   CCstar\n')
     
     # BINARY TO SAVE
@@ -176,48 +177,50 @@ def calculate_CChalf_Function(myArguments):
     for i in range(0, nBins):
         low  = binLimits[i]
         high = binLimits[i+1]
-        N_vector, CChalf_vector = CChalf(low, 
-                                         high, 
-                                         rodIndices, 
-                                         inputFolder, 
-                                         cellSize,
-                                         overSampling, 
-                                         d)
+        N_vector, CChalf_vector = CChalf_f(low, 
+                                           high, 
+                                           rodIndices, 
+                                           inputFolder, 
+                                           cellSize,
+                                           overSampling, 
+                                           d)
         CChalf_value = numpy.average(CChalf_vector)
         CCstar = calculate_CCstar(CChalf_value)
+        N_uniques = N_vector[0]
         print CChalf_vector, CChalf_value, CCstar
         print N_vector
         fOpen.write('%6.2f - %6.2f      %12d       %.4f     %.4f\n'%(low, 
                                                                      high, 
-                                                                     N_vector[0], 
+                                                                     N_uniques, 
                                                                      CChalf_value,
                                                                      CCstar))
                                                              
-        data_line = [low, high, N_vector[0], CChalf_value, CCstar]
+        data_line = [low, high, N_uniques, CChalf_value, CCstar]
         data.append(data_line)
      
-    # CALCULATE GLOBAL CChalf WITH DIFFERENT HIGH-RES CUTOFFS                                                              
-    for secondEdge in [binLimits[-1]]: #, binLimits[-2]]:
-        
-        N_vector, CChalf_vector = CChalf(binLimits[0], 
-                                         secondEdge, 
-                                         rodIndices, 
-                                         inputFolder, 
-                                         cellSize, 
-                                         overSampling, 
-                                         d)
-        CChalf_value = numpy.average(CChalf_vector)
-        CCstar = calculate_CCstar(CChalf_value)
-        print 'Global: ', CChalf_vector, CChalf_value, CCstar
-        print N_vector
-        fOpen.write('%6.2f - %6.2f      %12d       %.4f     %.4f\n'%(binLimits[0], 
-                                                                     secondEdge, 
-                                                                     N_vector[0], 
-                                                                     CChalf_value,
-                                                                     CCstar))
-        
-        data_line = [binLimits[0], secondEdge, N_vector[0], CChalf_value, CCstar]
-        data.append(data_line)
+    # CALCULATE GLOBAL CChalf AND CCstar                                                        
+    N_uniques_tot = 0
+    for dl in data:
+        N_uniques_tot = N_uniques_tot + dl[2]
+    print "N_uniques_tot: ", N_uniques_tot
+    
+    avg_CChalf = 0
+    avg_CCstar = 0
+    for dl in data:
+        weight = float(dl[2])/N_uniques_tot
+        CChalf = dl[3]
+        CCstar = dl[4]
+        avg_CChalf = avg_CChalf + weight * CChalf
+        avg_CCstar = avg_CCstar + weight * CCstar
+
+    fOpen.write('%6.2f - %6.2f      %12d       %.4f     %.4f\n'%(binLimits[0], 
+                                                                 binLimits[-1], 
+                                                                 N_uniques_tot, 
+                                                                 avg_CChalf,
+                                                                 avg_CCstar))
+    
+    data_line = [binLimits[0], binLimits[-1], N_uniques_tot, avg_CChalf, avg_CCstar]
+    data.append(data_line)
                                                                       
     fOpen.close()
     
@@ -225,7 +228,8 @@ def calculate_CChalf_Function(myArguments):
     dataBinary_folder = '%s/CChalf'%inputFolder
     if not os.path.exists(dataBinary_folder):
         os.mkdir(dataBinary_folder)
-    joblib.dump(data, '%s/CChalf_bins.jbl'%dataBinary_folder)
+    joblib.dump(data, '%s/CChalf_bins_OS_%d.jbl'%(dataBinary_folder,
+                                                  overSampling))
 
 if __name__ == "__main__":
     print "\n**** CALLING calculate_CChalf ****"

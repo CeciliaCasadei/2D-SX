@@ -1,32 +1,55 @@
 # -*- coding: utf-8 -*-
-import os
+import sys
+import getopt
 import joblib
-
 from bins import binLimits
 
-folder = './Output_runMergingVsModel/Shannon_sampling'
 
-nBins = len(binLimits) - 1
-if os.path.exists('%s/h_k_l_F_sigF_FrenchWilson.txt'%folder):
-    os.remove('%s/h_k_l_F_sigF_FrenchWilson.txt'%folder)
-fOpen = open('%s/h_k_l_F_sigF_FrenchWilson.txt'%folder, 'a')
 
-for i in range(0, nBins):
-    FW_data = joblib.load('%s/French_Wilson/FW_uniques_bin_%d.jbl'%(folder, i))
-    print FW_data.shape   
-       
-    for spot in FW_data:
-        
-        h    = int(spot[0])
-        k    = int(spot[1])
-        l    = int(spot[2])
-        F    = spot[8]
-        sigF = spot[9]
-        
-        fOpen.write('%5d %5d %5d %8.4f %8.4f\n'%(h,
-                                                 k,
-                                                 l,
-                                                 F,
-                                                 sigF))
-       
-fOpen.close()
+def printValues(myArguments):
+    
+    # READ INPUTS    
+    try:
+        optionPairs, leftOver = getopt.getopt(myArguments, "h", ["overSampling="])
+    except getopt.GetoptError:
+        print 'Usage: python printValuesToMR.py --overSampling <OS>'
+        sys.exit(2)   
+    for option, value in optionPairs:
+        if option == '-h':
+            print 'Usage: python printValuesToMR.py --overSampling <OS>'
+            sys.exit()
+        elif option == "--overSampling":
+            overSampling = value
+    
+    folder = './Output_runMergingVsModel/Shannon_sampling'
+    
+    nBins = len(binLimits) - 1
+   
+    fOpen = open('%s/h_k_l_F_sigF_FW_OS_%s.txt'%(folder,
+                                                 overSampling), 'w')
+    
+    for i in range(0, nBins):
+        FW_data = joblib.load('%s/French_Wilson_OS_%s/FW_uniques_bin_%d.jbl'%(folder, 
+                                                                              overSampling, 
+                                                                              i))
+        print FW_data.shape   
+           
+        for spot in FW_data:
+            
+            h    = int(spot[0])
+            k    = int(spot[1])
+            l    = int(spot[2])
+            F    = spot[8]
+            sigF = spot[9]
+            
+            fOpen.write('%5d %5d %5d %8.4f %8.4f\n'%(h,
+                                                     k,
+                                                     l,
+                                                     F,
+                                                     sigF))
+           
+    fOpen.close()
+
+if __name__ == "__main__":
+    print "\n**** CALLING printValuesToMR ****"
+    printValues(sys.argv[1:])  

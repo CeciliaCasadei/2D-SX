@@ -165,6 +165,7 @@ def FW(low, high, rodIndices, inputFolder, cellSize, T, d, overSampling):
                                  I_FW_over_sigI_FW]
                     data.append(data_line)
                 else:
+                    print 'NAN'
                     I_FW = numpy.nan
                     sigI_FW = numpy.nan
                     F_FW = numpy.nan
@@ -186,19 +187,6 @@ def FW(low, high, rodIndices, inputFolder, cellSize, T, d, overSampling):
     I_FW_over_sigI_FW_vector = numpy.asarray(I_FW_over_sigI_FW_vector)
     StoN = numpy.average(I_FW_over_sigI_FW_vector)
     data = numpy.asarray(data)
-    
-    for data_line in data:
-        print '%5d %5d %5d %5.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f'%(data_line[0],  # h
-                                                                             data_line[1],  # k
-                                                                             data_line[2],  # l
-                                                                             data_line[3],  # qRod
-                                                                             data_line[4],  # I
-                                                                             data_line[5],  # sig(I)
-                                                                             data_line[6],  # I_FW
-                                                                             data_line[7],  # sig(I)_FW
-                                                                             data_line[8],  # F_FW
-                                                                             data_line[9],  # sig(F)_FW
-                                                                             data_line[10]) # StoN
     
     return len(I_FW_over_sigI_FW_vector), StoN, data
 
@@ -245,7 +233,7 @@ def calculate_FW_Function(myArguments):
             overSampling = int(value)
     
     # SAVE BINARIES
-    dataBinary_folder = '%s/French_Wilson'%inputFolder
+    dataBinary_folder = '%s/French_Wilson_OS_%d'%(inputFolder, overSampling)
     if not os.path.exists(dataBinary_folder):
         os.mkdir(dataBinary_folder)        
         
@@ -254,12 +242,9 @@ def calculate_FW_Function(myArguments):
     print '%d Rods to %.1f 2D-resolution'%(len(rodIndices), resolution_2D) 
     
     # LOG
-    fOpen = open('%s/I_over_sigI_FW_bins.txt'%inputFolder, 'w')
+    fOpen = open('%s/I_over_sigI_FW_bins_OS_%d.txt'%(inputFolder,
+                                                     overSampling), 'w')
     fOpen.write('Resolution 3D           N            I_FW / sigI_FW \n')
-    if os.path.exists('%s/FW_uniques.txt'%inputFolder):
-        os.remove('%s/FW_uniques.txt'%inputFolder)
-    fUniques = open('%s/FW_uniques.txt'%inputFolder, 'a')
-    fUniques.write('    h     k     l    qz    Iobs sigIobs    I_FW sigI_FW    F_FW sigF_FW I_FW_over_sigI_FW\n')
     
     # BINARY TO SAVE
     data_bins = []
@@ -285,31 +270,17 @@ def calculate_FW_Function(myArguments):
         data_bins.append(data_bin)
         
         joblib.dump(data, '%s/FW_uniques_bin_%d.jbl'%(dataBinary_folder, i))
-        
-        for data_line in data:
-            fUniques.write('%5d %5d %5d %5.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f\n'%(data_line[0],
-                                                                                            data_line[1],
-                                                                                            data_line[2],
-                                                                                            data_line[3],
-                                                                                            data_line[4],
-                                                                                            data_line[5],
-                                                                                            data_line[6],
-                                                                                            data_line[7],
-                                                                                            data_line[8],
-                                                                                            data_line[9],
-                                                                                            data_line[10]))
-                                                                                                                          
+               
     fOpen.close()
-    fUniques.close()
-    
+
     data_bins = numpy.asarray(data_bins)    
     joblib.dump(data_bins, '%s/FW_bins.jbl'%dataBinary_folder)
     
     
         
-def calculate_global(inputFolder):
+def calculate_global(inputFolder, overSampling):
     nBins = len(binLimits) - 1
-    dataBinary_folder = '%s/French_Wilson'%inputFolder
+    dataBinary_folder = '%s/French_Wilson_OS_%d'%(inputFolder, overSampling)
     
     StoN_list = []
     for i in range(0,nBins):
@@ -318,11 +289,39 @@ def calculate_global(inputFolder):
         for dataLine in data:
             StoN = dataLine[10]
             StoN_list.append(StoN)
-            
-    
+                
     StoN_list = numpy.asarray(StoN_list)
     globalAvgStoN = numpy.average(StoN_list)
-    print len(StoN_list), globalAvgStoN
+    print "OVERSAMPLING: ", overSampling
+    print " N UNIQUES: ", len(StoN_list)
+    print "I_FW/sig(I_FW): ", globalAvgStoN
+    
+    
+def write_unique(inputFolder, overSampling):
+    nBins = len(binLimits) - 1
+    dataBinary_folder = '%s/French_Wilson_OS_%d'%(inputFolder, overSampling)
+    
+    
+    fOpenFile = '%s/FW_uniques_OS_%d.txt'%(dataBinary_folder, overSampling)
+    fOpen = open(fOpenFile, 'w')
+    fOpen.write('    h     k     l    qz    Iobs sigIobs    I_FW sigI_FW    F_FW sigF_FW I_FW_over_sigI_FW\n')
+        
+    for i in range(0,nBins):
+        print i
+        data = joblib.load('%s/FW_uniques_bin_%d.jbl'%(dataBinary_folder, i))
+        for data_line in data:
+            fOpen.write('%5d %5d %5d %5.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f %7.2f\n'%(data_line[0],
+                                                                                         data_line[1],
+                                                                                         data_line[2],
+                                                                                         data_line[3],
+                                                                                         data_line[4],
+                                                                                         data_line[5],
+                                                                                         data_line[6],
+                                                                                         data_line[7],
+                                                                                         data_line[8],
+                                                                                         data_line[9],
+                                                                                         data_line[10]))                                                                                                                        
+    fOpen.close()
     
     
     
