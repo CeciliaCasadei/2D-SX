@@ -65,7 +65,7 @@ if flag == 1:
                                              
                                              
 # CALCULATE CChalf
-overSampling = 4
+overSampling = 1
 
 flag = 0
 if flag == 1:
@@ -113,6 +113,13 @@ flag = 0
 if flag == 1:
     os.system('python printValuesToMR.py --overSampling %d'%overSampling)
  
+    
+    
+flag = 1
+if flag == 1:
+    os.system('python printValuesToMR_shuffled.py --overSampling %d'
+                                                   %overSampling)   
+    
     
     
 # FIGURES
