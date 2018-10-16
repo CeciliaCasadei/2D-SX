@@ -212,7 +212,7 @@ def anisotropy(directory, inFile, cellSize, cAxis):
         print y_avg, sig_y_avg        
     
         
-    matplotlib.pyplot.figure(figsize=(20, 10))
+    f = matplotlib.pyplot.figure() #figsize=(20, 10))
     matplotlib.pyplot.scatter(qRods**2, y, s=2)
     matplotlib.pyplot.scatter(uniqueQrods**2, 
                               y_avgs,
@@ -226,12 +226,14 @@ def anisotropy(directory, inFile, cellSize, cAxis):
                                linestyle="None",
                                color='m')
     matplotlib.pyplot.plot(x, l)
-    matplotlib.pyplot.tick_params(axis='both', which='major', labelsize=28)
+    matplotlib.pyplot.tick_params(axis='both', which='major', labelsize=20)
     myAxes = matplotlib.pyplot.gca()
     myAxes.set_xlim([-0.01,0.30]) # to comment
-    myAxes.set_xlabel(r'q$^{2}$$_{\rm rod}$ [A$^{-2}$]', fontsize=45) 
-    myAxes.set_ylabel(r'ln[I$_{\rm obs}$/(I$_{\rm calc}$exp(-$\Delta$B$_{\rm 2D}$q$^{2}$$_{\rm 2D}$))]', fontsize=45) 
-    matplotlib.pyplot.savefig('%s/scatter.pdf'%directory, dpi=96)
+    myAxes.set_xlabel(r'q$^{2}$$_{\rm rod}$ [A$^{-2}$]', fontsize=22) 
+    myAxes.set_ylabel(r'ln[I$_{\rm obs}$/(I$_{\rm calc}$exp(-$\Delta$B$_{\rm 2D}$q$^{2}$$_{\rm 2D}$))]', fontsize=22) 
+    f.tight_layout()
+    matplotlib.pyplot.savefig('%s/scatter.pdf'%directory, dpi=96*2)
+    matplotlib.pyplot.savefig('%s/scatter.png'%directory, dpi=96*2)
     matplotlib.pyplot.close()
     
 
@@ -352,7 +354,7 @@ def anisotropy_noSigF(directory, inFile, cellSize, cAxis):
         print y_avg     
     
         
-    matplotlib.pyplot.figure(figsize=(20, 10))
+    matplotlib.pyplot.figure() #figsize=(20, 10))
     matplotlib.pyplot.scatter(qRods**2, y, s=2)
     matplotlib.pyplot.scatter(uniqueQrods**2, 
                               y_avgs,
@@ -366,7 +368,7 @@ def anisotropy_noSigF(directory, inFile, cellSize, cAxis):
     myAxes.set_xlim([-0.01,0.30]) # TO COMMENT....
     myAxes.set_xlabel(r'q$^{2}$$_{\rm rod}$ [A$^{-2}$]', fontsize=25) 
     myAxes.set_ylabel(r'ln[I$_{\rm obs}$/(I$_{\rm calc}$exp(-$\Delta$B$_{\rm 2D}$q$^{2}$$_{\rm 2D}$))]', fontsize=25) 
-    matplotlib.pyplot.savefig('%s/scatter.png'%directory, dpi=96)
+    matplotlib.pyplot.savefig('%s/Scatter.png'%directory, dpi=96*2)
     matplotlib.pyplot.close()  
     
  
@@ -377,7 +379,7 @@ if __name__ == "__main__":
 
 ###2D-SFX###    
     directory  = './Anisotropy'
-    inputFile  = 'MR_B_from_5b6v_refine_002_f_model_edited.txt'
+    inputFile  = 'model_no_anisotropicCorr_refine_001_f_model_ed.txt'
     outputFile = 'f_model_onlyBulkSolvent_B_from_5b6v.txt'
     cellSize   = 62.45     # A
     cAxis      = 180       # Double sampling!

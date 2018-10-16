@@ -85,10 +85,11 @@ def FW(low, high, rodIndices, inputFolder, cellSize, T, d, overSampling):
         braggRodObject = joblib.load('%s/braggRodObjects/braggRodObject_%d_%d.jbl'
                                       %(inputFolder, h, k))
         
-        experimental_q = braggRodObject.experimental_q
-        experimental_I = braggRodObject.experimental_I
+        #experimental_q = braggRodObject.experimental_q
+        #experimental_I = braggRodObject.experimental_I
         qMax = braggRodObject.qMax
         model_coefficients = braggRodObject.model_coefficients
+        model_coefficients_error = braggRodObject.model_coefficients_error
                
         ##########################
         samplingSpace = c_star/overSampling  
@@ -110,33 +111,38 @@ def FW(low, high, rodIndices, inputFolder, cellSize, T, d, overSampling):
                                                 c_star, 
                                                 T, 
                                                 d)
-                                
-                # STD DEVIATION WITHIN SHANNON BIN
-                qLeft  = q - samplingSpace/2
-                qRight = q + samplingSpace/2
-                
-                qs_bin = [experimental_q[i] for i in range(0, len(experimental_q))
-                                            if qLeft < experimental_q[i] < qRight]
-                Is_bin = [experimental_I[i] for i in range(0, len(experimental_q))
-                                            if qLeft < experimental_q[i] < qRight]
-                                                
-                sum_delta_sq = 0
-                N = 0
-                for i in range(0, len(qs_bin)):
-                    qobs = qs_bin[i]
-                    Iobs = Is_bin[i]
-                    Imodel = shannon_model.sinc_function(qobs, 
-                                                         model_coefficients, 
-                                                         (len(model_coefficients)-1)/2, 
+                sigma_I = shannon_model.sigma_I_function(q, 
+                                                         model_coefficients_error, 
+                                                         (len(model_coefficients_error)-1)/2, 
                                                          c_star, 
                                                          T, 
-                                                         d)
-                    delta_sq = (Iobs-Imodel)**2
-                    sum_delta_sq = sum_delta_sq + delta_sq
-                    N = N+1
-                    
-                # Formula for the std dev of sample mean
-                sigma_I = numpy.sqrt(sum_delta_sq)/N   
+                                                         d)             
+                # STD DEVIATION WITHIN SHANNON BIN
+#                qLeft  = q - samplingSpace/2
+#                qRight = q + samplingSpace/2
+#                
+#                qs_bin = [experimental_q[i] for i in range(0, len(experimental_q))
+#                                            if qLeft < experimental_q[i] < qRight]
+#                Is_bin = [experimental_I[i] for i in range(0, len(experimental_q))
+#                                            if qLeft < experimental_q[i] < qRight]
+#                                                
+#                sum_delta_sq = 0
+#                N = 0
+#                for i in range(0, len(qs_bin)):
+#                    qobs = qs_bin[i]
+#                    Iobs = Is_bin[i]
+#                    Imodel = shannon_model.sinc_function(qobs, 
+#                                                         model_coefficients, 
+#                                                         (len(model_coefficients)-1)/2, 
+#                                                         c_star, 
+#                                                         T, 
+#                                                         d)
+#                    delta_sq = (Iobs-Imodel)**2
+#                    sum_delta_sq = sum_delta_sq + delta_sq
+#                    N = N+1
+#                    
+#                # Formula for the std dev of sample mean
+#                sigma_I = numpy.sqrt(sum_delta_sq)/N   
                 
                 correction = (sigma_I**2)/binAvgI
                 I_corrected = I - correction

@@ -804,7 +804,7 @@ def processing(myArguments):
                     orderedIntegratedIntensities[i,0]=h_data[i]
                     orderedIntegratedIntensities[i,1]=k_data[i]
                     orderedIntegratedIntensities[i,2]=qRod_data[i]
-                    orderedIntegratedIntensities[i,3]=Ic_data[i]
+                    orderedIntegratedIntensities[i,3]=Ic_data[i]               # PHOTONS, LP-CORRECTED
                     orderedIntegratedIntensities[i,4]=1                        # flag
                     orderedIntegratedIntensities[i,5]=iIndex_data[i]
                     orderedIntegratedIntensities[i,6]=jIndex_data[i]

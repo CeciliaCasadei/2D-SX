@@ -7,12 +7,11 @@ import matplotlib
 matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot
 import numpy
-#from numpy.polynomial import polynomial as P
+
 
 
 import braggRodClass
 import makeOrbits
-#from model_poly_order import poly_order
 
 
 def mergingFunction(myArguments):
@@ -46,11 +45,7 @@ def mergingFunction(myArguments):
     rodsFolder = '%s/braggRodObjects'%inputFolder
     if not os.path.exists(rodsFolder):
         os.mkdir(rodsFolder)
-#    if not os.path.exists('%s/intensitiesAtZero'%inputFolder):
-#        os.mkdir('%s/intensitiesAtZero'%inputFolder)
-#    if not os.path.exists('%s/model'%inputFolder):
-#        os.mkdir('%s/model'%inputFolder)
-        
+
     # DEFINE ROD INDICES       
     orbits = makeOrbits.makeOrbitsFunction(resolutionLimit)
     rodIndices = []
@@ -61,29 +56,32 @@ def mergingFunction(myArguments):
         
     print '%d Rods'%len(rodIndices)   
                   
-#    IsAtZero = numpy.zeros(shape=(len(rodIndices), 3))
-#    lattice_model = []
-    nPos = 0
-    nNeg = 0
-    rodNumber = 0   
-    # PLOT I vs QROD, FOR EVERY ROD, AND PRODUCE MODEL (POLYNOMIAL FIT)    
+    # PLOT I vs QROD, FOR EVERY ROD
     for indices in rodIndices:
         print '\n\n************************\nRod: %s'%indices
         hRod = indices[0]
         kRod = indices[1]
-        Qrod_vector = []
-        Irod_vector = []
+        Qrod_vector  = []
+        Irod_vector  = []
+        dIrod_vector = []
         
-        # FOR EVERY ROD, COLLECT (QROD, I) POINTS FROM ALL RUNS 
+        # FOR EVERY ROD, COLLECT (QROD, I, dI) POINTS FROM ALL RUNS 
         for runNumber in runNumbers:
             print 'Extracting (qRod, I) points from run %s'%runNumber
             listDirectory = '%s/spotsMatricesList-Scaled-r%s'%(inputFolder, 
                                                                runNumber)
-            myList = joblib.load('%s/r%s_scaledSpotsMatricesList.jbl'
+            myList = joblib.load('%s/r%s_scaledSpotsMatricesList_error.jbl'
                                   %(listDirectory, runNumber))
         
-            for latticeMatrix in myList: # h k qRod I flag
-                latticeMatrix = numpy.asarray(latticeMatrix)
+            for latticeMatrix in myList: 
+                latticeMatrix = numpy.asarray(latticeMatrix) # h 
+                                                             # k 
+                                                             # qRod 
+                                                             # I (Photons, LP-corrected, scaled)
+                                                             # flag
+                                                             # i (unassembled matrix)
+                                                             # j (unassembled matrix)
+                                                             # dI
                 if latticeMatrix[0, 4] == 1:
                     for spot in latticeMatrix:
                         h = spot[0]
@@ -91,45 +89,33 @@ def mergingFunction(myArguments):
                         if ((h == hRod       and k == kRod) or 
                             (h == -hRod-kRod and k == hRod) or 
                             (h == kRod       and k == -hRod-kRod)):
-                            Irod_vector.append(spot[3])
                             Qrod_vector.append(spot[2])
-                            if spot[3] >= 0:
-                                nPos = nPos+1
-                            else:
-                                nNeg = nNeg+1
+                            Irod_vector.append(spot[3])
+                            dIrod_vector.append(spot[7])
+                            
+                            
                         if ((h == -hRod     and k == -kRod) or 
                             (h == hRod+kRod and k == -hRod) or 
-                            (h == -kRod     and k == hRod+kRod)):
-                            Irod_vector.append(spot[3])
+                            (h == -kRod     and k == hRod+kRod)):                            
                             Qrod_vector.append(-spot[2])
-                            if spot[3] >= 0:
-                                nPos = nPos+1
-                            else:
-                                nNeg = nNeg+1
+                            Irod_vector.append(spot[3])
+                            dIrod_vector.append(spot[7])
+                        
+                        #print spot[3], spot[7]
+                            
          
-        # REMOVE NAN VALUES
-        cleanedList_Irod = [Irod_vector[i] for i in range(0, len(Irod_vector)) 
-                                           if not numpy.isnan(Irod_vector[i])]
-        cleanedList_Qrod = [Qrod_vector[i] for i in range(0, len(Irod_vector)) 
-                                           if not numpy.isnan(Irod_vector[i])]
+        # REMOVE NAN VALUES (Coming from Is whose integration area is not in one detector module)
+        cleanedList_Irod  = [Irod_vector[i]  for i in range(0, len(Irod_vector)) 
+                                             if not numpy.isnan(Irod_vector[i])]
+        cleanedList_Qrod  = [Qrod_vector[i]  for i in range(0, len(Irod_vector)) 
+                                             if not numpy.isnan(Irod_vector[i])]
+        cleanedList_dIrod = [dIrod_vector[i] for i in range(0, len(Irod_vector)) 
+                                             if not numpy.isnan(Irod_vector[i])]
                 
-#        # POLYNOMIAL FIT ORDER
-#        n = int(poly_order['[%s, %s]'%(hRod, kRod)])
-#        
-#        # POLYNOMIAL FIT
-#        c, stats = P.polyfit(cleanedList_Qrod, cleanedList_Irod, n, full=True) 
         Qrod_min = min(cleanedList_Qrod)
         Qrod_max = max(cleanedList_Qrod)
-#        x_fit = numpy.linspace(Qrod_min, Qrod_max, 
-#                               num=(Qrod_max-Qrod_min)/0.001, 
-#                               endpoint = True)
-#        y_fit = numpy.zeros(shape=x_fit.shape)
-#        for exponent in range(0, n+1):
-#            y_fit = y_fit + c[exponent]*(x_fit**exponent)
-#            
-#        for i in range(0, len(x_fit)):
-#            spot_model = [int(hRod), int(kRod), x_fit[i], y_fit[i]] # h k qRod I
-#            lattice_model.append(spot_model)
+
+
                
         # PLOT BRAGG ROD
         matplotlib.pyplot.scatter(cleanedList_Qrod, 
@@ -138,7 +124,6 @@ def mergingFunction(myArguments):
                                   color='c', 
                                   alpha = 0.15, 
                                   s=10)
-        #matplotlib.pyplot.plot(x_fit, y_fit, '.b-')
         myAxis = matplotlib.pyplot.gca()
         matplotlib.pyplot.axhline(y=0,  linewidth=0.5, color = 'b')
         matplotlib.pyplot.axhline(y=10, linewidth=0.5, color = 'b')
@@ -153,12 +138,9 @@ def mergingFunction(myArguments):
                                      hRod, 
                                      kRod))
         matplotlib.pyplot.close()
-        
-        # COLLECT I(qRod = 0)
-#        IsAtZero[rodNumber, 0]= hRod
-#        IsAtZero[rodNumber, 1]= kRod
-#        IsAtZero[rodNumber, 2]= c[0]
-        
+    
+
+    
         # GENERATE braggRod OBJECT
         braggRodObject = braggRodClass.braggRod(hRod, 
                                                 kRod, 
@@ -166,23 +148,13 @@ def mergingFunction(myArguments):
                                                 Qrod_max)
         braggRodObject.setExperimentalPoints(cleanedList_Qrod, 
                                              cleanedList_Irod)
-#        braggRodObject.setModelPoints(x_fit, 
-#                                      y_fit)
-#        braggRodObject.setModelCoefficients(c)
+        
+        braggRodObject.setExperimentalErrors(cleanedList_dIrod)
+
         joblib.dump(braggRodObject, '%s/braggRodObject_%d_%d.jbl'
                                      %(rodsFolder, hRod, kRod))
                                      
-        rodNumber = rodNumber + 1
-        
-#    lattice_model = numpy.asarray(lattice_model, dtype=numpy.float32)
-#            
-#    joblib.dump(IsAtZero, 
-#                '%s/intensitiesAtZero/intensitiesAtZero.jbl'%inputFolder)
-#    joblib.dump(lattice_model, 
-#                '%s/model/lattice_model.jbl'%inputFolder)
-    print 'N_NEG / N_TOT = %d/%d = %.2f'%(nNeg, 
-                                          nPos+nNeg, 
-                                          float(nNeg)/(nPos+nNeg))
+   
 
 if __name__ == "__main__":
     print "\n**** CALLING merging ****"

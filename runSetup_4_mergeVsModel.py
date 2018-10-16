@@ -7,6 +7,29 @@ flag = 0
 if flag == 1:
     os.system('python model_applyScales.py')
     
+
+# CALCULATE INDIVIDUAL ERRORS
+clusterPath = '/mnt/das-gpfs/home/casadei_c/work/casadei' 
+#clusterPath = '/afs/psi.ch/group/0620/casadei/2D-MX'
+imagesDirectoryPath = '%s/UNIX_@_LCLS'%clusterPath
+geometryFile = '%s/Geometry/geometry.h5'%clusterPath # same for all runs
+nominalCell = 62.45        # A
+wavelength = 1.48          # A
+detectorDistance = 0.285   # m
+
+flag = 0
+if flag == 1:
+    os.system('python calculate_individualErrors.py --imagesDirectoryPath %s \
+                                                    --geometryFile %s \
+                                                    --nominalCell %f \
+                                                    --wavelength %f \
+                                                    --detectorDistance %f'
+                                                     %(imagesDirectoryPath,
+                                                       geometryFile,
+                                                       nominalCell,
+                                                       wavelength,
+                                                       detectorDistance))
+
     
 # PLOT MERGED RODS, DO POLYNOMIAL FIT.
 inputFolder = './Output_runMergingVsModel'
@@ -14,7 +37,7 @@ resolutionLimit = 6.0
 
 flag = 0
 if flag == 1:
-    os.system('python merging.py --inputFolder %s --resolutionLimit %f'
+    os.system('python merging_withError.py --inputFolder %s --resolutionLimit %f'
               %(inputFolder, resolutionLimit))
               
               
@@ -25,7 +48,7 @@ damping = 0                # 80
 
 flag = 0
 if flag == 1:
-    os.system('python rodsFit_shannonTheo.py \
+    os.system('python rodsFit_shannonTheo_error.py \
                --resolutionLimit %f \
                --thickness %f \
                --damping %f \
@@ -65,7 +88,7 @@ if flag == 1:
                                              
                                              
 # CALCULATE CChalf
-overSampling = 1
+overSampling = 4
 
 flag = 0
 if flag == 1:
@@ -115,7 +138,7 @@ if flag == 1:
  
     
     
-flag = 1
+flag = 0
 if flag == 1:
     os.system('python printValuesToMR_shuffled.py --overSampling %d'
                                                    %overSampling)   
@@ -123,7 +146,7 @@ if flag == 1:
     
     
 # FIGURES
-flag = 0
+flag = 1
 if flag == 1:
     os.system('python shannonModel_compare.py --resolutionLimit %f \
                                               --thickness %f \

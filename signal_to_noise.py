@@ -11,27 +11,9 @@ import h5py
 from mpl_toolkits.axes_grid1 import make_axes_locatable 
 
 import imageSums_utilities
-
-def buildMasks(sector, multiplicative_factor, sigma_x, sigma_y):
-    # PREPARE INTEGRATION MASK (ELLIPSE) AND RING MASK (ELLIPTICAL RING)
-    integrationMask = numpy.zeros((sector.shape))   
-    ringMask        = numpy.zeros((sector.shape)) 
-    
-    colIdx, rowIdx = numpy.meshgrid(numpy.arange(integrationMask.shape[1]), numpy.arange(integrationMask.shape[0]))
-    x_axis = multiplicative_factor * sigma_x
-    y_axis = multiplicative_factor * sigma_y
-    centerX = integrationMask.shape[1] / 2
-    centerY = integrationMask.shape[0] / 2
-    distance = ((rowIdx-centerY)**2)/(y_axis**2) + ((colIdx-centerX)**2)/(x_axis**2)
-    
-    integrationMask[numpy.where(distance < 1)] = 1
-    ringMask[numpy.where(distance > 1.5)] = 1
-    ringMask[numpy.where(distance > 3.5)] = 0 #was 2.1
-    
-    return integrationMask, ringMask
+from buildMasks_module import buildMasks
 
 
-###################
 def signalToNoise():
     
     ###        
@@ -204,7 +186,8 @@ def signalToNoise():
                             diff = ring_pxl - avg_integratedRing
                             sq = diff**2
                             sum_sq = sum_sq + sq
-                        
+                     
+                    # TO BE CORRECTED! LOOK AT calculate_individualErrors.py
                     var_ring_pix_img = sum_sq/n                   
                     var_ring_pix_img_list.append(var_ring_pix_img)
         

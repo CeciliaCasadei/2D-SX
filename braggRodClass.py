@@ -21,11 +21,21 @@ class braggRod:
         
         
         
-    def setModelCoefficients(self, polyCoefficients):
-        self.model_coefficients = polyCoefficients
+    def setModelCoefficients(self, coefficients):
+        self.model_coefficients = coefficients
         
         
         
     def plotModel(self):
         import plotModel
         plotModel.plotModelFunction(self)
+
+
+        
+    def setExperimentalErrors(self, experimental_dI):
+        self.experimental_dI = experimental_dI
+        
+        
+        
+    def setModelCoefficients_error(self, coefficients_error):
+        self.model_coefficients_error = coefficients_error
