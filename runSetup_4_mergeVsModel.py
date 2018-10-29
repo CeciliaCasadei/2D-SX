@@ -9,8 +9,7 @@ if flag == 1:
     
 
 # CALCULATE INDIVIDUAL ERRORS
-clusterPath = '/mnt/das-gpfs/home/casadei_c/work/casadei' 
-#clusterPath = '/afs/psi.ch/group/0620/casadei/2D-MX'
+clusterPath = '/das/work/p17/p17340/Cecilia_Casadei/2D-SFX/'
 imagesDirectoryPath = '%s/UNIX_@_LCLS'%clusterPath
 geometryFile = '%s/Geometry/geometry.h5'%clusterPath # same for all runs
 nominalCell = 62.45        # A

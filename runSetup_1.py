@@ -24,8 +24,9 @@ if not os.path.exists(outFolder):
 # CHECK CHEETAH PREPROCESSING RESULTS
 # python checkH5content.py --runNumber <runNumber> --label <label>
 
-clusterPath = '/mnt/das-gpfs/home/casadei_c/work/casadei' 
-#clusterPath = '/afs/psi.ch/group/0620/casadei/2D-MX'
+
+
+clusterPath = '/das/work/p17/p17340/Cecilia_Casadei/2D-SFX'
 
 # MAKE IMAGE LIST
 imagesDirectoryName = '%s/UNIX_@_LCLS/r%s-images/data1'%(clusterPath, runNumber)
@@ -136,9 +137,12 @@ azimuthTolerance      = 3      # degrees
 minNofPeaksPerLattice = 18     # int
 maxNofPeaksPerImage   = 250    # int
 
-indexingDirectory = './Output_r%s/LatticeIndexing'%runNumber
+indexingDirectory = '%s/LatticeIndexing'%outFolder
 
+### INSTRUCTIONS TO USE MPI ###
+# AT THE BEGINNING:
 # salloc -N 5 -p day
+# AT THE END:
 # exit        
 flag = 0
 if flag == 1:   
@@ -191,7 +195,7 @@ nOrientationRefSteps     = 21
 widthSizeRefSteps        = 0.004
 widthOrientationRefSteps = 0.2
 
-refinementFolder = './Output_r%s/OrientationAndCellRefinement'%runNumber
+refinementFolder = '%s/OrientationAndCellRefinement'%outFolder
     
 flag = 0
 if flag == 1:
