@@ -16,3 +16,7 @@ calculate_qRod_max
 geometry_check
 patternSymmetry
 F_calc_phenix
+Anisotropy
+Anisotropy_1brd
+Anisotropy_5b6v
+Simulate_completeness
