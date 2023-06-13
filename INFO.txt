@@ -1,1 +1,12 @@
 Publications:
+
+
+Casadei, C. M. et al., IUCrJ (2018),
+Resolution extension by image summing in serial femtosecond crystallography of two-dimensional membrane-protein crystals
+https://doi.org/10.1107/S2052252517017043
+
+
+Casadei, C. M. et al., IUCrJ (2019),
+Structure-factor amplitude reconstruction from serial femtosecond crystallography of two-dimensional membrane-protein crystals
+https://doi.org/10.1107/S2052252518014641
+
